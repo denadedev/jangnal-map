@@ -1,0 +1,23 @@
+{
+  "name": "jangnal-market-data-audit",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "audit": "tsx src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "csv-parse": "^6.1.0",
+    "iconv-lite": "^0.7.0",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "packageManager": "pnpm@10.33.0"
+}
+

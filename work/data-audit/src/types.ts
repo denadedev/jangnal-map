@@ -34,5 +34,5 @@ export interface NormalizedMarket {
   homepageUrl: string | null;
   referenceDate: string | null;
   status: "운영" | "폐장";
+  statusVerified: boolean;
 }
-

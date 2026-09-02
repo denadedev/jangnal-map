@@ -18,6 +18,7 @@ const market = (overrides: Partial<NormalizedMarket>): NormalizedMarket => ({
   homepageUrl: null,
   referenceDate: "2025-11-10",
   status: "운영",
+  statusVerified: false,
   ...overrides,
 });
 
@@ -25,7 +26,7 @@ describe("analyzeMarkets", () => {
   it("장날 후보·유효 좌표·해석 가능 일정·게시 가능 행을 구분한다", () => {
     const result = analyzeMarkets([
       market({ name: "정상오일장", marketType: "상설장+5일장", scheduleRaw: "1일+6일" }),
-      market({ name: "상설시장" }),
+      market({ name: "상설시장", latitude: null, longitude: null }),
       market({ name: "좌표누락", scheduleRaw: "2일+7일", latitude: null, longitude: null }),
       market({ name: "규칙예외", scheduleRaw: "2일+5일" }),
       market({ name: "범위이탈", scheduleRaw: "3일+8일", latitude: 10, longitude: 20 }),
@@ -35,12 +36,15 @@ describe("analyzeMarkets", () => {
       totalRows: 5,
       dailyMarkets: 1,
       periodicCandidates: 4,
+      allValidCoordinates: 2,
       validCoordinates: 2,
       parseableSchedules: 3,
       publishableRows: 1,
     });
     expect(result.unknownScheduleCounts).toEqual([{ raw: "2일+5일", count: 1 }]);
-    expect(result.invalidCoordinateMarkets.map(({ name }) => name)).toEqual(["좌표누락", "범위이탈"]);
+    expect(result.unknownScheduleMarkets).toEqual([{ name: "규칙예외", raw: "2일+5일" }]);
+    expect(result.invalidCoordinateMarkets.map(({ name }) => name)).toEqual(["상설시장", "좌표누락", "범위이탈"]);
+    expect(result.invalidCandidateCoordinateMarkets.map(({ name }) => name)).toEqual(["좌표누락", "범위이탈"]);
   });
 
   it("공백을 무시한 같은 시장명과 주소를 중복 후보로 묶는다", () => {

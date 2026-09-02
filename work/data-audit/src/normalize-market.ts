@@ -30,5 +30,6 @@ export function normalizeMarket(raw: RawMarket): NormalizedMarket {
     homepageUrl: nullableText(raw.홈페이지주소),
     referenceDate: nullableText(raw.데이터기준일자),
     status: "운영",
+    statusVerified: false,
   };
 }

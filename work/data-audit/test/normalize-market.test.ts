@@ -17,6 +17,7 @@ describe("normalizeMarket", () => {
       products: ["농산물"],
       hasParking: true,
       status: "운영",
+      statusVerified: false,
     });
   });
 

@@ -5,6 +5,7 @@ export interface AuditResult {
   totalRows: number;
   dailyMarkets: number;
   periodicCandidates: number;
+  allValidCoordinates: number;
   validCoordinates: number;
   parseableSchedules: number;
   publishableRows: number;
@@ -18,8 +19,14 @@ export interface AuditResult {
   marketTypeCounts: Array<{ value: string; count: number }>;
   scheduleCounts: Array<{ value: string; count: number }>;
   unknownScheduleCounts: Array<{ raw: string; count: number }>;
+  unknownScheduleMarkets: Array<{ name: string; raw: string }>;
   duplicateCandidates: Array<{ key: string; names: string[] }>;
   invalidCoordinateMarkets: Array<{ name: string; latitude: number | null; longitude: number | null }>;
+  invalidCandidateCoordinateMarkets: Array<{
+    name: string;
+    latitude: number | null;
+    longitude: number | null;
+  }>;
   regionCounts: Array<{ region: string; candidates: number; publishable: number }>;
 }
 
@@ -32,7 +39,7 @@ const countValues = (values: string[]): Array<{ value: string; count: number }> 
     .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value, "ko"));
 };
 
-const hasValidCoordinates = (market: NormalizedMarket): boolean =>
+export const hasValidCoordinates = (market: NormalizedMarket): boolean =>
   market.latitude !== null &&
   market.longitude !== null &&
   market.latitude >= 33 &&
@@ -40,20 +47,21 @@ const hasValidCoordinates = (market: NormalizedMarket): boolean =>
   market.longitude >= 124 &&
   market.longitude <= 132;
 
-const isPeriodicCandidate = (market: NormalizedMarket): boolean => {
+export const isPeriodicCandidate = (market: NormalizedMarket): boolean => {
   if (/\d일장/.test(market.marketType)) return true;
   if (!market.scheduleRaw) return false;
   return parseSchedule(market.scheduleRaw).kind !== "daily";
 };
+
+export const isPublishableMarket = (market: NormalizedMarket): boolean =>
+  isPeriodicCandidate(market) && parseSchedule(market.scheduleRaw).kind === "digit-pair" && hasValidCoordinates(market);
 
 const compact = (value: string): string => value.replaceAll(/\s/g, "");
 
 export function analyzeMarkets(markets: NormalizedMarket[]): AuditResult {
   const candidates = markets.filter(isPeriodicCandidate);
   const parsedCandidates = candidates.map((market) => ({ market, schedule: parseSchedule(market.scheduleRaw) }));
-  const publishable = parsedCandidates.filter(
-    ({ market, schedule }) => schedule.kind === "digit-pair" && hasValidCoordinates(market),
-  );
+  const publishable = candidates.filter(isPublishableMarket);
 
   const duplicateGroups = new Map<string, string[]>();
   for (const market of markets) {
@@ -81,6 +89,7 @@ export function analyzeMarkets(markets: NormalizedMarket[]): AuditResult {
     totalRows: markets.length,
     dailyMarkets: markets.filter((market) => parseSchedule(market.scheduleRaw).kind === "daily").length,
     periodicCandidates: candidates.length,
+    allValidCoordinates: markets.filter(hasValidCoordinates).length,
     validCoordinates: candidates.filter(hasValidCoordinates).length,
     parseableSchedules: parsedCandidates.filter(({ schedule }) => schedule.kind === "digit-pair").length,
     publishableRows: publishable.length,
@@ -94,11 +103,17 @@ export function analyzeMarkets(markets: NormalizedMarket[]): AuditResult {
     marketTypeCounts: countValues(markets.map((market) => market.marketType)),
     scheduleCounts: countValues(markets.map((market) => market.scheduleRaw ?? "")),
     unknownScheduleCounts,
+    unknownScheduleMarkets: parsedCandidates.flatMap(({ market, schedule }) =>
+      schedule.kind === "unknown" ? [{ name: market.name, raw: schedule.raw }] : [],
+    ),
     duplicateCandidates: [...duplicateGroups.entries()]
       .filter(([, names]) => names.length > 1)
       .map(([key, names]) => ({ key, names }))
       .sort((a, b) => a.key.localeCompare(b.key, "ko")),
-    invalidCoordinateMarkets: candidates
+    invalidCoordinateMarkets: markets
+      .filter((market) => !hasValidCoordinates(market))
+      .map(({ name, latitude, longitude }) => ({ name, latitude, longitude })),
+    invalidCandidateCoordinateMarkets: candidates
       .filter((market) => !hasValidCoordinates(market))
       .map(({ name, latitude, longitude }) => ({ name, latitude, longitude })),
     regionCounts: [...regions.entries()]

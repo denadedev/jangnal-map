@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "audit": "tsx src/cli.ts",
+    "generate": "tsx src/generate-public-markets.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
@@ -20,4 +21,3 @@
   },
   "packageManager": "pnpm@10.33.0"
 }
-

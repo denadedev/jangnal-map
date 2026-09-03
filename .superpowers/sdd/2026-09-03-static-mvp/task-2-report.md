@@ -95,3 +95,64 @@ Route (app): / and /_not-found
 
 - 장날 규칙은 공개 데이터 계약처럼 `digit-pair`만 받는다. 비정형 주기나 매일 장은 Task 1에서 공개 JSON에서 제외되어 이 함수의 범위 밖이다.
 - 로컬 달력 기준으로 계산하므로 날짜 입력은 UI가 사용자 로컬 날짜로 만들도록 유지해야 한다.
+
+## 리뷰 수정 라운드 1 — 재현 가능한 Next 타입 생성
+
+### 원인 확인
+
+`next-env.d.ts`는 Next.js가 생성하는 `.next/types/routes.d.ts`와 `.next/types/root-params.d.ts`를 참조한다. 기존 `typecheck` 스크립트는 `tsc --noEmit`만 실행했으므로, 새 checkout처럼 `.next`가 없는 상태에서 경로 타입을 명시적으로 생성하지 않았다.
+
+참고로 이 환경에서는 아래 재현 명령의 기존 `tsc --noEmit`가 종료 코드 0으로 끝났다. TypeScript가 누락된 `.d.ts` import를 진단하지 않은 것이다. 이는 실패 여부와 관계없이 Next 경로 타입 생성을 생략한다는 구성 결함을 해소하지 못한다.
+
+```text
+rm -rf apps/web/.next
+pnpm --filter @jangnal-map/web typecheck
+```
+
+### 수정
+
+Next.js 16.3.4의 내장 명령을 사용해 웹 앱의 `typecheck`를 다음 순서로 바꿨다.
+
+```text
+next typegen && tsc --noEmit
+```
+
+`next-env.d.ts`는 Next 프레임워크가 생성한 내용을 그대로 유지했고, 수동 변경하지 않았다. 패키지 스크립트는 동작 산출물이 아니므로 텍스트 검사 테스트는 추가하지 않았다.
+
+### 새 생성 상태 검증
+
+무시된 생성 산출물 `apps/web/.next`만 삭제한 뒤 아래 명령을 실행했다.
+
+```text
+rm -rf apps/web/.next && pnpm --filter @jangnal-map/web typecheck
+```
+
+결과:
+
+```text
+next typegen && tsc --noEmit
+Generating route types...
+✓ Types generated successfully
+Exit status 0
+```
+
+같은 검증 순서에서 실행한 전체 확인 결과:
+
+```text
+pnpm test
+apps/web: Test Files 1 passed (1), Tests 6 passed (6)
+work/data-audit: Test Files 6 passed (6), Tests 25 passed (25)
+
+pnpm build
+Next.js 16.3.4 production build exit code 0
+/ is statically prerendered
+```
+
+마지막으로 `.next`를 다시 삭제한 상태에서 루트 스크립트도 실행했다.
+
+```text
+rm -rf apps/web/.next && pnpm typecheck
+apps/web: next typegen && tsc --noEmit — Types generated successfully
+work/data-audit: tsc --noEmit
+Exit status 0
+```

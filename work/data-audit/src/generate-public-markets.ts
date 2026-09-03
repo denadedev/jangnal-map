@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { createHash } from "node:crypto";
 
 import { isPublishableMarket } from "./analyze.js";
 import { normalizeMarket } from "./normalize-market.js";
@@ -11,6 +12,7 @@ const SOURCE_NAME = "공공데이터포털 전국전통시장표준데이터";
 const SOURCE_URL = "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y";
 
 export interface PublicMarket {
+  id: string;
   name: string;
   marketType: string;
   roadAddress: string | null;
@@ -38,7 +40,10 @@ const publicMarket = (raw: RawMarket, market: NormalizedMarket): PublicMarket | 
   if (schedule.kind !== "digit-pair" || market.latitude === null || market.longitude === null) return null;
 
   const referenceDate = market.referenceDate ?? (raw.데이터기준일자.trim() || null);
+  const identity = [market.name, market.roadAddress ?? "", market.lotAddress ?? "", market.latitude, market.longitude, market.scheduleRaw].join("|");
+  const id = `market-${createHash("sha256").update(identity, "utf8").digest("hex").slice(0, 16)}`;
   return {
+    id,
     name: market.name,
     marketType: market.marketType,
     roadAddress: market.roadAddress,
@@ -56,11 +61,8 @@ const publicMarket = (raw: RawMarket, market: NormalizedMarket): PublicMarket | 
   };
 };
 
-export function generatePublicMarkets(rawRows: RawMarket[], normalizedRows: NormalizedMarket[]): PublicMarket[] {
-  return normalizedRows.flatMap((market, index) => {
-    const raw = rawRows[index];
-    return raw ? (publicMarket(raw, market) ?? []) : [];
-  });
+export function generatePublicMarkets(rawRows: RawMarket[]): PublicMarket[] {
+  return rawRows.flatMap((raw) => publicMarket(raw, normalizeMarket(raw)) ?? []);
 }
 
 const valueAfter = (flag: string): string => {
@@ -77,7 +79,7 @@ if (process.argv[1]?.endsWith("generate-public-markets.ts")) {
   if (encoding !== "utf8" && encoding !== "euc-kr") throw new Error("--encoding은 utf8 또는 euc-kr이어야 합니다");
 
   const rawRows = await readMarketsCsv(input, encoding);
-  const markets = generatePublicMarkets(rawRows, rawRows.map(normalizeMarket));
+  const markets = generatePublicMarkets(rawRows);
   await mkdir(dirname(output), { recursive: true });
   await writeFile(output, `${JSON.stringify(markets, null, 2)}\n`, "utf8");
   console.log(JSON.stringify({ rows: markets.length, output }));

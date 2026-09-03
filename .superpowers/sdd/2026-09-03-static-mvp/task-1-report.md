@@ -1,127 +1,161 @@
-# 전국전통시장 데이터 조사 결과
+# Task 1 구현 보고서 — 공개 시장 JSON 생성
 
-- 조사일: 2026-09-02
-- 원천: [공공데이터포털 전국전통시장표준데이터](https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y)
-- 원본 레코드: 1393
+## 구현 내용
 
-## 결론
+- `generatePublicMarkets(rawRows, normalizedRows): PublicMarket[]` 생성기를 추가했다.
+- 기존 `isPublishableMarket` 판정(주기형 장날, 파싱 가능한 5일 간격 규칙, 유효한 국내 좌표)을 재사용해 게시 대상만 남긴다.
+- 공개 일정은 `parseSchedule` 결과를 사용하며, `5일+10일`의 두 번째 끝값 `10`을 달력용 `0`으로 변환한다.
+- 공개 레코드에는 시장명·시장 유형·주소·좌표·원문 일정·정규화 일정·전화·주차·운영 상태·원천 정보를 포함한다.
+- `generate` 스크립트로 공식 EUC-KR CSV에서 `apps/web/public/data/markets.json`을 생성할 수 있게 했다.
 
-**사용 가능**
+## TDD 증거
 
-공개 가능 비율은 장날 후보 411개 중 400개, 97.3%다. 좌표와 장날 규칙이 모두 검증된 개별 시장만 지도 공개 대상으로 삼는다.
+### RED
 
-## 전체 현황
+먼저 fixture 테스트를 작성하고 다음 명령을 실행했다.
 
-- 전체 시장: 1393
-- 매일 운영 표기: 982
-- 장날 후보: 411
-- 바로 게시 가능한 시장: 400/411 (97.3%)
+```text
+pnpm test -- generate-public-markets.test.ts
+```
 
-## 데이터 품질
+실패 결과:
 
-- 전체 시장의 유효 좌표: 1377/1393 (98.9%)
-- 장날 후보의 유효 좌표: 402/411 (97.8%)
-- 장날 파싱 가능률: 409/411 (99.5%)
-- 중복 후보 그룹: 0
-- 주소 채움률: 1393/1393 (100.0%)
-- 전화번호 채움률: 850/1393 (61.0%)
-- 주차정보 채움률: 1393/1393 (100.0%)
-- 홈페이지 채움률: 64/1393 (4.6%)
-- 데이터 기준일 채움률: 1393/1393 (100.0%)
+```text
+FAIL test/generate-public-markets.test.ts
+Error: Cannot find module '../src/generate-public-markets.js'
+Test Files 1 failed | 5 passed (6)
+Tests 22 passed (22)
+```
 
-## 운영 상태 한계
+이는 생성기 모듈이 아직 존재하지 않아 테스트가 의도한 기능 부재로 실패한 결과다. 테스트는 `5일+10일` fixture 행이 게시되고 `[5, 0]`이 되는지, `매일` 행은 제외되는지를 검증하도록 작성했다.
 
-- 원본에는 운영·폐장 상태 필드가 없다.
-- 정규화 샘플의 상태는 데이터 모델 제약에 따라 운영으로 두되 statusVerified: false로 표시한다.
-- 최초 적재 또는 공개 전에 별도 출처로 폐장 여부를 확인해야 한다.
+### GREEN
 
-## 시장 유형 분포
+생성기 구현 후 다음 focused 명령이 통과했다.
 
-- 상설장: 1135
-- 상설장+3일장: 60
-- 상설장+4일장: 57
-- 상설장+5일장: 54
-- 5일장: 33
-- 4일장: 30
-- 3일장: 24
+```text
+pnpm test -- generate-public-markets.test.ts
+```
 
-## 장날 원문 분포
+결과: Test Files 6 passed (6), Tests 23 passed (23)
 
-- 매일: 982
-- 2일+7일: 87
-- 4일+9일: 86
-- 5일+10일: 86
-- 3일+8일: 84
-- 1일+6일: 66
-- 2일+4일+7일+9일: 1
-- 2일+5일: 1
+```text
+pnpm typecheck
+```
 
-## 파싱 불가능한 장날 원문
+결과: `tsc --noEmit` 종료 코드 0
 
-- 2일+4일+7일+9일: 1
-- 2일+5일: 1
+## 공식 데이터 생성 및 불변조건
 
-### 수동 확인 대상 시장
+생성 명령:
 
-- 삽교시장: 2일+5일
-- 말바우시장: 2일+4일+7일+9일
+```text
+pnpm generate --input data/raw/markets.csv --encoding euc-kr --output ../../apps/web/public/data/markets.json
+```
 
-## 좌표 보완 대상
+결과:
 
-- 의정부청과야채시장: 위도 없음, 경도 없음
-- 영월종합상가시장: 위도 없음, 경도 없음
-- 함열시장: 위도 없음, 경도 없음
-- 신영주번개시장: 위도 없음, 경도 없음
-- 대전도매시장: 위도 없음, 경도 없음
-- 수정전통시장: 위도 없음, 경도 없음
-- 부림시장: 위도 없음, 경도 없음
-- 창녕상설시장: 위도 없음, 경도 없음
-- 이방정기시장: 위도 없음, 경도 없음
-- 가음대상가: 위도 없음, 경도 없음
-- 옥종공설시장: 위도 없음, 경도 없음
-- 경화시장: 위도 없음, 경도 없음
-- 해평공설시장: 위도 없음, 경도 없음
-- 함창시장: 위도 없음, 경도 없음
-- 영양시장: 위도 없음, 경도 없음
-- 안덕시장: 위도 없음, 경도 없음
+```json
+{"rows":400,"output":"../../apps/web/public/data/markets.json"}
+```
 
-## 중복 후보
+생성 JSON에 대해 별도 Node 검사를 실행했다.
 
-- 없음
+```text
+{"count":400,"badCoord":0,"badSchedule":0,"badTen":0}
+```
 
-## 권역별 장날 후보
+- 레코드 수: 400
+- null/비유효 좌표: 0
+- unknown 또는 비정형 일정: 0
+- `5일+10일` 중 `[5,0]`이 아닌 행: 0
 
-| 권역 | 후보 | 게시 가능 |
-|---|---:|---:|
-| 경상북도 | 79 | 75 |
-| 경상남도 | 69 | 65 |
-| 전라남도 | 63 | 63 |
-| 경기도 | 36 | 36 |
-| 충청남도 | 36 | 35 |
-| 전북특별차치도 | 34 | 33 |
-| 충청북도 | 31 | 31 |
-| 강원특별자치도 | 23 | 23 |
-| 울산광역시 | 11 | 11 |
-| 제주특별자치도 | 9 | 9 |
-| 대구광역시 | 8 | 8 |
-| 세종특별자치시 | 4 | 4 |
-| 광주광역시 | 3 | 2 |
-| 부산광역시 | 2 | 2 |
-| 대전광역시 | 1 | 1 |
-| 서울특별시 | 1 | 1 |
-| 인천광역시 | 1 | 1 |
+## 전체 검증
 
-## 수동 보완 예상량
+```text
+pnpm test
+```
 
-- 장날 또는 좌표 보완 대상: 11
-- 장날 원문 확인 대상: 2
-- 전체 좌표 확인 대상: 16
-- 장날 후보 좌표 확인 대상: 9
-- 중복 확인 그룹: 0
+결과: Test Files 6 passed (6), Tests 23 passed (23)
 
-## 서비스 진행 판정
+```text
+pnpm typecheck
+```
 
-- 판정: **사용 가능**
-- 사용 가능은 바로 게시 가능한 비율이 90% 이상임을 뜻한다.
-- 불완전한 개별 행은 전체 비율과 관계없이 자동 게시하지 않는다.
-- 실제 출처 대조 수동 검산을 통과한 뒤 최초 데이터베이스 적재로 진행한다.
+결과: `tsc --noEmit` 종료 코드 0
+
+```text
+git diff --check
+```
+
+결과: whitespace 오류 없음
+
+## 변경 파일
+
+- `work/data-audit/src/generate-public-markets.ts`
+- `work/data-audit/test/generate-public-markets.test.ts`
+- `work/data-audit/package.json`
+- `apps/web/public/data/markets.json`
+- `.superpowers/sdd/2026-09-03-static-mvp/task-1-report.md`
+
+구현 커밋: `9b59a3f feat: generate static public market data`
+
+## Self-review
+
+- 게시 대상 필터는 기존 감사 로직과 동일한 판정 함수를 사용한다.
+- 좌표와 일정은 타입 및 런타임 재검사로 공개 데이터에 누락이 들어가지 않도록 했다.
+- 생성기는 백엔드/API/DB 코드를 추가하지 않고 정적 산출물만 생성한다.
+- 원본 행과 정규화 행은 인덱스로 대응하며, 대응하는 원본 행이 없는 정규화 행은 공개하지 않는다.
+- 기존 작업 중인 문서 변경은 커밋에 포함하지 않았다.
+
+## 우려사항
+
+- 기존 감사 보고서 생성 로직의 조사일이 하드코딩되어 있어 감사 산출물의 조사일은 `2026-09-02`로 표시된다. 데이터 생성 및 품질 수치에는 영향이 없다.
+- `tsx` 실행은 샌드박스에서 IPC pipe 권한 오류가 발생해 승인된 실행으로 수행했다.
+
+## 리뷰 수정 라운드 1
+
+### 추가 변경
+
+- `PublicMarket.id`를 추가했다. 시장명·도로/지번 주소·좌표·원문 일정으로 만든 SHA-256 앞 16자리 해시(`market-<hex>`)라 배열 순서와 무관하게 결정적이다.
+- 생성기 API를 `generatePublicMarkets(rawRows)`로 단일화하고 내부에서 각 원본 행을 정규화한다. raw/normalized 인덱스 불일치 가능성을 제거했다.
+- 커밋 산출물 계약 테스트를 추가해 400개, 고유/비어 있지 않은 ID, 유효 좌표, digit-pair 일정, 5일+10일 변환을 자동 검증한다.
+
+### 수정 TDD 증거
+
+RED 명령:
+
+```text
+pnpm test -- generate-public-markets.test.ts
+```
+
+수정 테스트 직후 실패:
+
+```text
+Tests 3 failed (25)
+TypeError: Cannot read properties of undefined (reading 'flatMap')
+expected 1 to be 400
+```
+
+첫 두 실패는 기존 2-인자 구현에 raw-only 테스트를 적용했기 때문이며, 세 번째는 기존 산출물에 ID가 없어 계약을 위반했기 때문이다.
+
+GREEN 명령 및 결과:
+
+```text
+pnpm generate --input data/raw/markets.csv --encoding euc-kr --output ../../apps/web/public/data/markets.json
+{"rows":400,"output":"../../apps/web/public/data/markets.json"}
+
+pnpm test
+Test Files 6 passed (6)
+Tests 25 passed (25)
+
+pnpm typecheck
+tsc --noEmit 종료 코드 0
+
+git diff --check
+whitespace 오류 없음
+```
+
+커밋 산출물 계약 테스트에서 다음을 확인했다: `count=400`, 고유 ID 400개, 빈 ID 0개, 유효하지 않은 좌표 0개, digit-pair 이외 일정 0개, 지원되지 않는 날짜 끝값 0개, `5일+10일` 변환 오류 0개.
+
+수정 커밋: `ebebecf fix: harden static market artifact contract`

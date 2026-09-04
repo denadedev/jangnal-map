@@ -17,12 +17,17 @@
 | 흐름 | 결과 | 증빙 |
 | --- | --- | --- |
 | 1440px 초기 화면과 키 없는 지도 대체 | 통과: 지도 SDK 대신 목록 탐색 안내를 표시하고 시장 목록을 렌더링 | `outputs/screenshots/desktop-initial-1440.png` |
-| 1440px 검색 → 통복시장 선택 → 다음 장날·출처 | 통과: 평택 검색 결과에서 상세, 다음 장날, 공공데이터포털 출처를 확인 | `outputs/screenshots/desktop-selected-1440.png` |
-| 1440px 직접 날짜와 검색 결과 없음 복구 | 통과: 2026-09-08 직접 날짜가 URL 상태에 반영되고, `없는지역` 후 검색어 지우기로 목록이 복구됨 | `outputs/screenshots/desktop-date-and-recovery-1440.png` |
+| 1440px 평택 검색 | 통과: 평택 검색 결과 2건을 표시 | `outputs/screenshots/desktop-search-1440.png` |
+| 1440px 통복시장 선택 → 다음 장날·출처 | 통과: 상세, 다음 장날, 공공데이터포털 출처를 표시 | `outputs/screenshots/desktop-selected-1440.png` |
+| 1440px 직접 날짜 | 통과: 2026-09-08 직접 날짜가 URL 상태에 반영됨 | `outputs/screenshots/desktop-direct-date-1440.png` |
+| 1440px 검색 결과 없음 | 통과: `없는지역` 검색 시 빈 상태를 표시 | `outputs/screenshots/desktop-no-results-1440.png` |
+| 1440px 검색 복구 | 통과: 검색어 지우기 후 날짜 목록을 다시 표시 | `outputs/screenshots/desktop-recovery-1440.png` |
 | 375px 검색과 필터 | 통과: 평택 검색 결과 2건, 가로 오버플로우 없음 | `outputs/screenshots/mobile-search-375.png` |
 | 375px 시장 선택과 상세 | 통과: 상세·다음 장날·출처를 표시하고 가로 오버플로우 없음 | `outputs/screenshots/mobile-selected-375-fixed.png` |
 
 모든 확인 시점에서 브라우저 콘솔 오류는 없었습니다. 네트워크 요청은 HTML, Next 정적 자산 및 `/data/markets.json`에서 모두 200 응답을 받았습니다.
+
+1440px 증빙 파일은 `file` 메타데이터로 모두 1440 × 900 PNG임을 확인했습니다.
 
 ## 발견·수정
 

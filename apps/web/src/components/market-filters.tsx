@@ -6,13 +6,14 @@ interface MarketFiltersProps {
   mode: DateFilterMode;
   query: string;
   directDate: string;
+  minDate?: string;
   onModeChange: (mode: DateFilterMode) => void;
   onQueryChange: (query: string) => void;
   onDirectDateChange: (date: string) => void;
 }
 
 export function MarketFilters(_props: MarketFiltersProps) {
-  const { mode, query, directDate, onModeChange, onQueryChange, onDirectDateChange } = _props;
+  const { mode, query, directDate, minDate, onModeChange, onQueryChange, onDirectDateChange } = _props;
   const modes: Array<{ value: DateFilterMode; label: string }> = [
     { value: "today", label: "오늘" },
     { value: "week", label: "이번 주" },
@@ -61,6 +62,7 @@ export function MarketFilters(_props: MarketFiltersProps) {
           <input
             type="date"
             value={directDate}
+            min={minDate}
             onChange={(event) => onDirectDateChange(event.target.value)}
             onFocus={() => onModeChange("date")}
           />

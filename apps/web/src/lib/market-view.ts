@@ -17,14 +17,28 @@ export function fromIsoDate(value: string, fallback: Date): Date {
   if (!match) return atStartOfDay(fallback);
   const [, year, month, day] = match;
   const parsed = new Date(Number(year), Number(month) - 1, Number(day));
-  return Number.isNaN(parsed.getTime()) ? atStartOfDay(fallback) : parsed;
+  if (
+    Number.isNaN(parsed.getTime())
+    || parsed.getFullYear() !== Number(year)
+    || parsed.getMonth() !== Number(month) - 1
+    || parsed.getDate() !== Number(day)
+  ) {
+    return atStartOfDay(fallback);
+  }
+  return parsed;
+}
+
+export function normalizeDirectDate(value: string, today: Date): Date {
+  const minimum = atStartOfDay(today);
+  const parsed = fromIsoDate(value, minimum);
+  return parsed < minimum ? minimum : parsed;
 }
 
 export function getDateRange(mode: DateFilterMode, today: Date, directDate: string): DateRange {
   const day = atStartOfDay(today);
   if (mode === "today") return { start: day, end: day };
   if (mode === "date") {
-    const selected = fromIsoDate(directDate, day);
+    const selected = normalizeDirectDate(directDate, day);
     return { start: selected, end: selected };
   }
 
@@ -37,12 +51,12 @@ export function getDateRange(mode: DateFilterMode, today: Date, directDate: stri
     saturday.setDate(monday.getDate() + 5);
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
-    return { start: saturday, end: sunday };
+    return { start: day > saturday ? day : saturday, end: sunday };
   }
 
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
-  return { start: monday, end: sunday };
+  return { start: day, end: sunday };
 }
 
 export function filterMarkets(
@@ -55,10 +69,6 @@ export function filterMarkets(
     const searchable = [market.name, market.roadAddress, market.lotAddress].filter(Boolean).join(" ").toLocaleLowerCase("ko-KR");
     return (!normalizedQuery || searchable.includes(normalizedQuery)) && getMarketDates(market, range).length > 0;
   });
-}
-
-export function getReferenceDate(mode: DateFilterMode, today: Date, directDate: string): Date {
-  return mode === "date" ? fromIsoDate(directDate, today) : atStartOfDay(today);
 }
 
 export function formatPinDate(market: PublicMarket, referenceDate: Date): string {

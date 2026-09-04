@@ -98,6 +98,19 @@ describe("MarketExplorer", () => {
     expect(screen.getByRole("button", { name: "필터 초기화" })).toBeInTheDocument();
   });
 
+  it("clears a selected market when a filter excludes it", async () => {
+    const user = userEvent.setup();
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    await user.click(await screen.findByRole("button", { name: /운천전통시장/ }));
+    expect(screen.getByRole("heading", { name: "운천전통시장" })).toBeInTheDocument();
+
+    await user.type(screen.getByRole("searchbox", { name: "시장명 또는 지역 검색" }), "평택");
+
+    await waitFor(() => expect(screen.queryByRole("heading", { name: "운천전통시장" })).not.toBeInTheDocument());
+    await waitFor(() => expect(window.location.search).not.toContain("market=uncheon"));
+  });
+
   it("restores search, date mode, and selected market from the URL", async () => {
     window.history.replaceState(null, "", "/?q=%ED%8F%89%ED%83%9D&when=today&market=tongbok");
     render(<MarketExplorer today={new Date(2026, 8, 5)} mapClientId="" />);

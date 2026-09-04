@@ -36,6 +36,7 @@ declare global {
 }
 
 let sdkPromise: Promise<NaverMapsNamespace> | null = null;
+const sdkLoadTimeoutMs = 10_000;
 
 export function loadNaverMaps(clientId: string): Promise<NaverMapsNamespace> {
   if (window.naver?.maps) return Promise.resolve(window.naver);
@@ -44,20 +45,42 @@ export function loadNaverMaps(clientId: string): Promise<NaverMapsNamespace> {
   sdkPromise = new Promise((resolve, reject) => {
     const existingScript = document.querySelector<HTMLScriptElement>('script[data-naver-maps="true"]');
     const script = existingScript ?? document.createElement("script");
+    let settled = false;
+    let timeoutId: number | undefined;
+
+    const cleanup = () => {
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      script.removeEventListener("load", resolveLoad);
+      script.removeEventListener("error", rejectLoad);
+    };
     const rejectLoad = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      script.remove();
       sdkPromise = null;
       reject(new Error("NAVER 지도 SDK를 불러오지 못했습니다."));
     };
-    const resolveLoad = () => window.naver?.maps ? resolve(window.naver) : rejectLoad();
+    const resolveLoad = () => {
+      if (settled) return;
+      if (!window.naver?.maps) {
+        rejectLoad();
+        return;
+      }
+      settled = true;
+      cleanup();
+      resolve(window.naver);
+    };
 
-    script.addEventListener("load", resolveLoad, { once: true });
-    script.addEventListener("error", rejectLoad, { once: true });
+    script.addEventListener("load", resolveLoad);
+    script.addEventListener("error", rejectLoad);
     if (!existingScript) {
       script.dataset.naverMaps = "true";
       script.async = true;
       script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${encodeURIComponent(clientId)}`;
       document.head.append(script);
     }
+    timeoutId = window.setTimeout(rejectLoad, sdkLoadTimeoutMs);
   });
 
   return sdkPromise;

@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-quer
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
-import { filterMarkets, getDateRange, getReferenceDate, toIsoDate } from "../lib/market-view";
+import { filterMarkets, getDateRange, normalizeDirectDate, toIsoDate } from "../lib/market-view";
 import { MarketDetail } from "./market-detail";
 import { MarketFilters, type DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
@@ -46,7 +46,12 @@ async function fetchMarkets(): Promise<PublicMarket[]> {
 }
 
 function MarketExplorerContent({ today = new Date(), mapClientId = "", initialState }: MarketExplorerProps) {
-  const resolvedInitial = useMemo(() => ({ ...readUrlState(today), ...initialState }), [initialState, today]);
+  const resolvedInitial = useMemo(() => {
+    const rawState = { ...readUrlState(today), ...initialState };
+    const mode = rawState.mode && validModes.has(rawState.mode) ? rawState.mode : "week";
+    const directDate = toIsoDate(normalizeDirectDate(rawState.directDate ?? toIsoDate(today), today));
+    return { ...rawState, mode, directDate };
+  }, [initialState, today]);
   const [query, setQuery] = useState(resolvedInitial.query ?? "");
   const [mode, setMode] = useState<DateFilterMode>(resolvedInitial.mode ?? "week");
   const [directDate, setDirectDate] = useState(resolvedInitial.directDate ?? toIsoDate(today));
@@ -59,9 +64,15 @@ function MarketExplorerContent({ today = new Date(), mapClientId = "", initialSt
   });
 
   const range = useMemo(() => getDateRange(mode, today, directDate), [directDate, mode, today]);
-  const referenceDate = useMemo(() => getReferenceDate(mode, today, directDate), [directDate, mode, today]);
+  const referenceDate = range.start;
   const filteredMarkets = useMemo(() => filterMarkets(markets, query, range), [markets, query, range]);
   const selectedMarket = markets.find((market) => market.id === selectedId) ?? null;
+
+  useEffect(() => {
+    if (!isPending && selectedId && !filteredMarkets.some((market) => market.id === selectedId)) {
+      setSelectedId(null);
+    }
+  }, [filteredMarkets, isPending, selectedId]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -95,10 +106,11 @@ function MarketExplorerContent({ today = new Date(), mapClientId = "", initialSt
         mode={mode}
         query={query}
         directDate={directDate}
+        minDate={toIsoDate(today)}
         onModeChange={setMode}
         onQueryChange={setQuery}
         onDirectDateChange={(date) => {
-          setDirectDate(date);
+          setDirectDate(toIsoDate(normalizeDirectDate(date, today)));
           setMode("date");
         }}
       />

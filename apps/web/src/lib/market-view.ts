@@ -1,0 +1,77 @@
+import type { PublicMarket } from "./market";
+import { getMarketDates, getNextMarketDate, type DateRange } from "./schedule";
+
+import type { DateFilterMode } from "../components/market-filters";
+
+const atStartOfDay = (date: Date): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+export function toIsoDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function fromIsoDate(value: string, fallback: Date): Date {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return atStartOfDay(fallback);
+  const [, year, month, day] = match;
+  const parsed = new Date(Number(year), Number(month) - 1, Number(day));
+  return Number.isNaN(parsed.getTime()) ? atStartOfDay(fallback) : parsed;
+}
+
+export function getDateRange(mode: DateFilterMode, today: Date, directDate: string): DateRange {
+  const day = atStartOfDay(today);
+  if (mode === "today") return { start: day, end: day };
+  if (mode === "date") {
+    const selected = fromIsoDate(directDate, day);
+    return { start: selected, end: selected };
+  }
+
+  const mondayOffset = (day.getDay() + 6) % 7;
+  const monday = new Date(day);
+  monday.setDate(day.getDate() - mondayOffset);
+
+  if (mode === "weekend") {
+    const saturday = new Date(monday);
+    saturday.setDate(monday.getDate() + 5);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return { start: saturday, end: sunday };
+  }
+
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return { start: monday, end: sunday };
+}
+
+export function filterMarkets(
+  markets: PublicMarket[],
+  query: string,
+  range: DateRange,
+): PublicMarket[] {
+  const normalizedQuery = query.trim().toLocaleLowerCase("ko-KR");
+  return markets.filter((market) => {
+    const searchable = [market.name, market.roadAddress, market.lotAddress].filter(Boolean).join(" ").toLocaleLowerCase("ko-KR");
+    return (!normalizedQuery || searchable.includes(normalizedQuery)) && getMarketDates(market, range).length > 0;
+  });
+}
+
+export function getReferenceDate(mode: DateFilterMode, today: Date, directDate: string): Date {
+  return mode === "date" ? fromIsoDate(directDate, today) : atStartOfDay(today);
+}
+
+export function formatPinDate(market: PublicMarket, referenceDate: Date): string {
+  const date = getNextMarketDate(market, referenceDate);
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+}
+
+export function formatKoreanDate(date: Date): string {
+  const weekday = new Intl.DateTimeFormat("ko-KR", { weekday: "long" }).format(date);
+  return `${date.getMonth() + 1}월 ${date.getDate()}일 ${weekday}`;
+}
+
+export function getDday(date: Date, from: Date): number {
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  return Math.round((atStartOfDay(date).getTime() - atStartOfDay(from).getTime()) / millisecondsPerDay);
+}

@@ -1,0 +1,152 @@
+"use client";
+
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import type { PublicMarket } from "../lib/market";
+import { filterMarkets, getDateRange, getReferenceDate, toIsoDate } from "../lib/market-view";
+import { MarketDetail } from "./market-detail";
+import { MarketFilters, type DateFilterMode } from "./market-filters";
+import { MarketList } from "./market-list";
+import { MarketMap } from "./market-map";
+
+export interface ExplorerInitialState {
+  query?: string;
+  mode?: DateFilterMode;
+  directDate?: string;
+  selectedId?: string;
+}
+
+interface MarketExplorerProps {
+  today?: Date;
+  mapClientId?: string;
+  initialState?: ExplorerInitialState;
+}
+
+const validModes = new Set<DateFilterMode>(["today", "week", "weekend", "date"]);
+
+const readUrlState = (today: Date): ExplorerInitialState => {
+  if (typeof window === "undefined") return {};
+  const params = new URLSearchParams(window.location.search);
+  const modeValue = params.get("when") as DateFilterMode | null;
+  return {
+    query: params.get("q") ?? "",
+    mode: modeValue && validModes.has(modeValue) ? modeValue : "week",
+    directDate: params.get("date") ?? toIsoDate(today),
+    selectedId: params.get("market") ?? undefined,
+  };
+};
+
+async function fetchMarkets(): Promise<PublicMarket[]> {
+  const response = await fetch("/data/markets.json");
+  if (!response.ok) throw new Error("시장 데이터를 불러오지 못했습니다.");
+  const data: unknown = await response.json();
+  if (!Array.isArray(data)) throw new Error("시장 데이터 형식이 올바르지 않습니다.");
+  return data as PublicMarket[];
+}
+
+function MarketExplorerContent({ today = new Date(), mapClientId = "", initialState }: MarketExplorerProps) {
+  const resolvedInitial = useMemo(() => ({ ...readUrlState(today), ...initialState }), [initialState, today]);
+  const [query, setQuery] = useState(resolvedInitial.query ?? "");
+  const [mode, setMode] = useState<DateFilterMode>(resolvedInitial.mode ?? "week");
+  const [directDate, setDirectDate] = useState(resolvedInitial.directDate ?? toIsoDate(today));
+  const [selectedId, setSelectedId] = useState<string | null>(resolvedInitial.selectedId ?? null);
+  const { data: markets = [], isPending, isError, refetch } = useQuery({
+    queryKey: ["public-markets"],
+    queryFn: fetchMarkets,
+    staleTime: Number.POSITIVE_INFINITY,
+    retry: false,
+  });
+
+  const range = useMemo(() => getDateRange(mode, today, directDate), [directDate, mode, today]);
+  const referenceDate = useMemo(() => getReferenceDate(mode, today, directDate), [directDate, mode, today]);
+  const filteredMarkets = useMemo(() => filterMarkets(markets, query, range), [markets, query, range]);
+  const selectedMarket = markets.find((market) => market.id === selectedId) ?? null;
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (query.trim()) params.set("q", query.trim());
+    if (mode !== "week") params.set("when", mode);
+    if (mode === "date") params.set("date", directDate);
+    if (selectedId) params.set("market", selectedId);
+    const suffix = params.toString();
+    window.history.replaceState(null, "", suffix ? `/?${suffix}` : "/");
+  }, [directDate, mode, query, selectedId]);
+
+  const selectMarket = useCallback((market: PublicMarket) => setSelectedId(market.id), []);
+  const resetFilters = () => {
+    setQuery("");
+    setMode("week");
+    setDirectDate(toIsoDate(today));
+    setSelectedId(null);
+  };
+
+  return (
+    <main className="explorer-shell">
+      <header className="app-header">
+        <a className="brand" href="/" aria-label="오늘 장날 홈">
+          <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
+          <span><strong>오늘 장날</strong><small>전국 전통시장 장날 지도</small></span>
+        </a>
+        <div className="data-badge"><span aria-hidden="true" /> 검증된 시장 400곳</div>
+      </header>
+
+      <MarketFilters
+        mode={mode}
+        query={query}
+        directDate={directDate}
+        onModeChange={setMode}
+        onQueryChange={setQuery}
+        onDirectDateChange={(date) => {
+          setDirectDate(date);
+          setMode("date");
+        }}
+      />
+
+      <div className={`explorer-grid ${selectedMarket ? "has-selection" : ""}`}>
+        <aside className="list-pane" aria-label="시장 목록">
+          <div className="list-heading">
+            <div><p>선택한 날짜에 여는 시장</p><strong>{filteredMarkets.length}곳</strong></div>
+            <span>{query ? `“${query}” 검색` : "전국"}</span>
+          </div>
+
+          {isPending ? (
+            <div className="list-loading" role="status"><span /><span /><span /><p>시장 정보를 불러오는 중입니다.</p></div>
+          ) : isError ? (
+            <div className="empty-state">
+              <h2>시장 정보를 불러오지 못했어요</h2>
+              <p>잠시 후 다시 시도해 주세요.</p>
+              <button type="button" className="secondary-button" onClick={() => void refetch()}>다시 시도</button>
+            </div>
+          ) : (
+            <MarketList
+              markets={filteredMarkets}
+              referenceDate={referenceDate}
+              selectedId={selectedId}
+              onSelect={selectMarket}
+              onReset={resetFilters}
+            />
+          )}
+        </aside>
+
+        <MarketMap
+          markets={filteredMarkets}
+          referenceDate={referenceDate}
+          selectedId={selectedId}
+          clientId={mapClientId}
+          onSelect={selectMarket}
+        />
+
+        <aside className="detail-pane" aria-live="polite">
+          <MarketDetail market={selectedMarket} referenceDate={referenceDate} today={today} onClose={() => setSelectedId(null)} />
+        </aside>
+      </div>
+
+    </main>
+  );
+}
+
+export function MarketExplorer(props: MarketExplorerProps) {
+  const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { refetchOnWindowFocus: false } } }));
+  return <QueryClientProvider client={queryClient}><MarketExplorerContent {...props} /></QueryClientProvider>;
+}

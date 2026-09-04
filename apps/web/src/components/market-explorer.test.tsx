@@ -1,0 +1,109 @@
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { PublicMarket } from "../lib/market";
+import { MarketExplorer } from "./market-explorer";
+
+const markets: PublicMarket[] = [
+  {
+    id: "uncheon",
+    name: "운천전통시장",
+    marketType: "상설장+4일장",
+    roadAddress: "경기도 포천시 영북면 영북로 177번길 25",
+    lotAddress: "경기도 포천시 영북면 운천리 513-15",
+    latitude: 38.0899666,
+    longitude: 127.2722253,
+    scheduleRaw: "4일+9일",
+    schedule: { kind: "digit-pair", days: [4, 9] },
+    phone: "031-538-2200",
+    hasParking: true,
+    referenceDate: "2025-11-10",
+    status: "운영",
+    statusVerified: false,
+    source: {
+      name: "공공데이터포털 전국전통시장표준데이터",
+      url: "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y",
+      referenceDate: "2025-11-10",
+    },
+  },
+  {
+    id: "tongbok",
+    name: "통복시장",
+    marketType: "상설장+5일장",
+    roadAddress: "경기도 평택시 통복시장로25번길 10",
+    lotAddress: "경기도 평택시 통복동 70-29",
+    latitude: 36.99782533,
+    longitude: 127.0850763,
+    scheduleRaw: "5일+10일",
+    schedule: { kind: "digit-pair", days: [5, 0] },
+    phone: null,
+    hasParking: false,
+    referenceDate: "2025-11-10",
+    status: "운영",
+    statusVerified: false,
+    source: {
+      name: "공공데이터포털 전국전통시장표준데이터",
+      url: "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y",
+      referenceDate: "2025-11-10",
+    },
+  },
+];
+
+const successfulResponse = {
+  ok: true,
+  json: async () => markets,
+} as Response;
+
+describe("MarketExplorer", () => {
+  beforeEach(() => {
+    window.history.replaceState(null, "", "/");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(successfulResponse));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("loads static markets and keeps the list usable when the map key is missing", async () => {
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    expect(await screen.findByText("운천전통시장")).toBeInTheDocument();
+    expect(screen.getByText("지도 없이도 시장을 찾을 수 있어요")).toBeInTheDocument();
+    expect(screen.getByText("2곳")).toBeInTheDocument();
+  });
+
+  it("filters by region, selects a market, and preserves both values in the URL", async () => {
+    const user = userEvent.setup();
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    await user.type(await screen.findByRole("searchbox", { name: "시장명 또는 지역 검색" }), "평택");
+    expect(screen.queryByText("운천전통시장")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /통복시장/ }));
+
+    expect(screen.getByRole("heading", { name: "통복시장" })).toBeInTheDocument();
+    expect(screen.getByText("9월 5일 토요일")).toBeInTheDocument();
+    await waitFor(() => expect(window.location.search).toContain("q=%ED%8F%89%ED%83%9D"));
+    expect(window.location.search).toContain("market=tongbok");
+  });
+
+  it("shows an actionable empty state when no market matches", async () => {
+    const user = userEvent.setup();
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    await user.type(await screen.findByRole("searchbox", { name: "시장명 또는 지역 검색" }), "없는지역");
+
+    expect(screen.getByRole("heading", { name: "조건에 맞는 시장이 없어요" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "필터 초기화" })).toBeInTheDocument();
+  });
+
+  it("restores search, date mode, and selected market from the URL", async () => {
+    window.history.replaceState(null, "", "/?q=%ED%8F%89%ED%83%9D&when=today&market=tongbok");
+    render(<MarketExplorer today={new Date(2026, 8, 5)} mapClientId="" />);
+
+    expect(await screen.findByDisplayValue("평택")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "오늘" })).toHaveAttribute("aria-pressed", "true");
+    expect(await screen.findByRole("heading", { name: "통복시장" })).toBeInTheDocument();
+  });
+});

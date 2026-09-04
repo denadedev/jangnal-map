@@ -387,11 +387,10 @@ a { color: inherit; text-decoration: none; }
 
   .market-filters { position: sticky; top: 0; grid-template-columns: 1fr; gap: 9px; min-height: auto; padding: 10px 12px 11px; }
   .search-field { height: 43px; }
-  .date-filter-row { overflow-x: auto; padding-bottom: 1px; scrollbar-width: none; }
-  .date-filter-row::-webkit-scrollbar { display: none; }
+  .date-filter-row { flex-wrap: wrap; gap: 7px; }
   .filter-pills { gap: 5px; }
   .filter-pill { height: 34px; padding: 0 12px; font-size: 11px; }
-  .direct-date { height: 34px; padding-left: 9px; }
+  .direct-date { height: 34px; flex-basis: 100%; border-left: 0; padding-left: 0; }
   .direct-date input { width: 124px; font-size: 11px; }
 
   .explorer-grid { display: grid; flex: none; grid-template-columns: 1fr; grid-template-areas: "map" "list"; }

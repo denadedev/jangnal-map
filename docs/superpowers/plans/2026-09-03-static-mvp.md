@@ -96,19 +96,17 @@
 ### Task 4: 브라우저 검증과 Vercel 배포 전 준비
 
 **Files:**
-- Create: `apps/web/playwright.config.ts`
-- Create: `apps/web/e2e/market-explorer.spec.ts`
 - Create: `apps/web/.env.example`
-- Create: `apps/web/vercel.json` only if monorepo 설정에 필요
+- Create: `README.md`
 - Create: `outputs/정적-MVP-검증결과.md`
 
 **Interfaces:**
 - Consumes: production build
 - Produces: 핵심 사용자 흐름과 배포 설정 검증
 
-- [ ] NAVER 키가 없는 상태의 목록 대체 흐름을 Playwright로 검증한다.
-- [ ] 검색 → 시장 선택 → 다음 장날·출처 확인을 검증한다.
-- [ ] 모바일 viewport에서 필터와 상세 영역을 검증한다.
-- [ ] 전체 단위 테스트, 타입 검사와 production build를 실행한다.
+- [ ] 로컬 production 서버를 실행하고 NAVER 키가 없는 목록 대체 흐름을 브라우저에서 검증한다.
+- [ ] 브라우저에서 검색 → 시장 선택 → 다음 장날·출처 확인을 검증한다.
+- [ ] 1440px 데스크톱과 375px 모바일 viewport에서 레이아웃·필터·상세 영역을 확인하고 스크린샷을 남긴다.
+- [ ] 기존 테스트, 타입 검사와 production build를 실행한다. 사용자 지시에 따라 새 자동 테스트 파일은 추가하지 않는다.
 - [ ] Vercel 설정 파일과 필요한 환경 변수를 문서로 검증하되 배포 명령은 실행하지 않는다.
 - [ ] 로컬 검증 결과와 실행 방법을 사용자에게 전달하고 배포 승인을 기다린다.

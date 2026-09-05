@@ -4,4 +4,5 @@ work/data-audit/data/raw/
 work/data-audit/tmp/
 apps/web/.next/
 apps/web/tsconfig.tsbuildinfo
+apps/web/.env*.local
 .gstack/

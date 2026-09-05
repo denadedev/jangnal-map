@@ -24,6 +24,7 @@ interface MarketExplorerProps {
 }
 
 const validModes = new Set<DateFilterMode>(["today", "week", "weekend", "date"]);
+const staticRenderDate = new Date(2000, 0, 15);
 
 const readUrlState = (today: Date): ExplorerInitialState => {
   if (typeof window === "undefined") return {};
@@ -45,9 +46,10 @@ async function fetchMarkets(): Promise<PublicMarket[]> {
   return data as PublicMarket[];
 }
 
-function MarketExplorerContent({ today = new Date(), mapClientId = "", initialState }: MarketExplorerProps) {
+function MarketExplorerContent({ today: providedToday, mapClientId = "", initialState }: MarketExplorerProps) {
+  const [today, setToday] = useState(() => providedToday ?? staticRenderDate);
   const resolvedInitial = useMemo(() => {
-    const rawState = { ...readUrlState(today), ...initialState };
+    const rawState = initialState ?? {};
     const mode = rawState.mode && validModes.has(rawState.mode) ? rawState.mode : "week";
     const directDate = toIsoDate(normalizeDirectDate(rawState.directDate ?? toIsoDate(today), today));
     return { ...rawState, mode, directDate };
@@ -56,6 +58,7 @@ function MarketExplorerContent({ today = new Date(), mapClientId = "", initialSt
   const [mode, setMode] = useState<DateFilterMode>(resolvedInitial.mode ?? "week");
   const [directDate, setDirectDate] = useState(resolvedInitial.directDate ?? toIsoDate(today));
   const [selectedId, setSelectedId] = useState<string | null>(resolvedInitial.selectedId ?? null);
+  const [hasRestoredUrl, setHasRestoredUrl] = useState(false);
   const { data: markets = [], isPending, isError, refetch } = useQuery({
     queryKey: ["public-markets"],
     queryFn: fetchMarkets,
@@ -75,6 +78,18 @@ function MarketExplorerContent({ today = new Date(), mapClientId = "", initialSt
   }, [filteredMarkets, isPending, selectedId]);
 
   useEffect(() => {
+    const clientToday = providedToday ?? new Date();
+    if (!providedToday) setToday(clientToday);
+    const urlState = readUrlState(clientToday);
+    setQuery(urlState.query ?? "");
+    setMode(urlState.mode ?? "week");
+    setDirectDate(urlState.directDate ?? toIsoDate(clientToday));
+    setSelectedId(urlState.selectedId ?? null);
+    setHasRestoredUrl(true);
+  }, [providedToday]);
+
+  useEffect(() => {
+    if (!hasRestoredUrl) return;
     const params = new URLSearchParams();
     if (query.trim()) params.set("q", query.trim());
     if (mode !== "week") params.set("when", mode);
@@ -82,7 +97,7 @@ function MarketExplorerContent({ today = new Date(), mapClientId = "", initialSt
     if (selectedId) params.set("market", selectedId);
     const suffix = params.toString();
     window.history.replaceState(null, "", suffix ? `/?${suffix}` : "/");
-  }, [directDate, mode, query, selectedId]);
+  }, [directDate, hasRestoredUrl, mode, query, selectedId]);
 
   const selectMarket = useCallback((market: PublicMarket) => setSelectedId(market.id), []);
   const resetFilters = () => {

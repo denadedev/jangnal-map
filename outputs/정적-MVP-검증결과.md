@@ -1,6 +1,6 @@
 # 정적 MVP 검증 결과
 
-검증일: 2026-09-05
+검증일: 2026-09-06
 
 환경: 로컬 Next.js production build, `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` 미설정, Chromium 브라우저
 
@@ -8,7 +8,8 @@
 
 | 명령 | 결과 |
 | --- | --- |
-| `pnpm test` | 통과: 11개 테스트 파일, 41개 테스트 |
+| `pnpm --filter jangnal-market-data-audit generate -- --input data/raw/markets.csv --encoding euc-kr --output ../../apps/web/public/data/markets.json` | 통과: 공개 시장 데이터 400건 생성 |
+| `pnpm --filter @jangnal-map/web test` | 통과: 5개 테스트 파일, 16개 테스트 |
 | `pnpm typecheck` | 통과 |
 | `pnpm build` | 통과: Next.js production build |
 
@@ -24,10 +25,11 @@
 | 1440px 검색 복구 | 통과: 검색어 지우기 후 날짜 목록을 다시 표시 | `outputs/screenshots/desktop-recovery-1440.png` |
 | 375px 검색과 필터 | 통과: 평택 검색 결과 2건, 가로 오버플로우 없음 | `outputs/screenshots/mobile-search-375.png` |
 | 375px 시장 선택과 상세 | 통과: 상세·다음 장날·출처를 표시하고 가로 오버플로우 없음 | `outputs/screenshots/mobile-selected-375-fixed.png` |
+| 768px 직접 날짜 | 통과: 날짜 입력이 필터 아래 행에 표시되고 2026-09-08 입력 및 URL 반영 | `outputs/screenshots/tablet-direct-date-768.png` |
 
 모든 확인 시점에서 브라우저 콘솔 오류는 없었습니다. 네트워크 요청은 HTML, Next 정적 자산 및 `/data/markets.json`에서 모두 200 응답을 받았습니다.
 
-1440px 증빙 파일은 `file` 메타데이터로 모두 1440 × 900 PNG임을 확인했습니다.
+`desktop-initial-1440.png`는 실제 1440 × 900 초기 viewport에서 중앙의 “지도 없이도 시장을 찾을 수 있어요” 대체 메시지가 보이는 캡처로 다시 저장했습니다.
 
 ## 발견·수정
 

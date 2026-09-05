@@ -14,9 +14,9 @@ pnpm install
 
 ```bash
 pnpm --filter jangnal-market-data-audit generate -- \
-  --input work/data-audit/data/raw/markets.csv \
+  --input data/raw/markets.csv \
   --encoding euc-kr \
-  --output apps/web/public/data/markets.json
+  --output ../../apps/web/public/data/markets.json
 ```
 
 ## 로컬 실행

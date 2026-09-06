@@ -349,12 +349,14 @@ a { color: inherit; text-decoration: none; }
 .detail-section h3 { margin: 0 0 14px; font-size: 13px; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; }
 .section-heading span { color: var(--muted); font-size: 10px; font-weight: 700; }
-.month-dates { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 2px; }
-
-.month-dates > span { display: flex; min-width: 45px; height: 53px; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 3px; background: #fbf8f2; }
-.month-dates strong { font-family: Georgia, serif; font-size: 16px; }
-.month-dates small { margin-top: 2px; color: var(--muted); font-size: 9px; }
-.month-dates .is-next { border-color: var(--persimmon); background: var(--persimmon-soft); color: var(--persimmon-dark); }
+.date-timeline { display: flex; gap: 7px; margin: 0; overflow-x: auto; padding: 0 0 3px; list-style: none; }
+.date-timeline li { display: flex; min-width: 48px; height: 66px; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 3px; background: #fbf8f2; }
+.date-timeline strong { font-family: Georgia, serif; font-size: 16px; }
+.date-timeline small { margin-top: 2px; color: var(--muted); font-size: 9px; }
+.date-timeline em { min-height: 11px; margin-top: 3px; color: var(--muted); font-size: 8px; font-style: normal; font-weight: 750; }
+.date-timeline .is-today { border-color: #b8ad9f; }
+.date-timeline .is-next { border-color: var(--persimmon); background: var(--persimmon); color: white; }
+.date-timeline .is-next small, .date-timeline .is-next em { color: white; }
 
 .info-list { display: grid; gap: 10px; margin: 0; }
 .info-list div { display: grid; grid-template-columns: 50px 1fr; gap: 8px; font-size: 11px; line-height: 1.55; }

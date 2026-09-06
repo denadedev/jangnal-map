@@ -174,7 +174,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
         />
 
         <aside className="detail-pane" aria-live="polite">
-          <MarketDetail market={selectedMarket} referenceDate={referenceDate} today={today} onClose={() => setSelectedId(null)} />
+          <MarketDetail market={selectedMarket} today={today} onClose={() => setSelectedId(null)} />
         </aside>
       </div>
 

@@ -1,10 +1,9 @@
 import type { PublicMarket } from "../lib/market";
 import { getDday, formatKoreanDate } from "../lib/market-view";
-import { getMarketDates, getNextMarketDate } from "../lib/schedule";
+import { getNextMarketDate } from "../lib/schedule";
 
 interface MarketDetailProps {
   market: PublicMarket | null;
-  referenceDate: Date;
   today: Date;
   onClose: () => void;
 }
@@ -14,7 +13,18 @@ const formatSourceDate = (value: string | null): string => {
   return value.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$1.$2.$3");
 };
 
-export function MarketDetail({ market, referenceDate, today, onClose }: MarketDetailProps) {
+const datesThrough = (start: Date, end: Date): Date[] => {
+  const date = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  const dates: Date[] = [];
+  while (date <= last) {
+    dates.push(new Date(date));
+    date.setDate(date.getDate() + 1);
+  }
+  return dates;
+};
+
+export function MarketDetail({ market, today, onClose }: MarketDetailProps) {
   if (!market) {
     return (
       <div className="detail-placeholder">
@@ -25,11 +35,9 @@ export function MarketDetail({ market, referenceDate, today, onClose }: MarketDe
     );
   }
 
-  const nextDate = getNextMarketDate(market, referenceDate);
+  const nextDate = getNextMarketDate(market, today);
   const dday = nextDate ? getDday(nextDate, today) : null;
-  const monthStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
-  const monthEnd = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0);
-  const monthDates = getMarketDates(market, { start: monthStart, end: monthEnd });
+  const timelineDates = market.schedule.kind === "digit-pair" && nextDate ? datesThrough(today, nextDate) : [];
   const address = market.roadAddress ?? market.lotAddress ?? "주소 정보 없음";
   const hasCoordinates = market.latitude !== null && market.longitude !== null;
   const directionsUrl = hasCoordinates
@@ -73,19 +81,24 @@ export function MarketDetail({ market, referenceDate, today, onClose }: MarketDe
       </section>
 
       {market.schedule.kind === "digit-pair" ? (
-        <section className="detail-section" aria-labelledby="monthly-dates">
+        <section className="detail-section" aria-labelledby="upcoming-dates">
           <div className="section-heading">
-            <h3 id="monthly-dates">{referenceDate.getMonth() + 1}월 장날</h3>
+            <h3 id="upcoming-dates">오늘부터 다음 장날</h3>
             <span>{market.scheduleRaw}</span>
           </div>
-          <div className="month-dates">
-            {monthDates.map((date) => (
-              <span key={date.toISOString()} className={nextDate && date.getTime() === nextDate.getTime() ? "is-next" : ""}>
-                <strong>{date.getDate()}</strong>
-                <small>{new Intl.DateTimeFormat("ko-KR", { weekday: "short" }).format(date)}</small>
-              </span>
-            ))}
-          </div>
+          <ol className="date-timeline" aria-label="오늘부터 다음 장날까지">
+            {timelineDates.map((date, index) => {
+              const isNext = nextDate && date.getTime() === nextDate.getTime();
+              const isToday = index === 0;
+              return (
+                <li key={date.toISOString()} className={`${isToday ? "is-today" : ""} ${isNext ? "is-next" : ""}`.trim()}>
+                  <strong>{date.getDate()}</strong>
+                  <small>{new Intl.DateTimeFormat("ko-KR", { weekday: "short" }).format(date)}</small>
+                  <em>{isToday && isNext ? "오늘 장날" : isNext ? "장날" : isToday ? "오늘" : ""}</em>
+                </li>
+              );
+            })}
+          </ol>
         </section>
       ) : null}
 

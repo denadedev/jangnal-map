@@ -15,6 +15,7 @@ interface MarketMapProps {
 }
 
 type MapStatus = "idle" | "loading" | "ready" | "error";
+type LocationStatus = "idle" | "loading" | "success" | "error";
 
 const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, (character) => ({
   "&": "&amp;",
@@ -28,7 +29,10 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, onSele
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<NaverMapInstance | null>(null);
   const markersRef = useRef<Array<{ marker: NaverMarker; listener: unknown }>>([]);
+  const locationMarkerRef = useRef<NaverMarker | null>(null);
   const [status, setStatus] = useState<MapStatus>(clientId ? "idle" : "error");
+  const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
+  const [locationMessage, setLocationMessage] = useState("");
 
   useEffect(() => {
     if (!clientId || !containerRef.current) {
@@ -56,9 +60,52 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, onSele
 
     return () => {
       cancelled = true;
+      locationMarkerRef.current?.setMap(null);
+      locationMarkerRef.current = null;
       mapRef.current = null;
     };
   }, [clientId]);
+
+  const moveToCurrentLocation = () => {
+    if (status !== "ready" || !mapRef.current || !window.naver?.maps) return;
+    if (!navigator.geolocation) {
+      setLocationStatus("error");
+      setLocationMessage("이 브라우저에서는 현재 위치를 사용할 수 없어요.");
+      return;
+    }
+
+    setLocationStatus("loading");
+    setLocationMessage("현재 위치를 확인하고 있어요.");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        if (!mapRef.current || !window.naver?.maps) return;
+        const naver = window.naver;
+        const position = new naver.maps.LatLng(coords.latitude, coords.longitude);
+        locationMarkerRef.current?.setMap(null);
+        locationMarkerRef.current = new naver.maps.Marker({
+          map: mapRef.current,
+          position,
+          title: "현재 위치",
+          zIndex: 30,
+          icon: {
+            content: '<span class="current-location-marker" aria-label="현재 위치"><i></i></span>',
+            anchor: new naver.maps.Point(12, 12),
+          },
+        });
+        mapRef.current.panTo(position);
+        mapRef.current.setZoom(14);
+        setLocationStatus("success");
+        setLocationMessage("현재 위치로 이동했어요.");
+      },
+      (error) => {
+        setLocationStatus("error");
+        setLocationMessage(error.code === error.PERMISSION_DENIED
+          ? "위치 권한이 필요해요. 브라우저 설정에서 허용한 뒤 다시 시도해 주세요."
+          : "현재 위치를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      },
+      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 60_000 },
+    );
+  };
 
   useEffect(() => {
     if (status !== "ready" || !mapRef.current || !window.naver?.maps) return;
@@ -101,7 +148,9 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, onSele
 
   return (
     <section className="map-stage" aria-label="전국 전통시장 지도">
-      <div ref={containerRef} className="map-canvas" aria-hidden={showFallback} />
+      <div className="map-canvas-shell">
+        <div ref={containerRef} className="map-canvas" aria-hidden={showFallback} />
+      </div>
       {status === "loading" ? (
         <div className="map-status" role="status">
           <span className="loading-ring" aria-hidden="true" />
@@ -120,6 +169,19 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, onSele
           </div>
         </div>
       ) : null}
+      <div className="location-control">
+        <button
+          type="button"
+          className="location-button"
+          disabled={status !== "ready" || locationStatus === "loading"}
+          onClick={moveToCurrentLocation}
+          aria-label="현재 위치로 이동"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M12 2v3m0 14v3M2 12h3m14 0h3" /></svg>
+          <span>{locationStatus === "loading" ? "위치 확인 중" : "현재 위치"}</span>
+        </button>
+        {locationMessage ? <p className={`location-message is-${locationStatus}`} role="status">{locationMessage}</p> : null}
+      </div>
       <div className="map-legend" aria-hidden="true"><span /> 시장명 · 다음 장날</div>
     </section>
   );

@@ -137,6 +137,8 @@ a { color: inherit; text-decoration: none; }
 .search-field > svg { width: 20px; flex: 0 0 auto; fill: none; stroke: var(--muted); stroke-linecap: round; stroke-width: 1.8; }
 .search-field input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; font-size: 14px; }
 .search-field input::placeholder { color: #9b9388; }
+.search-field input::-webkit-search-cancel-button { display: none; -webkit-appearance: none; }
+.search-field input::-ms-clear { display: none; }
 
 .search-clear, .detail-close {
   display: grid;

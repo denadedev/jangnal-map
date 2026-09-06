@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { createHash } from "node:crypto";
 
-import { isPublishableMarket } from "./analyze.js";
+import { hasValidCoordinates } from "./analyze.js";
 import { normalizeMarket } from "./normalize-market.js";
 import { parseSchedule } from "./parse-schedule.js";
 import { readMarketsCsv } from "./read-csv.js";
@@ -17,10 +17,13 @@ export interface PublicMarket {
   marketType: string;
   roadAddress: string | null;
   lotAddress: string | null;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   scheduleRaw: string;
-  schedule: { kind: "digit-pair"; days: [number, number] };
+  schedule:
+    | { kind: "daily" }
+    | { kind: "digit-pair"; days: [number, number] }
+    | { kind: "unknown"; raw: string };
   phone: string | null;
   hasParking: boolean | null;
   referenceDate: string | null;
@@ -33,11 +36,17 @@ export interface PublicMarket {
   };
 }
 
-const publicMarket = (raw: RawMarket, market: NormalizedMarket): PublicMarket | null => {
-  if (!isPublishableMarket(market)) return null;
+const publicSchedule = (raw: string | null): PublicMarket["schedule"] => {
+  const schedule = parseSchedule(raw);
+  if (schedule.kind === "daily") return { kind: "daily" };
+  if (schedule.kind === "digit-pair") {
+    return { kind: "digit-pair", days: [schedule.days[0], schedule.days[1] === 10 ? 0 : schedule.days[1]] };
+  }
+  return { kind: "unknown", raw: schedule.raw };
+};
 
-  const schedule = parseSchedule(market.scheduleRaw);
-  if (schedule.kind !== "digit-pair" || market.latitude === null || market.longitude === null) return null;
+const publicMarket = (raw: RawMarket, market: NormalizedMarket): PublicMarket => {
+  const validCoordinates = hasValidCoordinates(market);
 
   const referenceDate = market.referenceDate ?? (raw.데이터기준일자.trim() || null);
   const identity = [market.name, market.roadAddress ?? "", market.lotAddress ?? "", market.latitude, market.longitude, market.scheduleRaw].join("|");
@@ -48,10 +57,10 @@ const publicMarket = (raw: RawMarket, market: NormalizedMarket): PublicMarket | 
     marketType: market.marketType,
     roadAddress: market.roadAddress,
     lotAddress: market.lotAddress,
-    latitude: market.latitude,
-    longitude: market.longitude,
-    scheduleRaw: market.scheduleRaw!,
-    schedule: { kind: "digit-pair", days: [schedule.days[0], schedule.days[1] === 10 ? 0 : schedule.days[1]] },
+    latitude: validCoordinates ? market.latitude : null,
+    longitude: validCoordinates ? market.longitude : null,
+    scheduleRaw: market.scheduleRaw ?? "",
+    schedule: publicSchedule(market.scheduleRaw),
     phone: market.phone,
     hasParking: market.hasParking,
     referenceDate,
@@ -62,7 +71,7 @@ const publicMarket = (raw: RawMarket, market: NormalizedMarket): PublicMarket | 
 };
 
 export function generatePublicMarkets(rawRows: RawMarket[]): PublicMarket[] {
-  return rawRows.flatMap((raw) => publicMarket(raw, normalizeMarket(raw)) ?? []);
+  return rawRows.map((raw) => publicMarket(raw, normalizeMarket(raw)));
 }
 
 const valueAfter = (flag: string): string => {

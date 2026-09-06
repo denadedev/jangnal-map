@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { buildMapItems, type CoordinateBounds } from "../lib/market-clusters";
 import type { PublicMarket } from "../lib/market";
 import { formatMarketTiming } from "../lib/market-view";
 import { loadNaverMaps, type NaverMapInstance, type NaverMarker } from "../lib/naver-maps";
@@ -17,8 +18,17 @@ interface MarketMapProps {
 type MapStatus = "idle" | "loading" | "ready" | "error";
 type LocationStatus = "idle" | "loading" | "success" | "error";
 
-const hasCoordinates = (market: PublicMarket): market is PublicMarket & { latitude: number; longitude: number } =>
-  market.latitude !== null && market.longitude !== null;
+const coordinateBounds = (map: NaverMapInstance): CoordinateBounds => {
+  const bounds = map.getBounds();
+  const northEast = bounds.getNE();
+  const southWest = bounds.getSW();
+  return {
+    north: northEast.lat(),
+    south: southWest.lat(),
+    east: northEast.lng(),
+    west: southWest.lng(),
+  };
+};
 
 const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, (character) => ({
   "&": "&amp;",
@@ -113,40 +123,69 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, onSele
   useEffect(() => {
     if (status !== "ready" || !mapRef.current || !window.naver?.maps) return;
     const naver = window.naver;
+    const map = mapRef.current;
 
-    for (const item of markersRef.current) {
-      naver.maps.Event.removeListener(item.listener);
-      item.marker.setMap(null);
-    }
-
-    markersRef.current = markets.filter(hasCoordinates).map((market) => {
-      const selected = market.id === selectedId;
-      const timing = formatMarketTiming(market, referenceDate);
-      const marker = new naver.maps.Marker({
-        map: mapRef.current as NaverMapInstance,
-        position: new naver.maps.LatLng(market.latitude, market.longitude),
-        title: `${market.name} · ${timing}`,
-        zIndex: selected ? 20 : 10,
-        icon: {
-          content: `<button class="map-marker${selected ? " is-selected" : ""}" type="button" aria-label="${escapeHtml(market.name)} 상세 보기, 운영 일정 ${timing}"><span>${escapeHtml(market.name)}</span><strong>${timing}</strong></button>`,
-          anchor: new naver.maps.Point(0, 38),
-        },
-      });
-      const listener = naver.maps.Event.addListener(marker, "click", () => onSelect(market));
-      return { marker, listener };
-    });
-
-    const selected = markets.find((market) => market.id === selectedId);
-    if (selected && hasCoordinates(selected)) {
-      mapRef.current.panTo(new naver.maps.LatLng(selected.latitude, selected.longitude));
-    }
-
-    return () => {
+    const clearMarkers = () => {
       for (const item of markersRef.current) {
         naver.maps.Event.removeListener(item.listener);
         item.marker.setMap(null);
       }
       markersRef.current = [];
+    };
+
+    const renderMarkers = () => {
+      clearMarkers();
+      const zoom = map.getZoom();
+      const items = buildMapItems(markets, zoom, coordinateBounds(map));
+      markersRef.current = items.map((item) => {
+        if (item.kind === "cluster") {
+          const marker = new naver.maps.Marker({
+            map,
+            position: new naver.maps.LatLng(item.latitude, item.longitude),
+            title: `이 지역 시장 ${item.count}곳`,
+            zIndex: 8,
+            icon: {
+              content: `<button class="map-cluster" type="button" aria-label="이 지역 시장 ${item.count}곳"><strong>${item.count}</strong><small>곳</small></button>`,
+              anchor: new naver.maps.Point(23, 23),
+            },
+          });
+          const listener = naver.maps.Event.addListener(marker, "click", () => {
+            map.panTo(new naver.maps.LatLng(item.latitude, item.longitude));
+            map.setZoom(Math.min(map.getZoom() + 2, 13));
+          });
+          return { marker, listener };
+        }
+
+        const market = item.market;
+        const selected = market.id === selectedId;
+        const timing = formatMarketTiming(market, referenceDate);
+        const marker = new naver.maps.Marker({
+          map,
+          position: new naver.maps.LatLng(market.latitude, market.longitude),
+          title: `${market.name} · ${timing}`,
+          zIndex: selected ? 20 : 10,
+          icon: {
+            content: `<button class="map-marker${selected ? " is-selected" : ""}" type="button" aria-label="${escapeHtml(market.name)} 상세 보기, 운영 일정 ${timing}"><span>${escapeHtml(market.name)}</span><strong>${timing}</strong></button>`,
+            anchor: new naver.maps.Point(0, 38),
+          },
+        });
+        const listener = naver.maps.Event.addListener(marker, "click", () => onSelect(market));
+        return { marker, listener };
+      });
+    };
+
+    renderMarkers();
+    const idleListener = naver.maps.Event.addListener(map, "idle", renderMarkers);
+
+    const selected = markets.find((market) => market.id === selectedId);
+    if (selected && selected.latitude !== null && selected.longitude !== null) {
+      if (map.getZoom() < 11) map.setZoom(11);
+      mapRef.current.panTo(new naver.maps.LatLng(selected.latitude, selected.longitude));
+    }
+
+    return () => {
+      naver.maps.Event.removeListener(idleListener);
+      clearMarkers();
     };
   }, [markets, onSelect, referenceDate, selectedId, status]);
 
@@ -188,7 +227,7 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, onSele
         </button>
         {locationMessage ? <p className={`location-message is-${locationStatus}`} role="status">{locationMessage}</p> : null}
       </div>
-      <div className="map-legend" aria-hidden="true"><span /> 시장명 · 다음 장날</div>
+      <div className="map-legend" aria-hidden="true"><span /> 시장명 · 운영 일정</div>
     </section>
   );
 }

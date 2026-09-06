@@ -1,10 +1,17 @@
 export interface NaverMapInstance {
   panTo: (position: NaverLatLng) => void;
   setZoom: (zoom: number) => void;
+  getZoom: () => number;
+  getBounds: () => NaverBounds;
 }
 
 export interface NaverLatLng {
   readonly __naverLatLng?: never;
+}
+
+export interface NaverBounds {
+  getNE: () => { lat: () => number; lng: () => number };
+  getSW: () => { lat: () => number; lng: () => number };
 }
 
 export interface NaverMarker {
@@ -24,7 +31,7 @@ export interface NaverMapsNamespace {
     }) => NaverMarker;
     Point: new (x: number, y: number) => unknown;
     Event: {
-      addListener: (target: NaverMarker, eventName: string, listener: () => void) => unknown;
+      addListener: (target: NaverMarker | NaverMapInstance, eventName: string, listener: () => void) => unknown;
       removeListener: (listener: unknown) => void;
     };
   };

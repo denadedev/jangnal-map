@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { PublicMarket } from "./market";
-import { filterMarkets, formatPinDate, getDateRange, normalizeDirectDate } from "./market-view";
+import { filterMarkets, formatMarketTiming, getDateRange, normalizeDirectDate } from "./market-view";
 
 const market: PublicMarket = {
   id: "market",
@@ -29,7 +29,7 @@ describe("market explorer date semantics", () => {
 
     expect(range).toEqual({ start: new Date(2026, 8, 8), end: new Date(2026, 8, 13) });
     expect(results).toEqual([market]);
-    expect(formatPinDate(results[0], range.start)).toBe("9/12");
+    expect(formatMarketTiming(results[0], range.start)).toBe("9/12");
   });
 
   it("clamps empty, malformed, and past direct dates to today", () => {

@@ -1,5 +1,5 @@
 import type { PublicMarket } from "../lib/market";
-import { formatPinDate } from "../lib/market-view";
+import { formatMarketTiming } from "../lib/market-view";
 
 interface MarketListProps {
   markets: PublicMarket[];
@@ -33,13 +33,14 @@ export function MarketList({ markets, referenceDate, selectedId, onSelect, onRes
             aria-pressed={market.id === selectedId}
             onClick={() => onSelect(market)}
           >
-            <span className="list-date" aria-label={`다음 장날 ${formatPinDate(market, referenceDate)}`}>
-              <strong>{formatPinDate(market, referenceDate)}</strong>
-              <small>장날</small>
+            <span className="list-date" aria-label={`운영 일정 ${formatMarketTiming(market, referenceDate)}`}>
+              <strong>{formatMarketTiming(market, referenceDate)}</strong>
+              <small>{market.schedule.kind === "daily" ? "운영" : "장날"}</small>
             </span>
             <span className="list-copy">
               <strong>{market.name}</strong>
               <span>{market.roadAddress ?? market.lotAddress ?? "주소 정보 없음"}</span>
+              {market.latitude === null || market.longitude === null ? <em>위치 확인 필요</em> : null}
             </span>
             <svg className="chevron" aria-hidden="true" viewBox="0 0 24 24">
               <path d="m9 6 6 6-6 6" />

@@ -48,6 +48,27 @@ const markets: PublicMarket[] = [
       referenceDate: "2025-11-10",
     },
   },
+  {
+    id: "daily-no-coordinates",
+    name: "제천중앙시장",
+    marketType: "상설장",
+    roadAddress: "충청북도 제천시 풍양로 108",
+    lotAddress: "충청북도 제천시 중앙로1가 77",
+    latitude: null,
+    longitude: null,
+    scheduleRaw: "매일",
+    schedule: { kind: "daily" },
+    phone: "043-647-2047",
+    hasParking: true,
+    referenceDate: "2025-11-10",
+    status: "운영",
+    statusVerified: false,
+    source: {
+      name: "공공데이터포털 전국전통시장표준데이터",
+      url: "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y",
+      referenceDate: "2025-11-10",
+    },
+  },
 ];
 
 const successfulResponse = {
@@ -70,7 +91,19 @@ describe("MarketExplorer", () => {
 
     expect(await screen.findByText("운천전통시장")).toBeInTheDocument();
     expect(screen.getByText("지도 없이도 시장을 찾을 수 있어요")).toBeInTheDocument();
-    expect(screen.getByText("2곳")).toBeInTheDocument();
+    expect(screen.getByText("3곳")).toBeInTheDocument();
+  });
+
+  it("shows daily markets and omits directions when coordinates are missing", async () => {
+    const user = userEvent.setup();
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    await user.click(await screen.findByRole("button", { name: /제천중앙시장/ }));
+
+    expect(screen.getByText("매일 운영")).toBeInTheDocument();
+    expect(screen.getByText("오늘 운영")).toBeInTheDocument();
+    expect(screen.getAllByText("위치 확인 필요")).toHaveLength(2);
+    expect(screen.queryByRole("link", { name: "NAVER 지도에서 길찾기" })).not.toBeInTheDocument();
   });
 
   it("filters by region, selects a market, and preserves both values in the URL", async () => {

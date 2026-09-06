@@ -1,7 +1,7 @@
-export interface MarketSchedule {
-  kind: "digit-pair";
-  days: [number, number];
-}
+export type MarketSchedule =
+  | { kind: "daily" }
+  | { kind: "digit-pair"; days: [number, number] }
+  | { kind: "unknown"; raw: string };
 
 export interface PublicMarket {
   id: string;
@@ -9,8 +9,8 @@ export interface PublicMarket {
   marketType: string;
   roadAddress: string | null;
   lotAddress: string | null;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   scheduleRaw: string;
   schedule: MarketSchedule;
   phone: string | null;

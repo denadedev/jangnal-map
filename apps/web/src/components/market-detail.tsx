@@ -26,12 +26,30 @@ export function MarketDetail({ market, referenceDate, today, onClose }: MarketDe
   }
 
   const nextDate = getNextMarketDate(market, referenceDate);
-  const dday = getDday(nextDate, today);
+  const dday = nextDate ? getDday(nextDate, today) : null;
   const monthStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
   const monthEnd = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0);
   const monthDates = getMarketDates(market, { start: monthStart, end: monthEnd });
   const address = market.roadAddress ?? market.lotAddress ?? "주소 정보 없음";
-  const directionsUrl = `https://map.naver.com/p/directions/-/${market.longitude},${market.latitude},${encodeURIComponent(market.name)}/-/car`;
+  const hasCoordinates = market.latitude !== null && market.longitude !== null;
+  const directionsUrl = hasCoordinates
+    ? `https://map.naver.com/p/directions/-/${market.longitude},${market.latitude},${encodeURIComponent(market.name)}/-/car`
+    : null;
+  const timingTitle = market.schedule.kind === "digit-pair" ? "다음 장날" : "운영 일정";
+  const timingText = market.schedule.kind === "daily"
+    ? "매일 운영"
+    : market.schedule.kind === "unknown"
+      ? "운영 일정 확인 필요"
+      : nextDate
+        ? formatKoreanDate(nextDate)
+        : "운영 일정 확인 필요";
+  const timingBadge = market.schedule.kind === "daily"
+    ? "오늘 운영"
+    : dday === null
+      ? null
+      : dday === 0
+        ? "오늘 장날"
+        : `D-${dday}`;
 
   return (
     <article className="market-detail" aria-label={`${market.name} 상세정보`}>
@@ -48,26 +66,28 @@ export function MarketDetail({ market, referenceDate, today, onClose }: MarketDe
 
       <section className="next-date-card" aria-labelledby="next-market-date">
         <div>
-          <p id="next-market-date">다음 장날</p>
-          <strong>{formatKoreanDate(nextDate)}</strong>
+          <p id="next-market-date">{timingTitle}</p>
+          <strong>{timingText}</strong>
         </div>
-        <span className="dday">{dday === 0 ? "오늘 장날" : `D-${dday}`}</span>
+        {timingBadge ? <span className="dday">{timingBadge}</span> : null}
       </section>
 
-      <section className="detail-section" aria-labelledby="monthly-dates">
-        <div className="section-heading">
-          <h3 id="monthly-dates">{referenceDate.getMonth() + 1}월 장날</h3>
-          <span>{market.scheduleRaw}</span>
-        </div>
-        <div className="month-dates">
-          {monthDates.map((date) => (
-            <span key={date.toISOString()} className={date.getTime() === nextDate.getTime() ? "is-next" : ""}>
-              <strong>{date.getDate()}</strong>
-              <small>{new Intl.DateTimeFormat("ko-KR", { weekday: "short" }).format(date)}</small>
-            </span>
-          ))}
-        </div>
-      </section>
+      {market.schedule.kind === "digit-pair" ? (
+        <section className="detail-section" aria-labelledby="monthly-dates">
+          <div className="section-heading">
+            <h3 id="monthly-dates">{referenceDate.getMonth() + 1}월 장날</h3>
+            <span>{market.scheduleRaw}</span>
+          </div>
+          <div className="month-dates">
+            {monthDates.map((date) => (
+              <span key={date.toISOString()} className={nextDate && date.getTime() === nextDate.getTime() ? "is-next" : ""}>
+                <strong>{date.getDate()}</strong>
+                <small>{new Intl.DateTimeFormat("ko-KR", { weekday: "short" }).format(date)}</small>
+              </span>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="detail-section" aria-labelledby="visit-info">
         <h3 id="visit-info">방문 정보</h3>
@@ -75,11 +95,14 @@ export function MarketDetail({ market, referenceDate, today, onClose }: MarketDe
           <div><dt>주소</dt><dd>{address}</dd></div>
           <div><dt>전화</dt><dd>{market.phone ? <a href={`tel:${market.phone}`}>{market.phone}</a> : "정보 없음"}</dd></div>
           <div><dt>주차</dt><dd>{market.hasParking === true ? "주차 가능" : market.hasParking === false ? "주차장 없음" : "확인 필요"}</dd></div>
+          {!hasCoordinates ? <div><dt>지도</dt><dd>위치 확인 필요</dd></div> : null}
         </dl>
-        <a className="primary-button" href={directionsUrl} target="_blank" rel="noreferrer">
-          NAVER 지도에서 길찾기
-          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5 10 14M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></svg>
-        </a>
+        {directionsUrl ? (
+          <a className="primary-button" href={directionsUrl} target="_blank" rel="noreferrer">
+            NAVER 지도에서 길찾기
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5 10 14M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></svg>
+          </a>
+        ) : null}
       </section>
 
       <footer className="source-note">

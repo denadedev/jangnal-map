@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
-import { formatPinDate } from "../lib/market-view";
+import { formatMarketTiming } from "../lib/market-view";
 import { loadNaverMaps, type NaverMapInstance, type NaverMarker } from "../lib/naver-maps";
 
 interface MarketMapProps {
@@ -16,6 +16,9 @@ interface MarketMapProps {
 
 type MapStatus = "idle" | "loading" | "ready" | "error";
 type LocationStatus = "idle" | "loading" | "success" | "error";
+
+const hasCoordinates = (market: PublicMarket): market is PublicMarket & { latitude: number; longitude: number } =>
+  market.latitude !== null && market.longitude !== null;
 
 const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, (character) => ({
   "&": "&amp;",
@@ -116,15 +119,16 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, onSele
       item.marker.setMap(null);
     }
 
-    markersRef.current = markets.map((market) => {
+    markersRef.current = markets.filter(hasCoordinates).map((market) => {
       const selected = market.id === selectedId;
+      const timing = formatMarketTiming(market, referenceDate);
       const marker = new naver.maps.Marker({
         map: mapRef.current as NaverMapInstance,
         position: new naver.maps.LatLng(market.latitude, market.longitude),
-        title: `${market.name} · ${formatPinDate(market, referenceDate)}`,
+        title: `${market.name} · ${timing}`,
         zIndex: selected ? 20 : 10,
         icon: {
-          content: `<button class="map-marker${selected ? " is-selected" : ""}" type="button" aria-label="${escapeHtml(market.name)} 상세 보기, 다음 장날 ${formatPinDate(market, referenceDate)}"><span>${escapeHtml(market.name)}</span><strong>${formatPinDate(market, referenceDate)}</strong></button>`,
+          content: `<button class="map-marker${selected ? " is-selected" : ""}" type="button" aria-label="${escapeHtml(market.name)} 상세 보기, 운영 일정 ${timing}"><span>${escapeHtml(market.name)}</span><strong>${timing}</strong></button>`,
           anchor: new naver.maps.Point(0, 38),
         },
       });
@@ -133,7 +137,9 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, onSele
     });
 
     const selected = markets.find((market) => market.id === selectedId);
-    if (selected) mapRef.current.panTo(new naver.maps.LatLng(selected.latitude, selected.longitude));
+    if (selected && hasCoordinates(selected)) {
+      mapRef.current.panTo(new naver.maps.LatLng(selected.latitude, selected.longitude));
+    }
 
     return () => {
       for (const item of markersRef.current) {

@@ -7,6 +7,17 @@ const market = (days: [number, number]) => ({ schedule: { kind: "digit-pair" as 
 const dateParts = (dates: Date[]) => dates.map((date) => [date.getFullYear(), date.getMonth() + 1, date.getDate()]);
 
 describe("getMarketDates", () => {
+  it("returns every day for daily markets and no dates for unknown schedules", () => {
+    const range = { start: new Date(2026, 8, 7), end: new Date(2026, 8, 9) };
+
+    expect(getMarketDates({ schedule: { kind: "daily" as const } }, range)).toEqual([
+      new Date(2026, 8, 7),
+      new Date(2026, 8, 8),
+      new Date(2026, 8, 9),
+    ]);
+    expect(getMarketDates({ schedule: { kind: "unknown" as const, raw: "2일+4일+7일+9일" } }, range)).toEqual([]);
+  });
+
   it("returns 1 and 6 ending market days within an inclusive range", () => {
     const dates = getMarketDates(market([1, 6]), {
       start: new Date(2026, 0, 1),
@@ -57,6 +68,13 @@ describe("getMarketDates", () => {
 });
 
 describe("getNextMarketDate", () => {
+  it("uses today for daily markets and no date for unknown schedules", () => {
+    const from = new Date(2026, 8, 7);
+
+    expect(getNextMarketDate({ schedule: { kind: "daily" as const } }, from)).toEqual(from);
+    expect(getNextMarketDate({ schedule: { kind: "unknown" as const, raw: "확인 중" } }, from)).toBeNull();
+  });
+
   it("crosses a year boundary to find the next market day", () => {
     expect(getNextMarketDate(market([2, 7]), new Date(2026, 11, 31))).toEqual(new Date(2027, 0, 2));
   });

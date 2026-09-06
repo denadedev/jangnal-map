@@ -71,9 +71,11 @@ export function filterMarkets(
   });
 }
 
-export function formatPinDate(market: PublicMarket, referenceDate: Date): string {
+export function formatMarketTiming(market: PublicMarket, referenceDate: Date): string {
+  if (market.schedule.kind === "daily") return "매일";
+  if (market.schedule.kind === "unknown") return "일정 확인";
   const date = getNextMarketDate(market, referenceDate);
-  return `${date.getMonth() + 1}/${date.getDate()}`;
+  return date ? `${date.getMonth() + 1}/${date.getDate()}` : "일정 확인";
 }
 
 export function formatKoreanDate(date: Date): string {

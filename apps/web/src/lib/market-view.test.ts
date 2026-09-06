@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { PublicMarket } from "./market";
-import { filterMarkets, formatMarketTiming, getDateRange, normalizeDirectDate } from "./market-view";
+import { filterMarkets, formatMarketTiming, formatSchedulePattern, getDateRange, normalizeDirectDate } from "./market-view";
 
 const market: PublicMarket = {
   id: "market",
@@ -22,6 +22,13 @@ const market: PublicMarket = {
 };
 
 describe("market explorer date semantics", () => {
+  it("formats normalized schedule patterns for list tags", () => {
+    expect(formatSchedulePattern(market)).toBe("2·7일장");
+    expect(formatSchedulePattern({ ...market, scheduleRaw: "5일+10일", schedule: { kind: "digit-pair", days: [5, 0] } })).toBe("5·10일장");
+    expect(formatSchedulePattern({ ...market, scheduleRaw: "매일", schedule: { kind: "daily" } })).toBe("매일");
+    expect(formatSchedulePattern({ ...market, scheduleRaw: "확인 중", schedule: { kind: "unknown", raw: "확인 중" } })).toBe("일정 확인");
+  });
+
   it("uses all markets without a date range and treats this week as the next seven days", () => {
     const sunday = new Date(2026, 8, 6);
 

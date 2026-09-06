@@ -1,5 +1,5 @@
 import type { PublicMarket } from "../lib/market";
-import { formatMarketTiming } from "../lib/market-view";
+import { formatMarketTiming, formatSchedulePattern } from "../lib/market-view";
 
 interface MarketListProps {
   markets: PublicMarket[];
@@ -39,6 +39,7 @@ export function MarketList({ markets, referenceDate, selectedId, onSelect, onRes
             </span>
             <span className="list-copy">
               <strong>{market.name}</strong>
+              <span className={`schedule-tag is-${market.schedule.kind}`}>{formatSchedulePattern(market)}</span>
               <span>{market.roadAddress ?? market.lotAddress ?? "주소 정보 없음"}</span>
               {market.latitude === null || market.longitude === null ? <em>위치 확인 필요</em> : null}
             </span>

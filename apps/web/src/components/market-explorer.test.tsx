@@ -111,6 +111,8 @@ describe("MarketExplorer", () => {
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
     expect(await screen.findByText("운천전통시장")).toBeInTheDocument();
+    expect(screen.getByText("4·9일장")).toBeInTheDocument();
+    expect(screen.getByText("5·10일장")).toBeInTheDocument();
     expect(screen.getByText("지도 없이도 시장을 찾을 수 있어요")).toBeInTheDocument();
     expect(screen.getByText("2곳")).toBeInTheDocument();
   });

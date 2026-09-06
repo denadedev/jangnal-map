@@ -79,6 +79,13 @@ export function formatMarketTiming(market: PublicMarket, referenceDate: Date): s
   return date ? `${date.getMonth() + 1}/${date.getDate()}` : "일정 확인";
 }
 
+export function formatSchedulePattern(market: PublicMarket): string {
+  if (market.schedule.kind === "daily") return "매일";
+  if (market.schedule.kind === "unknown") return "일정 확인";
+  const [first, second] = market.schedule.days;
+  return `${first}·${second === 0 ? 10 : second}일장`;
+}
+
 export function formatKoreanDate(date: Date): string {
   const weekday = new Intl.DateTimeFormat("ko-KR", { weekday: "long" }).format(date);
   return `${date.getMonth() + 1}월 ${date.getDate()}일 ${weekday}`;

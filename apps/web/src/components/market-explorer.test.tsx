@@ -112,11 +112,12 @@ describe("MarketExplorer", () => {
 
     expect(await screen.findByText("운천전통시장")).toBeInTheDocument();
     expect(screen.getByText("지도 없이도 시장을 찾을 수 있어요")).toBeInTheDocument();
-    expect(screen.getByText("3곳")).toBeInTheDocument();
+    expect(screen.getByText("2곳")).toBeInTheDocument();
   });
 
   it("shows daily markets and omits directions when coordinates are missing", async () => {
     const user = userEvent.setup();
+    window.history.replaceState(null, "", "/?when=date&date=2026-09-03");
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
     await user.click(await screen.findByRole("button", { name: /제천중앙시장/ }));
@@ -125,6 +126,17 @@ describe("MarketExplorer", () => {
     expect(screen.getByText("오늘 운영")).toBeInTheDocument();
     expect(screen.getAllByText("위치 확인 필요")).toHaveLength(2);
     expect(screen.queryByRole("link", { name: "NAVER 지도에서 길찾기" })).not.toBeInTheDocument();
+  });
+
+  it("shows daily markets only in all and direct-date modes", async () => {
+    const user = userEvent.setup();
+    render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
+
+    expect(screen.queryByText("제천중앙시장")).not.toBeInTheDocument();
+    await user.click(await screen.findByRole("button", { name: "전체" }));
+    expect(screen.getByText("제천중앙시장")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "오늘" }));
+    expect(screen.queryByText("제천중앙시장")).not.toBeInTheDocument();
   });
 
   it("shows unknown schedules only when the all-markets filter is selected", async () => {

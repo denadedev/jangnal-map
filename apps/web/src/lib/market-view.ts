@@ -61,12 +61,14 @@ export function filterMarkets(
   markets: PublicMarket[],
   query: string,
   range: DateRange | null,
+  options: { includeDaily?: boolean } = {},
 ): PublicMarket[] {
+  const includeDaily = options.includeDaily ?? true;
   const normalizedQuery = query.trim().toLocaleLowerCase("ko-KR");
   return markets.filter((market) => {
     const searchable = [market.name, market.roadAddress, market.lotAddress].filter(Boolean).join(" ").toLocaleLowerCase("ko-KR");
     return (!normalizedQuery || searchable.includes(normalizedQuery))
-      && (range === null || getMarketDates(market, range).length > 0);
+      && (range === null || (market.schedule.kind !== "daily" || includeDaily) && getMarketDates(market, range).length > 0);
   });
 }
 

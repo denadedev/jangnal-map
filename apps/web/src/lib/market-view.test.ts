@@ -47,6 +47,13 @@ describe("market explorer date semantics", () => {
     })).toEqual([daily]);
   });
 
+  it("can exclude daily markets from jangnal-only date ranges", () => {
+    const daily = { ...market, id: "daily", scheduleRaw: "매일", schedule: { kind: "daily" as const } };
+    const range = { start: new Date(2026, 8, 7), end: new Date(2026, 8, 7) };
+
+    expect(filterMarkets([market, daily], "", range, { includeDaily: false })).toEqual([market]);
+  });
+
   it("shows an upcoming market day during the next seven days", () => {
     const today = new Date(2026, 8, 8);
     const range = getDateRange("week", today, "2026-09-08");

@@ -68,7 +68,11 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
 
   const range = useMemo(() => getDateRange(mode, today, directDate), [directDate, mode, today]);
   const referenceDate = range?.start ?? today;
-  const filteredMarkets = useMemo(() => filterMarkets(markets, query, range), [markets, query, range]);
+  const includeDaily = mode === "all" || mode === "date";
+  const filteredMarkets = useMemo(
+    () => filterMarkets(markets, query, range, { includeDaily }),
+    [includeDaily, markets, query, range],
+  );
   const mapMissingCount = filteredMarkets.filter((market) => market.latitude === null || market.longitude === null).length;
   const selectedMarket = markets.find((market) => market.id === selectedId) ?? null;
 
@@ -135,7 +139,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
         <aside className="list-pane" aria-label="시장 목록">
           <div className="list-heading">
             <div>
-              <p>{mode === "all" ? "전체 전통시장" : "선택한 날짜에 여는 시장"}</p>
+              <p>{mode === "all" ? "전체 전통시장" : mode === "date" ? "선택한 날짜에 운영하는 시장" : "선택한 기간의 장날 시장"}</p>
               <strong>{filteredMarkets.length}곳</strong>
               {mapMissingCount > 0 ? <small>지도 미표시 {mapMissingCount}곳</small> : null}
             </div>

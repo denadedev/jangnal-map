@@ -69,6 +69,27 @@ const markets: PublicMarket[] = [
       referenceDate: "2025-11-10",
     },
   },
+  {
+    id: "unknown",
+    name: "일정미확인시장",
+    marketType: "상설장",
+    roadAddress: "충청북도 제천시 테스트로 1",
+    lotAddress: null,
+    latitude: 37.13,
+    longitude: 128.2,
+    scheduleRaw: "확인 중",
+    schedule: { kind: "unknown", raw: "확인 중" },
+    phone: null,
+    hasParking: null,
+    referenceDate: "2025-11-10",
+    status: "운영",
+    statusVerified: false,
+    source: {
+      name: "공공데이터포털 전국전통시장표준데이터",
+      url: "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y",
+      referenceDate: "2025-11-10",
+    },
+  },
 ];
 
 const successfulResponse = {
@@ -104,6 +125,18 @@ describe("MarketExplorer", () => {
     expect(screen.getByText("오늘 운영")).toBeInTheDocument();
     expect(screen.getAllByText("위치 확인 필요")).toHaveLength(2);
     expect(screen.queryByRole("link", { name: "NAVER 지도에서 길찾기" })).not.toBeInTheDocument();
+  });
+
+  it("shows unknown schedules only when the all-markets filter is selected", async () => {
+    const user = userEvent.setup();
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    expect(screen.queryByText("일정미확인시장")).not.toBeInTheDocument();
+    await user.click(await screen.findByRole("button", { name: "전체" }));
+
+    expect(screen.getByText("일정미확인시장")).toBeInTheDocument();
+    expect(screen.getByText("4곳")).toBeInTheDocument();
+    await waitFor(() => expect(window.location.search).toContain("when=all"));
   });
 
   it("filters by region, selects a market, and preserves both values in the URL", async () => {

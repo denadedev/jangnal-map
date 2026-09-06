@@ -6,6 +6,45 @@ import { describe, expect, it, vi } from "vitest";
 import { MarketFilters } from "./market-filters";
 
 describe("MarketFilters", () => {
+  it("offers an all-markets filter", async () => {
+    const onModeChange = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <MarketFilters
+        mode="week"
+        query=""
+        directDate="2026-09-03"
+        onModeChange={onModeChange}
+        onQueryChange={() => undefined}
+        onDirectDateChange={() => undefined}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "전체" }));
+    expect(onModeChange).toHaveBeenCalledWith("all");
+  });
+
+  it("opens the native picker from the date-selection button", async () => {
+    const showPicker = vi.fn();
+    Object.defineProperty(HTMLInputElement.prototype, "showPicker", { configurable: true, value: showPicker });
+    const user = userEvent.setup();
+
+    render(
+      <MarketFilters
+        mode="week"
+        query=""
+        directDate="2026-09-03"
+        onModeChange={() => undefined}
+        onQueryChange={() => undefined}
+        onDirectDateChange={() => undefined}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "날짜 선택" }));
+    expect(showPicker).toHaveBeenCalledOnce();
+  });
+
   it("exposes the active date filter and reports a new filter selection", async () => {
     const onModeChange = vi.fn();
     const user = userEvent.setup();

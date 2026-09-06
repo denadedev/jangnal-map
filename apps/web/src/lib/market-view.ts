@@ -34,40 +34,39 @@ export function normalizeDirectDate(value: string, today: Date): Date {
   return parsed < minimum ? minimum : parsed;
 }
 
-export function getDateRange(mode: DateFilterMode, today: Date, directDate: string): DateRange {
+export function getDateRange(mode: DateFilterMode, today: Date, directDate: string): DateRange | null {
   const day = atStartOfDay(today);
+  if (mode === "all") return null;
   if (mode === "today") return { start: day, end: day };
   if (mode === "date") {
     const selected = normalizeDirectDate(directDate, day);
     return { start: selected, end: selected };
   }
 
-  const mondayOffset = (day.getDay() + 6) % 7;
-  const monday = new Date(day);
-  monday.setDate(day.getDate() - mondayOffset);
-
   if (mode === "weekend") {
-    const saturday = new Date(monday);
-    saturday.setDate(monday.getDate() + 5);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    return { start: day > saturday ? day : saturday, end: sunday };
+    const daysUntilSaturday = day.getDay() === 0 ? 6 : (6 - day.getDay() + 7) % 7;
+    const saturday = new Date(day);
+    saturday.setDate(day.getDate() + daysUntilSaturday);
+    const sunday = new Date(saturday);
+    sunday.setDate(saturday.getDate() + 1);
+    return { start: saturday, end: sunday };
   }
 
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  return { start: day, end: sunday };
+  const end = new Date(day);
+  end.setDate(day.getDate() + 6);
+  return { start: day, end };
 }
 
 export function filterMarkets(
   markets: PublicMarket[],
   query: string,
-  range: DateRange,
+  range: DateRange | null,
 ): PublicMarket[] {
   const normalizedQuery = query.trim().toLocaleLowerCase("ko-KR");
   return markets.filter((market) => {
     const searchable = [market.name, market.roadAddress, market.lotAddress].filter(Boolean).join(" ").toLocaleLowerCase("ko-KR");
-    return (!normalizedQuery || searchable.includes(normalizedQuery)) && getMarketDates(market, range).length > 0;
+    return (!normalizedQuery || searchable.includes(normalizedQuery))
+      && (range === null || getMarketDates(market, range).length > 0);
   });
 }
 

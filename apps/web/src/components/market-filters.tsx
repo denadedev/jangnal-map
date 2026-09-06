@@ -1,6 +1,8 @@
 "use client";
 
-export type DateFilterMode = "today" | "week" | "weekend" | "date";
+import { useRef } from "react";
+
+export type DateFilterMode = "all" | "today" | "week" | "weekend" | "date";
 
 interface MarketFiltersProps {
   mode: DateFilterMode;
@@ -14,12 +16,26 @@ interface MarketFiltersProps {
 
 export function MarketFilters(_props: MarketFiltersProps) {
   const { mode, query, directDate, minDate, onModeChange, onQueryChange, onDirectDateChange } = _props;
+  const dateInputRef = useRef<HTMLInputElement>(null);
   const modes: Array<{ value: DateFilterMode; label: string }> = [
+    { value: "all", label: "전체" },
     { value: "today", label: "오늘" },
     { value: "week", label: "이번 주" },
     { value: "weekend", label: "주말" },
     { value: "date", label: "날짜 선택" },
   ];
+  const selectMode = (nextMode: DateFilterMode) => {
+    onModeChange(nextMode);
+    if (nextMode !== "date") return;
+    const input = dateInputRef.current;
+    if (!input) return;
+    try {
+      input.showPicker?.();
+    } catch {
+      input.focus();
+    }
+    if (!input.showPicker) input.focus();
+  };
 
   return (
     <section className="market-filters" aria-label="시장 검색 및 날짜 필터">
@@ -51,7 +67,7 @@ export function MarketFilters(_props: MarketFiltersProps) {
               type="button"
               className="filter-pill"
               aria-pressed={mode === item.value}
-              onClick={() => onModeChange(item.value)}
+              onClick={() => selectMode(item.value)}
             >
               {item.label}
             </button>
@@ -60,6 +76,7 @@ export function MarketFilters(_props: MarketFiltersProps) {
         <label className={`direct-date ${mode === "date" ? "is-visible" : ""}`}>
           <span>날짜</span>
           <input
+            ref={dateInputRef}
             type="date"
             value={directDate}
             min={minDate}

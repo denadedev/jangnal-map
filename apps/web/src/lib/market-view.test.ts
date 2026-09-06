@@ -22,14 +22,39 @@ const market: PublicMarket = {
 };
 
 describe("market explorer date semantics", () => {
-  it("shows only an upcoming market day during the current week", () => {
+  it("uses all markets without a date range and treats this week as the next seven days", () => {
+    const sunday = new Date(2026, 8, 6);
+
+    expect(getDateRange("all", sunday, "2026-09-06")).toBeNull();
+    expect(getDateRange("week", sunday, "2026-09-06")).toEqual({
+      start: new Date(2026, 8, 6),
+      end: new Date(2026, 8, 12),
+    });
+    expect(getDateRange("weekend", sunday, "2026-09-06")).toEqual({
+      start: new Date(2026, 8, 12),
+      end: new Date(2026, 8, 13),
+    });
+  });
+
+  it("includes every schedule in all mode and excludes unknown schedules from dated modes", () => {
+    const daily = { ...market, id: "daily", scheduleRaw: "매일", schedule: { kind: "daily" as const } };
+    const unknown = { ...market, id: "unknown", scheduleRaw: "확인 중", schedule: { kind: "unknown" as const, raw: "확인 중" } };
+
+    expect(filterMarkets([market, daily, unknown], "", null)).toHaveLength(3);
+    expect(filterMarkets([market, daily, unknown], "", {
+      start: new Date(2026, 8, 8),
+      end: new Date(2026, 8, 8),
+    })).toEqual([daily]);
+  });
+
+  it("shows an upcoming market day during the next seven days", () => {
     const today = new Date(2026, 8, 8);
     const range = getDateRange("week", today, "2026-09-08");
     const results = filterMarkets([market], "", range);
 
-    expect(range).toEqual({ start: new Date(2026, 8, 8), end: new Date(2026, 8, 13) });
+    expect(range).toEqual({ start: new Date(2026, 8, 8), end: new Date(2026, 8, 14) });
     expect(results).toEqual([market]);
-    expect(formatMarketTiming(results[0], range.start)).toBe("9/12");
+    expect(formatMarketTiming(results[0], range!.start)).toBe("9/12");
   });
 
   it("clamps empty, malformed, and past direct dates to today", () => {

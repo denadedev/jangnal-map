@@ -23,7 +23,7 @@ interface MarketExplorerProps {
   initialState?: ExplorerInitialState;
 }
 
-const validModes = new Set<DateFilterMode>(["today", "week", "weekend", "date"]);
+const validModes = new Set<DateFilterMode>(["all", "today", "week", "weekend", "date"]);
 const staticRenderDate = new Date(2000, 0, 15);
 
 const readUrlState = (today: Date): ExplorerInitialState => {
@@ -67,7 +67,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   });
 
   const range = useMemo(() => getDateRange(mode, today, directDate), [directDate, mode, today]);
-  const referenceDate = range.start;
+  const referenceDate = range?.start ?? today;
   const filteredMarkets = useMemo(() => filterMarkets(markets, query, range), [markets, query, range]);
   const selectedMarket = markets.find((market) => market.id === selectedId) ?? null;
 
@@ -133,7 +133,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
       <div className={`explorer-grid ${selectedMarket ? "has-selection" : ""}`}>
         <aside className="list-pane" aria-label="시장 목록">
           <div className="list-heading">
-            <div><p>선택한 날짜에 여는 시장</p><strong>{filteredMarkets.length}곳</strong></div>
+            <div><p>{mode === "all" ? "전체 전통시장" : "선택한 날짜에 여는 시장"}</p><strong>{filteredMarkets.length}곳</strong></div>
             <span>{query ? `“${query}” 검색` : "전국"}</span>
           </div>
 

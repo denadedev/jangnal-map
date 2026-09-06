@@ -355,8 +355,8 @@ a { color: inherit; text-decoration: none; }
 .date-timeline small { margin-top: 2px; color: var(--muted); font-size: 9px; }
 .date-timeline em { min-height: 11px; margin-top: 3px; color: var(--muted); font-size: 8px; font-style: normal; font-weight: 750; }
 .date-timeline .is-today { border-color: #b8ad9f; }
-.date-timeline .is-next { border-color: var(--persimmon); background: var(--persimmon); color: white; }
-.date-timeline .is-next small, .date-timeline .is-next em { color: white; }
+.date-timeline .is-market-day { border-color: var(--persimmon); background: var(--persimmon); color: white; }
+.date-timeline .is-market-day small, .date-timeline .is-market-day em { color: white; }
 
 .info-list { display: grid; gap: 10px; margin: 0; }
 .info-list div { display: grid; grid-template-columns: 50px 1fr; gap: 8px; font-size: 11px; line-height: 1.55; }

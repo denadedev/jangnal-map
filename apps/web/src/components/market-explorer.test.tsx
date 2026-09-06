@@ -168,19 +168,21 @@ describe("MarketExplorer", () => {
     expect(window.location.search).toContain("market=tongbok");
   });
 
-  it("shows every date from today through the next market day", async () => {
+  it("shows seven days from today and marks every market day", async () => {
     const user = userEvent.setup();
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
     await user.click(await screen.findByRole("button", { name: /운천전통시장/ }));
-    const timeline = screen.getByRole("list", { name: "오늘부터 다음 장날까지" });
+    const timeline = screen.getByRole("list", { name: "오늘부터 7일간 장날" });
     const dates = within(timeline).getAllByRole("listitem");
 
-    expect(dates).toHaveLength(2);
+    expect(dates).toHaveLength(7);
     expect(dates[0]).toHaveTextContent("3");
     expect(dates[0]).toHaveTextContent("오늘");
     expect(dates[1]).toHaveTextContent("4");
     expect(dates[1]).toHaveTextContent("장날");
+    expect(dates[6]).toHaveTextContent("9");
+    expect(dates[6]).toHaveTextContent("장날");
   });
 
   it("shows an actionable empty state when no market matches", async () => {

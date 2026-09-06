@@ -1,6 +1,6 @@
 import type { PublicMarket } from "../lib/market";
 import { getDday, formatKoreanDate } from "../lib/market-view";
-import { getNextMarketDate } from "../lib/schedule";
+import { getMarketDates, getNextMarketDate } from "../lib/schedule";
 
 interface MarketDetailProps {
   market: PublicMarket | null;
@@ -37,7 +37,9 @@ export function MarketDetail({ market, today, onClose }: MarketDetailProps) {
 
   const nextDate = getNextMarketDate(market, today);
   const dday = nextDate ? getDday(nextDate, today) : null;
-  const timelineDates = market.schedule.kind === "digit-pair" && nextDate ? datesThrough(today, nextDate) : [];
+  const timelineEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 6);
+  const timelineDates = market.schedule.kind === "digit-pair" ? datesThrough(today, timelineEnd) : [];
+  const marketDayTimes = new Set(getMarketDates(market, { start: today, end: timelineEnd }).map((date) => date.getTime()));
   const address = market.roadAddress ?? market.lotAddress ?? "주소 정보 없음";
   const hasCoordinates = market.latitude !== null && market.longitude !== null;
   const directionsUrl = hasCoordinates
@@ -83,18 +85,18 @@ export function MarketDetail({ market, today, onClose }: MarketDetailProps) {
       {market.schedule.kind === "digit-pair" ? (
         <section className="detail-section" aria-labelledby="upcoming-dates">
           <div className="section-heading">
-            <h3 id="upcoming-dates">오늘부터 다음 장날</h3>
+            <h3 id="upcoming-dates">오늘부터 7일</h3>
             <span>{market.scheduleRaw}</span>
           </div>
-          <ol className="date-timeline" aria-label="오늘부터 다음 장날까지">
+          <ol className="date-timeline" aria-label="오늘부터 7일간 장날">
             {timelineDates.map((date, index) => {
-              const isNext = nextDate && date.getTime() === nextDate.getTime();
+              const isMarketDay = marketDayTimes.has(date.getTime());
               const isToday = index === 0;
               return (
-                <li key={date.toISOString()} className={`${isToday ? "is-today" : ""} ${isNext ? "is-next" : ""}`.trim()}>
+                <li key={date.toISOString()} className={`${isToday ? "is-today" : ""} ${isMarketDay ? "is-market-day" : ""}`.trim()}>
                   <strong>{date.getDate()}</strong>
                   <small>{new Intl.DateTimeFormat("ko-KR", { weekday: "short" }).format(date)}</small>
-                  <em>{isToday && isNext ? "오늘 장날" : isNext ? "장날" : isToday ? "오늘" : ""}</em>
+                  <em>{isToday && isMarketDay ? "오늘 장날" : isMarketDay ? "장날" : isToday ? "오늘" : ""}</em>
                 </li>
               );
             })}

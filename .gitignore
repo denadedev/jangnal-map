@@ -6,3 +6,4 @@ apps/web/.next/
 apps/web/tsconfig.tsbuildinfo
 apps/web/.env*.local
 .gstack/
+.superpowers/sdd/

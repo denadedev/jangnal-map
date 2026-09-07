@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import nextConfig from "../../next.config";
 import { publicMarkets } from "../lib/market-catalog";
 import { getMarketPagePath, isMarketIndexable, SITE_URL } from "../lib/market-seo";
 import { metadata } from "./layout";
@@ -47,13 +48,26 @@ describe("SEO metadata routes", () => {
   it("allows crawling and declares the canonical sitemap", () => {
     expect(robots()).toEqual({
       rules: { userAgent: "*", allow: "/" },
-      sitemap: "https://jangnal-map.vercel.app/sitemap.xml",
-      host: "https://jangnal-map.vercel.app",
+      sitemap: "https://jangnal.spamfam.kr/sitemap.xml",
+      host: "https://jangnal.spamfam.kr",
+    });
+  });
+
+  it("permanently redirects the legacy Vercel host to the canonical domain", async () => {
+    const redirects = await (nextConfig as {
+      redirects?: () => Promise<unknown[]>;
+    }).redirects?.();
+
+    expect(redirects).toContainEqual({
+      source: "/:path*",
+      has: [{ type: "host", value: "jangnal-map.vercel.app" }],
+      destination: "https://jangnal.spamfam.kr/:path*",
+      permanent: true,
     });
   });
 
   it("defines production root metadata defaults", () => {
-    expect(metadata.metadataBase).toEqual(new URL(SITE_URL));
+    expect(metadata.metadataBase).toEqual(new URL("https://jangnal.spamfam.kr"));
     expect(metadata.verification?.google).toBe("qLxSxOof1dITMeFrrNHReAC51FFUDTPDpCqKSpqJFgY");
     expect(metadata.verification?.other).toEqual({
       "naver-site-verification": "d7bf1253f88fe2410c22eb065f4af604dfccac18",

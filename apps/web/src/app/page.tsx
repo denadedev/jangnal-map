@@ -5,7 +5,7 @@ const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "오늘 장날",
-  alternateName: ["장날 지도", "jangnal-map.vercel.app"],
+  alternateName: ["장날 지도", "오늘장날"],
   url: SITE_URL,
 };
 

@@ -108,6 +108,8 @@ a { color: inherit; text-decoration: none; }
 .data-badge { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 650; }
 .data-badge span { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgb(85 107 84 / 12%); }
 
+.install-prompt { display: none; }
+
 .market-filters {
   position: relative;
   z-index: 30;
@@ -414,6 +416,25 @@ a { color: inherit; text-decoration: none; }
   .brand-mark { width: 33px; height: 33px; }
   .brand strong { font-size: 18px; }
   .brand small, .data-badge { display: none; }
+
+  .install-prompt {
+    position: relative;
+    z-index: 35;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    gap: 9px;
+    align-items: center;
+    border-bottom: 1px solid #efc9ba;
+    padding: 9px 10px 9px 12px;
+    background: var(--persimmon-soft);
+  }
+  .install-prompt-mark { display: grid; width: 29px; height: 29px; place-items: center; border-radius: 9px; background: var(--persimmon); color: #fff; font-size: 20px; font-weight: 500; line-height: 1; }
+  .install-prompt-copy { min-width: 0; }
+  .install-prompt-copy strong { display: block; font-size: 12px; line-height: 1.35; }
+  .install-prompt-copy p { margin: 1px 0 0; color: var(--muted); font-size: 10px; line-height: 1.4; }
+  .install-prompt-copy .install-prompt-guide { margin-top: 5px; color: var(--persimmon-dark); font-weight: 700; }
+  .install-prompt-action { min-height: 32px; border: 1px solid var(--persimmon); border-radius: 5px; padding: 0 10px; background: var(--panel); color: var(--persimmon-dark); font-size: 11px; font-weight: 800; white-space: nowrap; }
+  .install-prompt-close { display: grid; width: 28px; height: 28px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; }
 
   .market-filters { position: sticky; top: 0; grid-template-columns: 1fr; gap: 9px; min-height: auto; padding: 10px 12px 11px; }
   .search-field { height: 43px; }

@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   description: "전국 전통시장의 오늘 장날, 5일장 일정, 주소와 방문 정보를 지도에서 찾아보세요.",
   verification: {
     google: "qLxSxOof1dITMeFrrNHReAC51FFUDTPDpCqKSpqJFgY",
+    other: {
+      "naver-site-verification": "d7bf1253f88fe2410c22eb065f4af604dfccac18",
+    },
   },
   appleWebApp: {
     capable: true,

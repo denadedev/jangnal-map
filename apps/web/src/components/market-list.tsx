@@ -1,4 +1,5 @@
 import type { PublicMarket } from "../lib/market";
+import { getMarketPagePath } from "../lib/market-path";
 import { formatDistance, formatMarketTiming, formatSchedulePattern, getDistanceKm, type Coordinates } from "../lib/market-view";
 
 interface MarketListProps {
@@ -32,11 +33,15 @@ export function MarketList({ markets, referenceDate, selectedId, onSelect, onRes
           : null;
         return (
         <li key={market.id}>
-          <button
-            type="button"
+          <a
+            href={getMarketPagePath(market)}
             className="market-list-item"
-            aria-pressed={market.id === selectedId}
-            onClick={() => onSelect(market)}
+            aria-current={market.id === selectedId ? "true" : undefined}
+            onClick={(event) => {
+              if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+              event.preventDefault();
+              onSelect(market);
+            }}
           >
             <span className="list-date" aria-label={`운영 일정 ${formatMarketTiming(market, referenceDate)}`}>
               <strong>{formatMarketTiming(market, referenceDate)}</strong>
@@ -52,7 +57,7 @@ export function MarketList({ markets, referenceDate, selectedId, onSelect, onRes
             <svg className="chevron" aria-hidden="true" viewBox="0 0 24 24">
               <path d="m9 6 6 6-6 6" />
             </svg>
-          </button>
+          </a>
         </li>
         );
       })}

@@ -110,6 +110,8 @@ describe("MarketExplorer", () => {
   it("loads static markets and keeps the list usable when the map key is missing", async () => {
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
+    expect(screen.getByRole("heading", { level: 1, name: "오늘 장날" })).toBeInTheDocument();
+    expect(screen.getByText("전국 5일장·전통시장 일정 지도")).toBeInTheDocument();
     expect(await screen.findByText("운천전통시장")).toBeInTheDocument();
     expect(screen.getByText("4·9일장")).toBeInTheDocument();
     expect(screen.getByText("5·10일장")).toBeInTheDocument();
@@ -122,7 +124,7 @@ describe("MarketExplorer", () => {
     window.history.replaceState(null, "", "/?when=date&date=2026-09-03");
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
-    await user.click(await screen.findByRole("button", { name: /제천중앙시장/ }));
+    await user.click(await screen.findByRole("link", { name: /제천중앙시장/ }));
 
     expect(screen.getByText("매일 운영")).toBeInTheDocument();
     expect(screen.getByText("오늘 운영")).toBeInTheDocument();
@@ -160,7 +162,7 @@ describe("MarketExplorer", () => {
     await user.type(await screen.findByRole("searchbox", { name: "시장명 또는 지역 검색" }), "평택");
     expect(screen.queryByText("운천전통시장")).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /통복시장/ }));
+    await user.click(screen.getByRole("link", { name: /통복시장/ }));
 
     expect(screen.getByRole("heading", { name: "통복시장" })).toBeInTheDocument();
     expect(screen.getByText("9월 5일 토요일")).toBeInTheDocument();
@@ -172,7 +174,7 @@ describe("MarketExplorer", () => {
     const user = userEvent.setup();
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
-    await user.click(await screen.findByRole("button", { name: /운천전통시장/ }));
+    await user.click(await screen.findByRole("link", { name: /운천전통시장/ }));
     const timeline = screen.getByRole("list", { name: "오늘부터 7일간 장날" });
     const dates = within(timeline).getAllByRole("listitem");
 
@@ -199,7 +201,7 @@ describe("MarketExplorer", () => {
     const user = userEvent.setup();
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
-    await user.click(await screen.findByRole("button", { name: /운천전통시장/ }));
+    await user.click(await screen.findByRole("link", { name: /운천전통시장/ }));
     expect(screen.getByRole("heading", { name: "운천전통시장" })).toBeInTheDocument();
 
     await user.type(screen.getByRole("searchbox", { name: "시장명 또는 지역 검색" }), "평택");

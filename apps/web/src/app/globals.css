@@ -68,7 +68,8 @@ a { color: inherit; text-decoration: none; }
 .brand { display: inline-flex; align-items: center; gap: 11px; }
 .brand > span:last-child { display: flex; flex-direction: column; gap: 1px; }
 
-.brand strong {
+.brand h1 {
+  margin: 0;
   font-family: Georgia, "Noto Serif KR", serif;
   font-size: 20px;
   letter-spacing: -0.045em;
@@ -237,7 +238,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .market-list-item:hover { background: #faf6ef; }
-.market-list-item[aria-pressed="true"] { border-left-color: var(--persimmon); background: var(--persimmon-soft); }
+.market-list-item[aria-current="true"] { border-left-color: var(--persimmon); background: var(--persimmon-soft); }
 
 .list-date {
   display: flex;
@@ -414,7 +415,7 @@ a { color: inherit; text-decoration: none; }
   .explorer-shell { height: auto; min-height: 100dvh; overflow: visible; }
   .app-header { min-height: 59px; padding: 0 16px; }
   .brand-mark { width: 33px; height: 33px; }
-  .brand strong { font-size: 18px; }
+  .brand h1 { font-size: 18px; }
   .brand small, .data-badge { display: none; }
 
   .install-prompt {

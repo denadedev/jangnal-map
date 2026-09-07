@@ -1,0 +1,35 @@
+.page { min-height: 100dvh; background: var(--paper); color: var(--ink); }
+.header { display: flex; min-height: 70px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding: 0 24px; background: var(--panel); }
+.header a { font-family: Georgia, "Noto Serif KR", serif; font-size: 20px; font-weight: 800; }
+.main { width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 54px 0 72px; }
+.article { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); box-shadow: var(--shadow); }
+.hero, .section, .footer { padding: 28px 32px; }
+.hero { border-bottom: 1px solid var(--soft-line); }
+.eyebrow { margin: 0 0 8px; color: var(--persimmon-dark); font-size: 12px; font-weight: 800; }
+.hero h1 { margin: 0; font-family: Georgia, "Noto Serif KR", serif; font-size: clamp(28px, 5vw, 42px); letter-spacing: -0.05em; }
+.schedule { display: inline-flex; margin-top: 16px; border-radius: 999px; padding: 7px 11px; background: var(--persimmon-soft); color: var(--persimmon-dark); font-size: 12px; font-weight: 800; }
+.section { border-bottom: 1px solid var(--soft-line); }
+.section h2 { margin: 0 0 18px; font-size: 15px; }
+.nextDate > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.nextDate p { margin: 0; color: var(--muted); font-size: 11px; }
+.nextDate strong { display: block; margin-top: 6px; font-family: Georgia, "Noto Serif KR", serif; font-size: 22px; }
+.nextDate span { flex: 0 0 auto; border-radius: 999px; padding: 8px 11px; background: var(--persimmon); color: white; font-size: 12px; font-weight: 800; }
+.info { display: grid; gap: 12px; margin: 0; }
+.info div { display: grid; grid-template-columns: 72px 1fr; gap: 12px; font-size: 13px; line-height: 1.55; }
+.info dt { color: var(--muted); }
+.info dd { margin: 0; font-weight: 650; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.primary, .secondary { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; border-radius: 5px; padding: 0 18px; font-size: 13px; font-weight: 800; }
+.primary { background: var(--ink); color: white; }
+.secondary { border: 1px solid var(--line); background: white; }
+.footer { color: var(--muted); font-size: 11px; line-height: 1.6; }
+.footer p { margin: 4px 0 0; }
+.footer a { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 700px) {
+  .header { min-height: 59px; padding: 0 16px; }
+  .main { width: min(100% - 24px, 760px); padding: 24px 0 40px; }
+  .hero, .section, .footer { padding: 22px 20px; }
+  .actions { flex-direction: column; }
+  .primary, .secondary { width: 100%; }
+}

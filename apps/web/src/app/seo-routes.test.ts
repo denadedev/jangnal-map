@@ -46,6 +46,7 @@ describe("SEO metadata routes", () => {
 
   it("defines production root metadata defaults", () => {
     expect(metadata.metadataBase).toEqual(new URL(SITE_URL));
+    expect(metadata.verification?.google).toBe("qLxSxOof1dITMeFrrNHReAC51FFUDTPDpCqKSpqJFgY");
     expect(metadata.alternates?.canonical).toBe("/");
     expect(metadata.openGraph?.url).toBe("/");
     expect(metadata.title).toEqual({

@@ -15,10 +15,18 @@ describe("SEO metadata routes", () => {
       .map((market) => `${SITE_URL}${getMarketPagePath(market)}`)
       .sort();
 
-    expect(entries).toHaveLength(1_391);
+    expect(entries).toHaveLength(1_392);
     expect(new Set(urls)).toHaveLength(entries.length);
-    expect(urls.sort()).toEqual(indexableUrls);
+    expect(urls.sort()).toEqual([SITE_URL, ...indexableUrls].sort());
     expect(urls).not.toContain(`${SITE_URL}/markets/삽교시장-09e8d20c`);
+  });
+
+  it("publishes the canonical home page as the highest-priority sitemap entry", () => {
+    expect(sitemap()[0]).toEqual({
+      url: SITE_URL,
+      changeFrequency: "daily",
+      priority: 1,
+    });
   });
 
   it("uses durable catalog metadata for periodic and daily sitemap entries", () => {
@@ -53,8 +61,11 @@ describe("SEO metadata routes", () => {
     expect(metadata.alternates?.canonical).toBe("/");
     expect(metadata.openGraph?.url).toBe("/");
     expect(metadata.title).toEqual({
-      default: "오늘 장날 · 전국 전통시장 장날 지도",
+      default: "오늘 장날 | 전국 5일장·전통시장 일정 지도",
       template: "%s",
     });
+    expect(metadata.description).toBe(
+      "오늘·이번 주·주말에 열리는 전국 5일장과 전통시장을 지도에서 확인하세요. 시장별 장날, 주소, 주차, 전화 정보를 제공합니다.",
+    );
   });
 });

@@ -23,6 +23,22 @@ const market: PublicMarket = {
 };
 
 describe("MarketList", () => {
+  it("links every market name to its canonical detail page", () => {
+    render(<MarketList
+      markets={[market]}
+      referenceDate={new Date(2026, 8, 7)}
+      selectedId={null}
+      onSelect={() => undefined}
+      onReset={() => undefined}
+      currentLocation={null}
+    />);
+
+    expect(screen.getByRole("link", { name: /가까운시장/ })).toHaveAttribute(
+      "href",
+      "/markets/가까운시장-nearby",
+    );
+  });
+
   it("shows straight-line distance when a current location is available", () => {
     render(<MarketList
       markets={[market]}

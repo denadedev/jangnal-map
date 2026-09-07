@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-quer
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
-import { filterMarkets, getDateRange, normalizeDirectDate, toIsoDate } from "../lib/market-view";
+import { filterMarkets, getDateRange, normalizeDirectDate, sortMarketsByDistance, toIsoDate, type Coordinates } from "../lib/market-view";
 import { MarketDetail } from "./market-detail";
 import { MarketFilters, type DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
@@ -58,6 +58,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   const [mode, setMode] = useState<DateFilterMode>(resolvedInitial.mode ?? "week");
   const [directDate, setDirectDate] = useState(resolvedInitial.directDate ?? toIsoDate(today));
   const [selectedId, setSelectedId] = useState<string | null>(resolvedInitial.selectedId ?? null);
+  const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
   const [hasRestoredUrl, setHasRestoredUrl] = useState(false);
   const { data: markets = [], isPending, isError, refetch } = useQuery({
     queryKey: ["public-markets"],
@@ -72,6 +73,10 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   const filteredMarkets = useMemo(
     () => filterMarkets(markets, query, range, { includeDaily }),
     [includeDaily, markets, query, range],
+  );
+  const listedMarkets = useMemo(
+    () => currentLocation ? sortMarketsByDistance(filteredMarkets, currentLocation) : filteredMarkets,
+    [currentLocation, filteredMarkets],
   );
   const mapMissingCount = filteredMarkets.filter((market) => market.latitude === null || market.longitude === null).length;
   const selectedMarket = markets.find((market) => market.id === selectedId) ?? null;
@@ -156,11 +161,12 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
             </div>
           ) : (
             <MarketList
-              markets={filteredMarkets}
+              markets={listedMarkets}
               referenceDate={referenceDate}
               selectedId={selectedId}
               onSelect={selectMarket}
               onReset={resetFilters}
+              currentLocation={currentLocation}
             />
           )}
         </aside>
@@ -171,6 +177,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
           selectedId={selectedId}
           clientId={mapClientId}
           onSelect={selectMarket}
+          onLocationChange={setCurrentLocation}
         />
 
         <aside className="detail-pane" aria-live="polite">

@@ -6,12 +6,12 @@ import { createMarketSlug, SITE_URL } from "../../../lib/market-seo";
 import MarketPage, { generateMetadata, generateStaticParams } from "./page";
 
 describe("market detail route", () => {
-  it("prebuilds URL-encoded path parameters for every public market", async () => {
+  it("prebuilds raw path parameters for every public market", async () => {
     const params = await generateStaticParams();
 
     expect(params).toHaveLength(1_393);
     expect(new Set(params.map(({ slug }) => slug))).toHaveLength(1_393);
-    expect(params).toContainEqual({ slug: "%EC%9A%B4%EC%B2%9C%EC%A0%84%ED%86%B5%EC%8B%9C%EC%9E%A5-45b640cc" });
+    expect(params).toContainEqual({ slug: "운천전통시장-45b640cc" });
   });
 
   it("returns canonical schedule metadata without an exact date", async () => {

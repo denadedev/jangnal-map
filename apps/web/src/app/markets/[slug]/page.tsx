@@ -34,16 +34,17 @@ export async function generateMetadata({ params }: MarketPageProps): Promise<Met
 
   const seo = createMarketSeoText(market);
   const path = getMarketPagePath(market);
+  const url = `${SITE_URL}${path}`;
 
   return {
     title: seo.title,
     description: seo.description,
-    alternates: { canonical: path },
+    alternates: { canonical: url },
     robots: isMarketIndexable(market) ? undefined : { index: false, follow: true },
     openGraph: {
       title: seo.title,
       description: seo.description,
-      url: path,
+      url,
       type: "website",
       locale: "ko_KR",
     },
@@ -94,9 +95,9 @@ export default async function MarketPage({ params }: MarketPageProps) {
             <h1>{market.name}</h1>
             <span className={styles.schedule}>{formatSchedulePattern(market)}</span>
           </section>
-          <section className={`${styles.section} ${styles.nextDate}`} aria-label="운영 일정">
+          <div className={`${styles.section} ${styles.nextDate}`}>
             <MarketNextDate market={market} />
-          </section>
+          </div>
           <section className={styles.section}>
             <h2>방문 정보</h2>
             <dl className={styles.info}>

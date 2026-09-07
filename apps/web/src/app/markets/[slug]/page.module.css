@@ -10,7 +10,7 @@
 .schedule { display: inline-flex; margin-top: 16px; border-radius: 999px; padding: 7px 11px; background: var(--persimmon-soft); color: var(--persimmon-dark); font-size: 12px; font-weight: 800; }
 .section { border-bottom: 1px solid var(--soft-line); }
 .section h2 { margin: 0 0 18px; font-size: 15px; }
-.nextDate > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.nextDate > section { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .nextDate p { margin: 0; color: var(--muted); font-size: 11px; }
 .nextDate strong { display: block; margin-top: 6px; font-family: Georgia, "Noto Serif KR", serif; font-size: 22px; }
 .nextDate span { flex: 0 0 auto; border-radius: 999px; padding: 8px 11px; background: var(--persimmon); color: white; font-size: 12px; font-weight: 800; }

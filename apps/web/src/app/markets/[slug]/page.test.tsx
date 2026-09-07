@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { publicMarkets } from "../../../lib/market-catalog";
-import { createMarketSlug } from "../../../lib/market-seo";
+import { createMarketSlug, SITE_URL } from "../../../lib/market-seo";
 import MarketPage, { generateMetadata, generateStaticParams } from "./page";
 
 describe("market detail route", () => {
@@ -20,7 +20,8 @@ describe("market detail route", () => {
     const metadata = await generateMetadata({ params: Promise.resolve({ slug }) });
 
     expect(metadata.title).toContain("장날");
-    expect(metadata.alternates?.canonical).toBe(`/markets/${slug}`);
+    expect(metadata.alternates?.canonical).toBe(`${SITE_URL}/markets/${slug}`);
+    expect(metadata.openGraph?.url).toBe(`${SITE_URL}/markets/${slug}`);
     expect(metadata.description).toContain("일장");
   });
 
@@ -44,5 +45,14 @@ describe("market detail route", () => {
       "href",
       `/?when=all&market=${market.id}`,
     );
+  });
+
+  it("uses MarketNextDate as the single schedule landmark", async () => {
+    const market = publicMarkets[0];
+
+    render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
+
+    expect(screen.getByRole("region", { name: "다음 장날" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "운영 일정" })).not.toBeInTheDocument();
   });
 });

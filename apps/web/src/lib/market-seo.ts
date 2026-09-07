@@ -5,7 +5,7 @@ import { createMarketSlug } from "./market-path";
 
 export { createMarketSlug, getMarketPagePath } from "./market-path";
 
-export const SITE_URL = "https://jangnal-map.vercel.app";
+export const SITE_URL = "https://jangnal.spamfam.kr";
 
 const marketsBySlug = new Map(publicMarkets.map((market) => [createMarketSlug(market), market] as const));
 

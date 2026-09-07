@@ -35,6 +35,11 @@ describe("market SEO identity", () => {
     expect(new Set(slugs).size).toBe(1_393);
     expect(findMarketBySlug(slugs[0])?.id).toBe(publicMarkets[0].id);
   });
+
+  it("resolves URL-encoded market path parameters", () => {
+    expect(findMarketBySlug("%EC%9A%B4%EC%B2%9C%EC%A0%84%ED%86%B5%EC%8B%9C%EC%9E%A5-45b640cc")?.id)
+      .toBe("market-45b640ccbe294100");
+  });
 });
 
 describe("market SEO copy", () => {

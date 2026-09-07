@@ -14,8 +14,6 @@ import {
 import { formatSchedulePattern } from "../../../lib/market-view";
 import styles from "./page.module.css";
 
-export const dynamicParams = false;
-
 type MarketPageProps = { params: Promise<{ slug: string }> };
 
 const formatSourceDate = (value: string | null): string => value
@@ -25,7 +23,7 @@ const formatSourceDate = (value: string | null): string => value
 export function generateStaticParams() {
   return publicMarkets
     .filter((market) => market.status === "운영")
-    .map((market) => ({ slug: createMarketSlug(market) }));
+    .map((market) => ({ slug: encodeURIComponent(createMarketSlug(market)) }));
 }
 
 export async function generateMetadata({ params }: MarketPageProps): Promise<Metadata> {

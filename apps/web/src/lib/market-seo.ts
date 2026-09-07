@@ -23,7 +23,7 @@ export function getMarketPagePath(market: PublicMarket): string {
 const marketsBySlug = new Map(publicMarkets.map((market) => [createMarketSlug(market), market] as const));
 
 export function findMarketBySlug(slug: string): PublicMarket | undefined {
-  return marketsBySlug.get(slug);
+  return marketsBySlug.get(decodeURIComponent(slug));
 }
 
 export function isMarketIndexable(market: PublicMarket): boolean {

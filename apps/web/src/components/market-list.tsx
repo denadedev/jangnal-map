@@ -1,5 +1,5 @@
 import type { PublicMarket } from "../lib/market";
-import { formatMarketTiming, formatSchedulePattern } from "../lib/market-view";
+import { formatDistance, formatMarketTiming, formatSchedulePattern, getDistanceKm, type Coordinates } from "../lib/market-view";
 
 interface MarketListProps {
   markets: PublicMarket[];
@@ -7,9 +7,10 @@ interface MarketListProps {
   selectedId: string | null;
   onSelect: (market: PublicMarket) => void;
   onReset: () => void;
+  currentLocation: Coordinates | null;
 }
 
-export function MarketList({ markets, referenceDate, selectedId, onSelect, onReset }: MarketListProps) {
+export function MarketList({ markets, referenceDate, selectedId, onSelect, onReset, currentLocation }: MarketListProps) {
   if (markets.length === 0) {
     return (
       <div className="empty-state">
@@ -25,7 +26,11 @@ export function MarketList({ markets, referenceDate, selectedId, onSelect, onRes
 
   return (
     <ul className="market-list" aria-label="검색된 시장">
-      {markets.map((market) => (
+      {markets.map((market) => {
+        const distance = currentLocation && market.latitude !== null && market.longitude !== null
+          ? getDistanceKm(currentLocation, { latitude: market.latitude, longitude: market.longitude })
+          : null;
+        return (
         <li key={market.id}>
           <button
             type="button"
@@ -41,6 +46,7 @@ export function MarketList({ markets, referenceDate, selectedId, onSelect, onRes
               <strong>{market.name}</strong>
               <span className={`schedule-tag is-${market.schedule.kind}`}>{formatSchedulePattern(market)}</span>
               <span>{market.roadAddress ?? market.lotAddress ?? "주소 정보 없음"}</span>
+              {distance !== null ? <span className="distance-label">현재 위치에서 <b>{formatDistance(distance)}</b></span> : null}
               {market.latitude === null || market.longitude === null ? <em>위치 확인 필요</em> : null}
             </span>
             <svg className="chevron" aria-hidden="true" viewBox="0 0 24 24">
@@ -48,7 +54,8 @@ export function MarketList({ markets, referenceDate, selectedId, onSelect, onRes
             </svg>
           </button>
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
 }

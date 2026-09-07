@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { buildMapItems, type CoordinateBounds } from "../lib/market-clusters";
 import type { PublicMarket } from "../lib/market";
-import { formatMarketTiming } from "../lib/market-view";
+import { formatMarketTiming, type Coordinates } from "../lib/market-view";
 import { loadNaverMaps, type NaverMapInstance, type NaverMarker } from "../lib/naver-maps";
 
 interface MarketMapProps {
@@ -13,6 +13,7 @@ interface MarketMapProps {
   selectedId: string | null;
   clientId: string;
   onSelect: (market: PublicMarket) => void;
+  onLocationChange: (location: Coordinates) => void;
 }
 
 type MapStatus = "idle" | "loading" | "ready" | "error";
@@ -38,7 +39,7 @@ const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, (charact
   '"': "&quot;",
 })[character] ?? character);
 
-export function MarketMap({ markets, referenceDate, selectedId, clientId, onSelect }: MarketMapProps) {
+export function MarketMap({ markets, referenceDate, selectedId, clientId, onSelect, onLocationChange }: MarketMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<NaverMapInstance | null>(null);
   const markersRef = useRef<Array<{ marker: NaverMarker; listener: unknown }>>([]);
@@ -92,8 +93,9 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, onSele
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         if (!mapRef.current || !window.naver?.maps) return;
+        const currentLocation = { latitude: coords.latitude, longitude: coords.longitude };
         const naver = window.naver;
-        const position = new naver.maps.LatLng(coords.latitude, coords.longitude);
+        const position = new naver.maps.LatLng(currentLocation.latitude, currentLocation.longitude);
         locationMarkerRef.current?.setMap(null);
         locationMarkerRef.current = new naver.maps.Marker({
           map: mapRef.current,
@@ -107,6 +109,7 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, onSele
         });
         mapRef.current.panTo(position);
         mapRef.current.setZoom(14);
+        onLocationChange(currentLocation);
         setLocationStatus("success");
         setLocationMessage("현재 위치로 이동했어요.");
       },

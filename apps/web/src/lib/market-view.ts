@@ -5,6 +5,39 @@ import type { DateFilterMode } from "../components/market-filters";
 
 const atStartOfDay = (date: Date): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
+export interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+const toRadians = (degrees: number): number => degrees * Math.PI / 180;
+
+export function getDistanceKm(from: Coordinates, to: Coordinates): number {
+  const earthRadiusKm = 6_371;
+  const latitudeDelta = toRadians(to.latitude - from.latitude);
+  const longitudeDelta = toRadians(to.longitude - from.longitude);
+  const fromLatitude = toRadians(from.latitude);
+  const toLatitude = toRadians(to.latitude);
+  const haversine = Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(fromLatitude) * Math.cos(toLatitude) * Math.sin(longitudeDelta / 2) ** 2;
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
+export function sortMarketsByDistance(markets: PublicMarket[], origin: Coordinates): PublicMarket[] {
+  return markets.map((market, index) => ({
+    market,
+    index,
+    distance: market.latitude === null || market.longitude === null
+      ? Number.POSITIVE_INFINITY
+      : getDistanceKm(origin, { latitude: market.latitude, longitude: market.longitude }),
+  })).sort((left, right) => left.distance - right.distance || left.index - right.index).map(({ market }) => market);
+}
+
+export function formatDistance(distanceKm: number): string {
+  if (distanceKm < 1) return `${Math.round(distanceKm * 1_000)}m`;
+  return `${distanceKm.toFixed(1)}km`;
+}
+
 export function toIsoDate(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");

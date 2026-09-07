@@ -68,7 +68,10 @@ describe("SEO metadata routes", () => {
 
   it("defines production root metadata defaults", () => {
     expect(metadata.metadataBase).toEqual(new URL("https://jangnal.spamfam.kr"));
-    expect(metadata.verification?.google).toBe("qLxSxOof1dITMeFrrNHReAC51FFUDTPDpCqKSpqJFgY");
+    expect(metadata.verification?.google).toEqual([
+      "qLxSxOof1dITMeFrrNHReAC51FFUDTPDpCqKSpqJFgY",
+      "ETYT-jUzdfgO29SuYzFjB8xuh52yLKhHF6bSi1hrjm0",
+    ]);
     expect(metadata.verification?.other).toEqual({
       "naver-site-verification": "d7bf1253f88fe2410c22eb065f4af604dfccac18",
     });

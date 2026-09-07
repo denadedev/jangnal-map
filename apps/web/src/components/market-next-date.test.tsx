@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { PublicMarket } from "../lib/market";
@@ -26,6 +27,12 @@ describe("MarketNextDate", () => {
   afterEach(() => vi.useRealTimers());
 
   it("replaces the durable schedule fallback with the next date from the browser clock", async () => {
+    const staticMarkup = renderToStaticMarkup(<MarketNextDate market={periodicMarket} />);
+
+    expect(staticMarkup).toContain("5·10일장");
+    expect(staticMarkup).not.toContain("9월 10일 목요일");
+    expect(staticMarkup).not.toContain("D-3");
+
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 8, 7, 12));
 

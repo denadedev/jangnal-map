@@ -107,8 +107,7 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, onSele
             anchor: new naver.maps.Point(12, 12),
           },
         });
-        mapRef.current.panTo(position);
-        mapRef.current.setZoom(14);
+        mapRef.current.morph(position, 14);
         onLocationChange(currentLocation);
         setLocationStatus("success");
         setLocationMessage("현재 위치로 이동했어요.");

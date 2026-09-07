@@ -73,7 +73,10 @@ describe("SEO metadata routes", () => {
       "ETYT-jUzdfgO29SuYzFjB8xuh52yLKhHF6bSi1hrjm0",
     ]);
     expect(metadata.verification?.other).toEqual({
-      "naver-site-verification": "d7bf1253f88fe2410c22eb065f4af604dfccac18",
+      "naver-site-verification": [
+        "d7bf1253f88fe2410c22eb065f4af604dfccac18",
+        "d98fd747905c7cae55b86be4beb8dd7584935cc8",
+      ],
     });
     expect(metadata.alternates?.canonical).toBe("/");
     expect(metadata.openGraph?.url).toBe("/");

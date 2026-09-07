@@ -1,4 +1,5 @@
 export interface NaverMapInstance {
+  morph: (position: NaverLatLng, zoom: number) => void;
   panTo: (position: NaverLatLng) => void;
   setZoom: (zoom: number) => void;
   getZoom: () => number;

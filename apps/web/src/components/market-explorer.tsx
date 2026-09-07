@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
 import { filterMarkets, getDateRange, normalizeDirectDate, sortMarketsByDistance, toIsoDate, type Coordinates } from "../lib/market-view";
+import { InstallPrompt } from "./install-prompt";
 import { MarketDetail } from "./market-detail";
 import { MarketFilters, type DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
@@ -126,6 +127,8 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
         </a>
         <div className="data-badge"><span aria-hidden="true" /> 전국 시장 {isPending ? "…" : `${markets.length.toLocaleString("ko-KR")}곳`}</div>
       </header>
+
+      <InstallPrompt />
 
       <MarketFilters
         mode={mode}

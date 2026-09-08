@@ -123,7 +123,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
       <header className="app-header">
         <a className="brand" href="/" aria-label="오늘 장날 홈">
           <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
-          <span><strong>오늘 장날</strong><small>전국 전통시장 장날 지도</small></span>
+          <span><h1>오늘 장날</h1><small>전국 5일장·전통시장 일정 지도</small></span>
         </a>
         <div className="header-actions">
           <div className="data-badge"><span aria-hidden="true" /> 전국 시장 {isPending ? "…" : `${markets.length.toLocaleString("ko-KR")}곳`}</div>

@@ -4,14 +4,20 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://jangnal-map.vercel.app"),
+  metadataBase: new URL("https://jangnal.spamfam.kr"),
   applicationName: "오늘 장날",
-  title: { default: "오늘 장날 · 전국 전통시장 장날 지도", template: "%s" },
-  description: "전국 전통시장의 오늘 장날, 5일장 일정, 주소와 방문 정보를 지도에서 찾아보세요.",
+  title: { default: "오늘 장날 | 전국 5일장·전통시장 일정 지도", template: "%s" },
+  description: "오늘·이번 주·주말에 열리는 전국 5일장과 전통시장을 지도에서 확인하세요. 시장별 장날, 주소, 주차, 전화 정보를 제공합니다.",
   verification: {
-    google: "qLxSxOof1dITMeFrrNHReAC51FFUDTPDpCqKSpqJFgY",
+    google: [
+      "qLxSxOof1dITMeFrrNHReAC51FFUDTPDpCqKSpqJFgY",
+      "ETYT-jUzdfgO29SuYzFjB8xuh52yLKhHF6bSi1hrjm0",
+    ],
     other: {
-      "naver-site-verification": "d7bf1253f88fe2410c22eb065f4af604dfccac18",
+      "naver-site-verification": [
+        "d7bf1253f88fe2410c22eb065f4af604dfccac18",
+        "d98fd747905c7cae55b86be4beb8dd7584935cc8",
+      ],
     },
   },
   appleWebApp: {
@@ -21,8 +27,8 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: "/" },
   openGraph: {
-    title: "오늘 장날 · 전국 전통시장 장날 지도",
-    description: "전국 전통시장의 장날과 방문 정보를 한눈에 확인하세요.",
+    title: "오늘 장날 | 전국 5일장·전통시장 일정 지도",
+    description: "오늘·이번 주·주말에 열리는 전국 5일장과 전통시장을 지도에서 확인하세요.",
     url: "/",
     siteName: "오늘 장날",
     locale: "ko_KR",

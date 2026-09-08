@@ -14,9 +14,11 @@ describe("MarketMap current location", () => {
   it("reports a successful current location to its parent", async () => {
     const panTo = vi.fn();
     const setZoom = vi.fn();
+    const morph = vi.fn();
     class FakeMap {
       panTo = panTo;
       setZoom = setZoom;
+      morph = morph;
       getZoom = () => 7;
       getBounds = () => ({
         getNE: () => ({ lat: () => 38, lng: () => 130 }),
@@ -55,5 +57,8 @@ describe("MarketMap current location", () => {
     await userEvent.click(button);
 
     expect(onLocationChange).toHaveBeenCalledWith({ latitude: 37.5665, longitude: 126.978 });
+    expect(morph).toHaveBeenCalledWith(expect.any(FakeLatLng), 14);
+    expect(panTo).not.toHaveBeenCalled();
+    expect(setZoom).not.toHaveBeenCalled();
   });
 });

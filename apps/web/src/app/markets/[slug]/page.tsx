@@ -82,7 +82,10 @@ export default async function MarketPage({ params }: MarketPageProps) {
     <div className={styles.page}>
       <header className={styles.header}>
         <a href="/">오늘 장날</a>
-        <a href={mapHref}>전국 지도</a>
+        <nav aria-label="보조 메뉴">
+          <a href="/report?kind=service">불편 신고</a>
+          <a href={mapHref}>전국 지도</a>
+        </nav>
       </header>
       <main className={styles.main}>
         <script
@@ -108,6 +111,9 @@ export default async function MarketPage({ params }: MarketPageProps) {
             <div className={styles.actions}>
               <a className={styles.primary} href={mapHref}>전국 장날 지도에서 보기</a>
               {directionsHref ? <a className={styles.secondary} href={directionsHref} target="_blank" rel="noreferrer">NAVER 지도에서 길찾기</a> : null}
+              <a className={styles.secondary} href={`/report?kind=market&market=${encodeURIComponent(market.id)}`}>
+                정보가 다른가요? 수정 제보
+              </a>
             </div>
           </section>
           <footer className={styles.footer}>

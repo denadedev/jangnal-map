@@ -56,4 +56,16 @@ describe("market detail route", () => {
     expect(screen.getByRole("region", { name: "다음 장날" })).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "운영 일정" })).not.toBeInTheDocument();
   });
+
+  it("links both report scopes from a market page", async () => {
+    const market = publicMarkets[0];
+
+    render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
+
+    expect(screen.getByRole("link", { name: "불편 신고" })).toHaveAttribute("href", "/report?kind=service");
+    expect(screen.getByRole("link", { name: "정보가 다른가요? 수정 제보" })).toHaveAttribute(
+      "href",
+      `/report?kind=market&market=${encodeURIComponent(market.id)}`,
+    );
+  });
 });

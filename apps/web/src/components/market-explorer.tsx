@@ -125,7 +125,10 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
           <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
           <span><strong>오늘 장날</strong><small>전국 전통시장 장날 지도</small></span>
         </a>
-        <div className="data-badge"><span aria-hidden="true" /> 전국 시장 {isPending ? "…" : `${markets.length.toLocaleString("ko-KR")}곳`}</div>
+        <div className="header-actions">
+          <div className="data-badge"><span aria-hidden="true" /> 전국 시장 {isPending ? "…" : `${markets.length.toLocaleString("ko-KR")}곳`}</div>
+          <a className="feedback-link" href="/report?kind=service">불편 신고</a>
+        </div>
       </header>
 
       <InstallPrompt />

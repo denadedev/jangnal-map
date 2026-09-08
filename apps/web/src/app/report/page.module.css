@@ -1,0 +1,233 @@
+.page {
+  min-height: 100dvh;
+  padding: 32px 16px 64px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.back {
+  display: block;
+  width: min(640px, 100%);
+  min-height: 44px;
+  margin: 0 auto 16px;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 44px;
+}
+
+.card {
+  width: min(640px, 100%);
+  margin: 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 32px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--persimmon-dark);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.card h1 {
+  margin: 0;
+  font-family: Georgia, "Noto Serif KR", serif;
+  font-size: clamp(27px, 6vw, 38px);
+  letter-spacing: -0.05em;
+}
+
+.card h2 {
+  margin: 28px 0 8px;
+  font-size: 16px;
+}
+
+.market {
+  display: inline-block;
+  margin-top: 14px;
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: var(--persimmon-soft);
+  color: var(--persimmon-dark);
+  font-size: 12px;
+}
+
+.card > p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.card > p a {
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.primary,
+.card :global(.report-success a) {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  padding: 0 18px;
+  background: var(--ink);
+  color: white;
+  font-weight: 800;
+}
+
+.primary {
+  margin-top: 24px;
+}
+
+.card :global(.report-form) {
+  display: grid;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.card :global(fieldset) {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.card :global(legend),
+.card :global(.report-field) {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.card :global(.report-field small) {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.card :global(.report-options) {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.card :global(.report-options label) {
+  position: relative;
+}
+
+.card :global(.report-options input) {
+  position: absolute;
+  opacity: 0;
+}
+
+.card :global(.report-options span) {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 8px;
+  background: white;
+  text-align: center;
+}
+
+.card :global(.report-options input:checked + span) {
+  border-color: var(--persimmon-dark);
+  background: var(--persimmon-soft);
+  color: var(--persimmon-dark);
+}
+
+.card :global(.report-options input:focus-visible + span) {
+  outline: 3px solid rgb(197 78 45 / 30%);
+  outline-offset: 2px;
+}
+
+.card :global(textarea),
+.card :global(input[type="url"]),
+.card :global(input[name="contact"]) {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 12px;
+  background: white;
+  font: inherit;
+}
+
+.card :global(textarea) {
+  resize: vertical;
+}
+
+.card :global(.field-error),
+.card :global([role="alert"]) {
+  margin: -8px 0 0;
+  color: #a62f1d;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.card :global(.privacy-note) {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.card :global(.privacy-note a),
+.card :global([role="alert"] a) {
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.card :global(.consent-field) {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+}
+
+.card :global(button[type="submit"]) {
+  min-height: 48px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--ink);
+  color: white;
+  font-weight: 800;
+}
+
+.card :global(button:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.card :global(.report-honeypot) {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+}
+
+.card :global(.report-success) {
+  margin-top: 28px;
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding-top: 18px;
+  }
+
+  .card {
+    padding: 24px 18px;
+  }
+
+  .card :global(.report-options) {
+    grid-template-columns: 1fr;
+  }
+}

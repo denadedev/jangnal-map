@@ -14,6 +14,12 @@ const value = (input: unknown): string => typeof input === "string" ? input : ""
 
 const json = (status: number, message: string) => Response.json({ message }, { status });
 
+const emailErrorCode = (error: unknown): string => {
+  if (!error || typeof error !== "object") return "UNKNOWN";
+  const code = (error as { code?: unknown }).code;
+  return typeof code === "string" ? code : "UNKNOWN";
+};
+
 export function createReportHandler(sendReport: SendReport = sendReportEmail) {
   return async function POST(request: Request): Promise<Response> {
     const origin = request.headers.get("origin");
@@ -72,7 +78,8 @@ export function createReportHandler(sendReport: SendReport = sendReportEmail) {
         market: market ? { id: market.id, name: market.name } : null,
       });
       return json(200, "제보를 받았습니다.");
-    } catch {
+    } catch (error) {
+      console.error("Report email delivery failed", { code: emailErrorCode(error) });
       return json(502, "제보를 보내지 못했습니다.");
     }
   };

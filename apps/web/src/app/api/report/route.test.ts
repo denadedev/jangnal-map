@@ -155,7 +155,9 @@ describe("POST /api/report", () => {
   });
 
   it("returns 502 when SMTP delivery fails", async () => {
-    const sendMail = vi.fn().mockRejectedValue(new Error("SMTP unavailable"));
+    const logError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const smtpError = Object.assign(new Error("SMTP unavailable"), { code: "EAUTH" });
+    const sendMail = vi.fn().mockRejectedValue(smtpError);
     const response = await createReportHandler(sendMail)(request({
       scope: "service",
       detail_type: "interface",
@@ -163,5 +165,6 @@ describe("POST /api/report", () => {
     }));
 
     expect(response.status).toBe(502);
+    expect(logError).toHaveBeenCalledWith("Report email delivery failed", { code: "EAUTH" });
   });
 });

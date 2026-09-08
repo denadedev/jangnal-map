@@ -39,4 +39,14 @@ describe("report page", () => {
 
     expect(screen.getByRole("button", { name: "제보 보내기" })).toBeDisabled();
   });
+
+  it("enables reporting when Gmail SMTP settings are configured", async () => {
+    vi.stubEnv("SMTP_USER", "sender@gmail.com");
+    vi.stubEnv("SMTP_PASS", "app-password");
+    vi.stubEnv("REPORT_TO_EMAIL", "reports@example.com");
+
+    render(await ReportPage({ searchParams: Promise.resolve({ kind: "service" }) }));
+
+    expect(screen.getByRole("button", { name: "제보 보내기" })).toBeEnabled();
+  });
 });

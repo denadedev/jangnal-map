@@ -36,6 +36,30 @@ describe("POST /api/report", () => {
     }));
   });
 
+  it("sends a validated service report without market context", async () => {
+    const sendMail = vi.fn().mockResolvedValue(undefined);
+    const response = await createReportHandler(sendMail)(request({
+      scope: "service",
+      detail_type: "interface",
+      message: "  버튼이 동작하지 않습니다.  ",
+      evidence_url: " https://example.com/screenshot ",
+      contact: " reporter@example.com ",
+      privacy_consent: "yes",
+      page_url: "https://jangnal-map.vercel.app/",
+    }));
+
+    expect(response.status).toBe(200);
+    expect(sendMail).toHaveBeenCalledWith({
+      scope: "service",
+      detailType: "interface",
+      message: "버튼이 동작하지 않습니다.",
+      evidenceUrl: "https://example.com/screenshot",
+      contact: "reporter@example.com",
+      pageUrl: "https://jangnal-map.vercel.app/",
+      market: null,
+    });
+  });
+
   it("rejects an unknown market without sending mail", async () => {
     const sendMail = vi.fn();
     const response = await createReportHandler(sendMail)(request({
@@ -114,10 +138,13 @@ describe("POST /api/report", () => {
   });
 
   it.each([
+    ["invalid scope", { scope: "unknown", detail_type: "interface", message: "불편합니다." }],
     ["unknown detail type", { scope: "service", detail_type: "unknown", message: "불편합니다." }],
     ["empty message", { scope: "service", detail_type: "interface", message: " " }],
     ["oversized message", { scope: "service", detail_type: "interface", message: "가".repeat(1_001) }],
     ["invalid evidence URL", { scope: "service", detail_type: "interface", message: "불편합니다.", evidence_url: "example.com" }],
+    ["unsupported evidence protocol", { scope: "service", detail_type: "interface", message: "불편합니다.", evidence_url: "ftp://example.com/file" }],
+    ["oversized contact", { scope: "service", detail_type: "interface", message: "불편합니다.", contact: "a".repeat(101), privacy_consent: "yes" }],
     ["contact without consent", { scope: "service", detail_type: "interface", message: "불편합니다.", contact: "010-1234-5678" }],
   ])("rejects %s without sending mail", async (_name, body) => {
     const sendMail = vi.fn();

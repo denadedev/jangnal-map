@@ -124,6 +124,9 @@ export function MarketDetail({ market, today, onClose }: MarketDetailProps) {
         <span>정보 출처</span>
         <a href={market.source.url} target="_blank" rel="noreferrer">{market.source.name}</a>
         <p>데이터 기준일 {formatSourceDate(market.referenceDate ?? market.source.referenceDate)}</p>
+        <a className="report-link" href={`/report?kind=market&market=${encodeURIComponent(market.id)}`}>
+          정보가 다른가요? 수정 제보
+        </a>
       </footer>
     </article>
   );

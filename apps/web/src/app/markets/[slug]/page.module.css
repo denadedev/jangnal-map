@@ -1,6 +1,8 @@
 .page { min-height: 100dvh; background: var(--paper); color: var(--ink); }
 .header { display: flex; min-height: 70px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding: 0 24px; background: var(--panel); }
 .header a { font-family: Georgia, "Noto Serif KR", serif; font-size: 20px; font-weight: 800; }
+.header nav { display: flex; align-items: center; gap: 16px; }
+.header nav a { min-height: 44px; font-family: inherit; font-size: 12px; font-weight: 800; line-height: 44px; }
 .main { width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 54px 0 72px; }
 .article { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); box-shadow: var(--shadow); }
 .hero, .section, .footer { padding: 28px 32px; }

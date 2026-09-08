@@ -53,9 +53,19 @@ NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=your_naver_maps_client_id
 
 키를 비워 두면 지도 영역은 목록 탐색 안내로 대체되며, 검색·날짜 필터·시장 상세 정보는 계속 동작합니다.
 
+## 사용자 제보 접수
+
+시장 정보 수정과 서비스 불편 신고는 오늘장날의 `/report` 화면에서 받고 `/api/report`가 Nodemailer와 Gmail SMTP를 통해 운영자 이메일로 전달합니다. 제보 데이터베이스는 사용하지 않습니다.
+
+전용 Google 계정에서 2단계 인증을 켜고 앱 비밀번호를 발급합니다. 일반 로그인 비밀번호는 사용하지 않습니다. 로컬 `apps/web/.env.local`과 Vercel Production에 `SMTP_USER`, `SMTP_PASS`를 저장합니다. 수신 주소가 발신 Gmail과 다르면 `REPORT_TO_EMAIL`도 설정합니다.
+
+`SMTP_PASS`는 브라우저에 노출되지 않으며 저장소나 채팅에 기록하지 않습니다. SMTP 설정이 없으면 지도와 시장 탐색은 작동하지만 제보 제출은 비활성화됩니다. Production에서는 실제 제보 한 건을 보내 운영자 이메일 도착과 메일 라벨 적용을 확인한 뒤 테스트 제보를 삭제합니다.
+
+공개 전에 Vercel Dashboard의 Firewall에서 `POST /api/report`에 IP 기준 고정 구간 요청 제한을 설정합니다. 기준은 IP당 10분에 5건이며 초과 요청에는 기본 429 응답을 사용합니다. 이 규칙이 게시되지 않은 상태에서는 제보 기능을 Production에 공개하지 않습니다.
+
 ## Vercel 배포 준비
 
-별도 `vercel.json`은 필요하지 않습니다. Vercel에서 이 저장소를 연결한 뒤 Root Directory를 `apps/web`으로 지정하고, 필요할 경우 Production 환경 변수 `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`를 추가합니다. 키 없이도 목록 대체 흐름은 배포할 수 있습니다.
+Vercel에서 이 저장소를 연결한 뒤 Root Directory를 `apps/web`으로 지정합니다. `apps/web/vercel.json`은 메일 전송 함수를 서울 리전에서 실행하도록 설정합니다. 필요할 경우 Production 환경 변수 `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`, `SMTP_USER`, `SMTP_PASS`, `REPORT_TO_EMAIL`을 추가합니다. 지도 키 없이도 목록 대체 흐름은 배포할 수 있습니다.
 
 배포 전에는 다음 검증을 실행합니다.
 

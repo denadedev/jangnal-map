@@ -218,4 +218,16 @@ describe("MarketExplorer", () => {
     expect(screen.getByRole("button", { name: "오늘" })).toHaveAttribute("aria-pressed", "true");
     expect(await screen.findByRole("heading", { name: "통복시장" })).toBeInTheDocument();
   });
+
+  it("links service feedback and the selected market to the unified report page", async () => {
+    const user = userEvent.setup();
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    expect(screen.getByRole("link", { name: "불편 신고" })).toHaveAttribute("href", "/report?kind=service");
+    await user.click(await screen.findByRole("link", { name: /운천전통시장/ }));
+    expect(screen.getByRole("link", { name: "정보가 다른가요? 수정 제보" })).toHaveAttribute(
+      "href",
+      "/report?kind=market&market=uncheon",
+    );
+  });
 });

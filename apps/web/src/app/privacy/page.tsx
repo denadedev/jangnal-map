@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 
 import styles from "../report/page.module.css";
 
+// SMTP/contact settings are injected at container runtime, not image build time.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "개인정보 처리 안내 · 오늘 장날",
 };

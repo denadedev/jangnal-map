@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,12 +15,15 @@ env:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
+    env:
+      IMAGE: registry.spamfam.kr/jangnal-map/web:${{ github.sha }}
+      MAP_CLIENT_ID: ${{ vars.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID || secrets.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID }}
 
     steps:
       - name: Checkout
@@ -43,5 +47,119 @@ jobs:
       - name: Run type checks
         run: pnpm typecheck
 
-      - name: Build application
-        run: pnpm build
+      - name: Require map configuration for publishing
+        if: github.ref == 'refs/heads/main'
+        run: test -n "$MAP_CLIENT_ID" || { echo 'Missing NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID variable or secret'; exit 1; }
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build standalone image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          platforms: linux/amd64
+          load: true
+          tags: ${{ env.IMAGE }}
+          build-args: |
+            NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=${{ env.MAP_CLIENT_ID }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test the image
+        run: |
+          docker run --rm -d --name jangnal-ci -p 127.0.0.1:3100:3000 \
+            -e SMTP_USER=runtime-smoke@example.invalid \
+            -e SMTP_PASS=not-a-real-password \
+            -e REPORT_TO_EMAIL=runtime-smoke@example.invalid "$IMAGE"
+          trap 'docker stop jangnal-ci >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3100/ >/dev/null; then break; fi
+            sleep 1
+          done
+          node apps/web/scripts/smoke-container.mjs
+          test "$(docker exec jangnal-ci id -u)" = 1000
+
+      - name: Check latest main before publishing
+        id: latest
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current_sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+          if [ "$current_sha" = "$GITHUB_SHA" ]; then echo 'publish=true' >> "$GITHUB_OUTPUT"; fi
+
+      - name: Log in to Harbor
+        if: steps.latest.outputs.publish == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: registry.spamfam.kr
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Push the tested image
+        if: steps.latest.outputs.publish == 'true'
+        run: docker push "$IMAGE"
+
+    outputs:
+      published: ${{ steps.latest.outputs.publish }}
+
+  gitops:
+    needs: verify
+    if: github.ref == 'refs/heads/main' && needs.verify.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: jangnal-web-gitops
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Generate scoped GitOps token
+        id: gitops-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.GITOPS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.GITOPS_APP_PRIVATE_KEY }}
+          owner: denadedev
+          repositories: gitops
+          permission-contents: write
+
+      - name: Checkout GitOps
+        uses: actions/checkout@v5
+        with:
+          repository: denadedev/gitops
+          ref: main
+          token: ${{ steps.gitops-token.outputs.token }}
+          path: gitops
+
+      - name: Update only the latest image with conflict retry
+        working-directory: gitops
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          manifest=apps/jangnal-map/web/manifests/deployment.yaml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3; do
+            current_sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+            if [ "$current_sha" != "$GITHUB_SHA" ]; then
+              echo 'A newer main exists; skipping stale deployment.'
+              exit 0
+            fi
+            git fetch origin main
+            git checkout --detach origin/main
+            node "$GITHUB_WORKSPACE/scripts/update-gitops-image.mjs" "$manifest" "$GITHUB_SHA"
+            if git diff --quiet -- "$manifest"; then exit 0; fi
+            git add "$manifest"
+            git commit -m "Deploy Jangnal web $GITHUB_SHA"
+            if git push origin HEAD:main; then exit 0; fi
+            sleep "$attempt"
+          done
+          echo 'GitOps update failed after three attempts.'
+          exit 1

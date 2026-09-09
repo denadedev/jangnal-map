@@ -84,6 +84,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
       <header className={styles.header}>
         <a href="/">오늘 장날</a>
         <nav aria-label="보조 메뉴">
+          <a href="/onnuri">온누리상품권</a>
           <a href="/report?kind=service">불편 신고</a>
           <a href={mapHref}>전국 지도</a>
         </nav>

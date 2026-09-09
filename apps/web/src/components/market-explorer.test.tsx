@@ -253,4 +253,10 @@ describe("MarketExplorer", () => {
       "/report?kind=market&market=uncheon",
     );
   });
+
+  it("홈 헤더에서 온누리상품권 사용처 허브로 연결한다", () => {
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    expect(screen.getByRole("link", { name: "온누리상품권" })).toHaveAttribute("href", "/onnuri");
+  });
 });

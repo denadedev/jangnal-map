@@ -72,6 +72,7 @@ describe("market detail route", () => {
     render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
 
     expect(screen.getByRole("link", { name: "불편 신고" })).toHaveAttribute("href", "/report?kind=service");
+    expect(screen.getByRole("link", { name: "온누리상품권" })).toHaveAttribute("href", "/onnuri");
     expect(screen.getByRole("link", { name: "정보가 다른가요? 수정 제보" })).toHaveAttribute(
       "href",
       `/report?kind=market&market=${encodeURIComponent(market.id)}`,

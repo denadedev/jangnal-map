@@ -6,6 +6,7 @@ import { getMarketPagePath, isMarketIndexable, SITE_URL } from "../lib/market-se
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
+    { url: `${SITE_URL}/onnuri`, changeFrequency: "monthly", priority: 0.9 },
     ...publicMarkets.filter(isMarketIndexable).map((market) => ({
       url: `${SITE_URL}${getMarketPagePath(market)}`,
       ...(market.referenceDate ? { lastModified: market.referenceDate } : {}),

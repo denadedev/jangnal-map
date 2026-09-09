@@ -70,6 +70,7 @@ jobs:
       - name: Smoke test the image
         run: |
           docker run --rm -d --name jangnal-ci -p 127.0.0.1:3100:3000 \
+            -e REPORT_ALLOWED_ORIGIN=http://127.0.0.1:3100 \
             -e SMTP_USER=runtime-smoke@example.invalid \
             -e SMTP_PASS=not-a-real-password \
             -e REPORT_TO_EMAIL=runtime-smoke@example.invalid "$IMAGE"

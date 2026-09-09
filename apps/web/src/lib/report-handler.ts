@@ -23,7 +23,9 @@ const emailErrorCode = (error: unknown): string => {
 export function createReportHandler(sendReport: SendReport = sendReportEmail) {
   return async function POST(request: Request): Promise<Response> {
     const origin = request.headers.get("origin");
-    if (!origin || origin !== new URL(request.url).origin) {
+    // Use deployment configuration, never client-supplied forwarding headers.
+    const allowedOrigin = process.env.REPORT_ALLOWED_ORIGIN?.trim() || new URL(request.url).origin;
+    if (!origin || origin !== allowedOrigin) {
       return json(403, "허용되지 않은 요청입니다.");
     }
 

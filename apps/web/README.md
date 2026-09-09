@@ -21,6 +21,7 @@ docker build -f apps/web/Dockerfile \
 ```bash
 docker run --rm -d --name jangnal-web-smoke \
   -p 127.0.0.1:3100:3000 \
+  -e REPORT_ALLOWED_ORIGIN=http://127.0.0.1:3100 \
   -e SMTP_USER=runtime-smoke@example.invalid \
   -e SMTP_PASS=not-a-real-password \
   -e REPORT_TO_EMAIL=runtime-smoke@example.invalid \
@@ -34,6 +35,11 @@ docker stop jangnal-web-smoke
 SMTP 자격증명은 없는 상태로 빌드해야 런타임 이메일 테스트가 의미 있다.
 
 ## K3s 연결 전
+
+- `REPORT_ALLOWED_ORIGIN=https://jangnal.spamfam.kr`을 런타임 설정으로 주입한다.
+  내부 HTTP 주소와 공개 HTTPS 주소가 달라도 제보 출처를 검증할 수 있다.
+  클라이언트가 보낸 forwarding 헤더는 허용 출처 결정에 사용하지 않는다.
+  설정을 생략한 Vercel/직접 실행에서는 기존 request URL 기준 검사를 유지한다.
 
 - 이미지의 실행 사용자는 UID/GID 1000이며 기본 포트는 3000이다.
 - 실제 노드 아키텍처를 확인한 뒤 해당 플랫폼으로 빌드한다. 로컬 ARM64 검증만으로

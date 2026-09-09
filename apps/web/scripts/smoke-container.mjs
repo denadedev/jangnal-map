@@ -36,4 +36,11 @@ const rejected = await fetch(new URL("/api/report", base), {
   signal: AbortSignal.timeout(15000),
 });
 assert.equal(rejected.status, 403);
+const accepted = await fetch(new URL("/api/report", base), {
+  method: "POST",
+  headers: { Origin: new URL(base).origin, "Content-Type": "application/json" },
+  body: JSON.stringify({ _gotcha: "smoke-test-without-email" }),
+  signal: AbortSignal.timeout(15000),
+});
+assert.equal(accepted.status, 200, "configured external Origin must pass behind port mapping");
 console.log("PASS: runtime email, pages, market detail, metadata, assets, 404 and API origin rejection");

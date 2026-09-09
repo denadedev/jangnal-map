@@ -87,6 +87,12 @@ describe("generatePublicMarkets", () => {
       longitude: number | null;
       schedule: { kind: string; days?: [number, number] };
       scheduleRaw: string;
+      onnuri: null | {
+        totalCount: number;
+        digitalCount: number;
+        paperCount: number;
+        referenceDate: string;
+      };
     }>;
 
     expect(artifact).toHaveLength(1393);
@@ -98,5 +104,12 @@ describe("generatePublicMarkets", () => {
     expect(artifact.filter(({ schedule }) => schedule.kind === "digit-pair").every(({ schedule: { days } }) =>
       days !== undefined && ((days[0] === 5 && days[1] === 0) || days[1] === days[0] + 5))).toBe(true);
     expect(artifact.filter(({ scheduleRaw }) => scheduleRaw === "5일+10일").every(({ schedule }) => String(schedule.days) === "5,0")).toBe(true);
+    expect(artifact.filter(({ onnuri }) => onnuri !== null)).toHaveLength(1_066);
+    expect(artifact.every(({ onnuri }) => onnuri === null || (
+      Number.isInteger(onnuri.totalCount)
+      && onnuri.totalCount >= onnuri.digitalCount
+      && onnuri.totalCount >= onnuri.paperCount
+      && onnuri.referenceDate === "2025-07-31"
+    ))).toBe(true);
   });
 });

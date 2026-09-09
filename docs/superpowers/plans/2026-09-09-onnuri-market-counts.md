@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- 데이터 원천은 소상공인시장진흥공단 `전국 온누리상품권 가맹점 현황_20250731`이며 기준일은 `2025-07-31`이다.
+- 데이터 원천은 소상공인시장진흥공단 `전국 온누리상품권 가맹점 현황_20250731`이며 기준일은 `2025-07-31`이다. 실제 다운로드 파일은 150,541행이며 포털 화면의 전체 행 표시는 125,589다.
 - 전체 가맹점 수는 디지털 수와 지류 수의 합이 아니라 정규화된 점포의 중복 제거 수다.
 - 자동 매칭이 하나의 내부 시장으로 확정되지 않으면 수치를 붙이지 않는다.
 - 미매칭은 `0곳`이 아니라 `onnuri: null`로 표현한다.
@@ -267,7 +267,7 @@ export interface PublicMarket {
 }
 ```
 
-`generatePublicMarkets`가 기본적으로 `onnuri: null`을 생성하게 하고, `attachOnnuriSummaries`는 새 배열을 반환한다. 별도 `enrich-public-markets.ts` CLI는 커밋된 기존 `markets.json`을 입력으로 읽어 모든 파싱과 매칭이 성공한 뒤 임시 파일에 JSON과 보고서를 쓰고 최종 경로로 rename해 부분 덮어쓰기를 막는다. `SOURCE.md`에는 데이터셋 URL, 125,589행, 2025-07-31 기준, 연간 갱신과 실행 명령을 기록한다.
+`generatePublicMarkets`가 기본적으로 `onnuri: null`을 생성하게 하고, `attachOnnuriSummaries`는 새 배열을 반환한다. 별도 `enrich-public-markets.ts` CLI는 커밋된 기존 `markets.json`을 입력으로 읽어 모든 파싱과 매칭이 성공한 뒤 임시 파일에 JSON과 보고서를 쓰고 최종 경로로 rename해 부분 덮어쓰기를 막는다. `SOURCE.md`에는 데이터셋 URL, 실제 다운로드 150,541행과 포털 표시 125,589행의 차이, 2025-07-31 기준, 연간 갱신과 실행 명령을 기록한다.
 
 - [ ] **Step 4: 관련 테스트와 양쪽 타입 검사**
 
@@ -313,11 +313,11 @@ git commit -m "feat: publish onnuri summaries with markets"
 
 - [ ] **Step 1: 공식 원본을 임시 경로에 내려받고 스키마 확인**
 
-공공데이터포털 데이터셋 `3060079`의 `소상공인시장진흥공단_전국 온누리상품권 가맹점 현황_20250731.csv`를 `/tmp/onnuri-merchants-20250731.csv`로 내려받는다. 첫 행이 Task 1의 7개 열과 일치하고 전체 데이터 행이 `125589`개인지 확인한다.
+공공데이터포털 데이터셋 `3060079`의 `소상공인시장진흥공단_전국 온누리상품권 가맹점 현황_20250731.csv`를 `/tmp/onnuri-merchants-20250731.csv`로 내려받는다. 첫 행이 Task 1의 7개 열과 일치하고 실제 다운로드 데이터 행이 `150541`개인지 확인한다.
 
 Run: `python -c 'import csv; p="/tmp/onnuri-merchants-20250731.csv"; f=open(p, encoding="utf-8-sig"); r=csv.reader(f); h=next(r); rows=sum(1 for _ in r); print(h); print(rows)'`
 
-Expected: 7개 공식 헤더와 `125589`.
+Expected: 7개 공식 헤더와 `150541`.
 
 - [ ] **Step 2: 최초 생성으로 충돌·미매칭 기준선 확보**
 

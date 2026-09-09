@@ -66,6 +66,18 @@ describe("온누리 시장 매칭", () => {
     ]);
   });
 
+  it("공식 원본의 광역지역 약칭을 시장 주소의 광역지역과 비교한다", () => {
+    const result = matchOnnuriMarkets(
+      markets,
+      [aggregate("운천전통시장", "운천", "경기")],
+      {},
+      "2025-07-31",
+    );
+
+    expect(result.summariesByMarketId.get("uncheon")?.totalCount).toBe(2);
+    expect(result.report.autoMatches).toBe(1);
+  });
+
   it("검증된 수동 매핑으로 이름이 다른 시장을 연결한다", () => {
     const result = matchOnnuriMarkets(
       markets,

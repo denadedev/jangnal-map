@@ -21,6 +21,7 @@ const markets: PublicMarket[] = [
     referenceDate: "2025-11-10",
     status: "운영",
     statusVerified: false,
+    onnuri: null,
     source: {
       name: "공공데이터포털 전국전통시장표준데이터",
       url: "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y",
@@ -42,6 +43,7 @@ const markets: PublicMarket[] = [
     referenceDate: "2025-11-10",
     status: "운영",
     statusVerified: false,
+    onnuri: null,
     source: {
       name: "공공데이터포털 전국전통시장표준데이터",
       url: "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y",
@@ -63,6 +65,7 @@ const markets: PublicMarket[] = [
     referenceDate: "2025-11-10",
     status: "운영",
     statusVerified: false,
+    onnuri: null,
     source: {
       name: "공공데이터포털 전국전통시장표준데이터",
       url: "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y",
@@ -84,6 +87,7 @@ const markets: PublicMarket[] = [
     referenceDate: "2025-11-10",
     status: "운영",
     statusVerified: false,
+    onnuri: null,
     source: {
       name: "공공데이터포털 전국전통시장표준데이터",
       url: "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y",

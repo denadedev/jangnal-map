@@ -7,6 +7,7 @@ import { normalizeMarket } from "./normalize-market.js";
 import { parseSchedule } from "./parse-schedule.js";
 import { readMarketsCsv } from "./read-csv.js";
 import type { NormalizedMarket, RawMarket } from "./types.js";
+import type { OnnuriMerchantSummary } from "./onnuri-match.js";
 
 const SOURCE_NAME = "공공데이터포털 전국전통시장표준데이터";
 const SOURCE_URL = "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y";
@@ -29,6 +30,7 @@ export interface PublicMarket {
   referenceDate: string | null;
   status: "운영" | "폐장";
   statusVerified: boolean;
+  onnuri: OnnuriMerchantSummary | null;
   source: {
     name: string;
     url: string;
@@ -66,12 +68,23 @@ const publicMarket = (raw: RawMarket, market: NormalizedMarket): PublicMarket =>
     referenceDate,
     status: market.status,
     statusVerified: market.statusVerified,
+    onnuri: null,
     source: { name: SOURCE_NAME, url: SOURCE_URL, referenceDate },
   };
 };
 
 export function generatePublicMarkets(rawRows: RawMarket[]): PublicMarket[] {
   return rawRows.map((raw) => publicMarket(raw, normalizeMarket(raw)));
+}
+
+export function attachOnnuriSummaries(
+  markets: PublicMarket[],
+  summariesByMarketId: Map<string, OnnuriMerchantSummary>,
+): PublicMarket[] {
+  return markets.map((market) => ({
+    ...market,
+    onnuri: summariesByMarketId.get(market.id) ?? null,
+  }));
 }
 
 const valueAfter = (flag: string): string => {

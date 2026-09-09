@@ -20,6 +20,7 @@ const periodicMarket: PublicMarket = {
   referenceDate: "2025-11-10",
   status: "운영",
   statusVerified: false,
+  onnuri: null,
   source: { name: "공공데이터포털", url: "https://www.data.go.kr/", referenceDate: "2025-11-10" },
 };
 

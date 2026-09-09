@@ -1,10 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { readFile } from "node:fs/promises";
 
-import { generatePublicMarkets } from "../src/generate-public-markets.js";
+import { attachOnnuriSummaries, generatePublicMarkets } from "../src/generate-public-markets.js";
+import type { OnnuriMerchantSummary } from "../src/onnuri-match.js";
 import { readMarketsCsv } from "../src/read-csv.js";
 
 describe("generatePublicMarkets", () => {
+  it("시장 ID별 온누리 집계를 병합하고 미매칭 시장은 null로 둔다", async () => {
+    const rawRows = await readMarketsCsv("data/fixtures/markets.csv", "utf8");
+    const generated = generatePublicMarkets(rawRows);
+    const summary: OnnuriMerchantSummary = {
+      totalCount: 2,
+      digitalCount: 2,
+      paperCount: 1,
+      referenceDate: "2025-07-31",
+      source: { name: "공공데이터포털", url: "https://www.data.go.kr/" },
+    };
+
+    const enriched = attachOnnuriSummaries(generated, new Map([[generated[0]!.id, summary]]));
+
+    expect(enriched[0]!.onnuri).toEqual(summary);
+    expect(enriched[1]!.onnuri).toBeNull();
+    expect(enriched).not.toBe(generated);
+  });
+
   it("매일 운영 및 좌표가 없는 시장도 공개 데이터에 보존한다", async () => {
     const rawRows = await readMarketsCsv("data/fixtures/markets.csv", "utf8");
     const unknownRaw = {

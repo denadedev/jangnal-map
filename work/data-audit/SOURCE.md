@@ -11,4 +11,17 @@
 - 원본 변경: 없음
 
 원본 파일은 조사 재현용으로 로컬에 보존하며 Git에는 추가하지 않는다. 조사 도구는 원본을 읽기만 하고 정규화 결과와 보고서를 별도 경로에 생성한다.
+# 온누리상품권 가맹점 데이터
+
+- 데이터셋: 소상공인시장진흥공단 전국 온누리상품권 가맹점 현황
+- URL: https://www.data.go.kr/data/3060079/fileData.do?recommendDataYn=Y
+- 기준일: 2025-07-31
+- 공개 행 수: 125,589
+- 갱신 주기: 연간
+
+최신 CSV를 `/tmp/onnuri-merchants-20250731.csv`에 받은 뒤 다음 명령으로 공개 시장 데이터와 품질 보고서를 갱신한다.
+
+```bash
+pnpm enrich:onnuri -- --markets ../../apps/web/public/data/markets.json --onnuri /tmp/onnuri-merchants-20250731.csv --onnuri-encoding utf8 --onnuri-reference-date 2025-07-31 --overrides data/onnuri-market-overrides.json --output ../../apps/web/public/data/markets.json --report ../../outputs/온누리상품권-매칭-결과.md
+```
 

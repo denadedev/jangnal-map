@@ -5,7 +5,8 @@ import OnnuriPage, { metadata } from "./page";
 
 describe("온누리상품권 허브", () => {
   it("온누리상품권 검색을 위한 고유 메타데이터를 제공한다", () => {
-    expect(metadata.title).toBe("온누리상품권 사용처·가맹점 찾기 | 오늘 장날");
+    expect(metadata.title).toBe("온누리상품권 이용안내·가맹점 찾기 | 오늘 장날");
+    expect(metadata.openGraph?.title).toBe("온누리상품권 이용안내·가맹점 찾기 | 오늘 장날");
     expect(metadata.alternates?.canonical).toBe("/onnuri");
     expect(metadata.description).toContain("전체·디지털·지류 가맹점 수");
   });

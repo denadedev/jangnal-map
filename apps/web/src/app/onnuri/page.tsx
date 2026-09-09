@@ -3,11 +3,11 @@ import type { Metadata } from "next";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "온누리상품권 사용처·가맹점 찾기 | 오늘 장날",
+  title: "온누리상품권 이용안내·가맹점 찾기 | 오늘 장날",
   description: "전국 전통시장별 온누리상품권 전체·디지털·지류 가맹점 수와 사용처를 찾아보세요.",
   alternates: { canonical: "/onnuri" },
   openGraph: {
-    title: "온누리상품권 사용처·가맹점 찾기 | 오늘 장날",
+    title: "온누리상품권 이용안내·가맹점 찾기 | 오늘 장날",
     description: "전국 전통시장별 온누리상품권 가맹점 수와 사용처를 확인하세요.",
     url: "/onnuri",
     type: "website",

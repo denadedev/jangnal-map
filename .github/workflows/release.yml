@@ -1,4 +1,4 @@
-name: Release Production Deployment
+name: Release Vercel Deployment (legacy)
 
 on:
   deployment_status:
@@ -36,6 +36,6 @@ jobs:
           gh release create "$tag" \
             --repo "$GITHUB_REPOSITORY" \
             --target "$DEPLOYED_SHA" \
-            --title "Production ${short_sha}" \
+            --title "Vercel Production ${short_sha}" \
             --generate-notes \
             --notes "Deployment: ${DEPLOYMENT_URL}"

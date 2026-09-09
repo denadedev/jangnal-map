@@ -1,5 +1,9 @@
 # 온누리상품권 시장별 가맹점 수 Implementation Plan
 
+## 승인 후 범위 조정
+
+로컬 미리보기 검토에서 `/onnuri`의 시장 검색과 인기 시장 목록은 기존 지도 흐름과 중복된다고 판단해 제거했다. 최종 구현은 시장별 수치를 지도 선택 상세와 정적 시장 상세에만 표시한다. `/onnuri`는 온누리상품권 개요, 디지털형·지류형 안내, 주의사항과 공식 온누리 플레이스(`https://www.onnuri.gift/place`) 링크만 제공한다. Task 7의 검색 컴포넌트와 인기 시장 목록은 이 결정으로 폐기됐으며 관련 파일도 제거했다.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 공식 온누리상품권 가맹점 데이터를 기존 전통시장 데이터와 안전하게 결합해 전체·디지털·지류 가맹점 수를 노출하고 `/onnuri` 검색 허브와 시장별 SEO를 제공한다.

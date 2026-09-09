@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { MarketNextDate } from "../../../components/market-next-date";
+import { OnnuriSummary } from "../../../components/onnuri-summary";
 import { publicMarkets } from "../../../lib/market-catalog";
 import {
   createMarketSeoText,
@@ -83,6 +84,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
       <header className={styles.header}>
         <a href="/">오늘 장날</a>
         <nav aria-label="보조 메뉴">
+          <a href="/onnuri">온누리상품권</a>
           <a href="/report?kind=service">불편 신고</a>
           <a href={mapHref}>전국 지도</a>
         </nav>
@@ -116,6 +118,9 @@ export default async function MarketPage({ params }: MarketPageProps) {
               </a>
             </div>
           </section>
+          <div className={styles.section}>
+            <OnnuriSummary marketName={market.name} summary={market.onnuri} headingLevel={2} />
+          </div>
           <footer className={styles.footer}>
             <span>정보 출처</span>{" "}
             <a href={market.source.url} target="_blank" rel="noreferrer">{market.source.name}</a>

@@ -16,9 +16,9 @@ describe("SEO metadata routes", () => {
       .map((market) => `${SITE_URL}${getMarketPagePath(market)}`)
       .sort();
 
-    expect(entries).toHaveLength(1_392);
+    expect(entries).toHaveLength(1_393);
     expect(new Set(urls)).toHaveLength(entries.length);
-    expect(urls.sort()).toEqual([SITE_URL, ...indexableUrls].sort());
+    expect(urls.sort()).toEqual([SITE_URL, `${SITE_URL}/onnuri`, ...indexableUrls].sort());
     expect(urls).not.toContain(`${SITE_URL}/markets/삽교시장-09e8d20c`);
   });
 
@@ -27,6 +27,14 @@ describe("SEO metadata routes", () => {
       url: SITE_URL,
       changeFrequency: "daily",
       priority: 1,
+    });
+  });
+
+  it("publishes the 온누리상품권 검색 허브", () => {
+    expect(sitemap()).toContainEqual({
+      url: `${SITE_URL}/onnuri`,
+      changeFrequency: "monthly",
+      priority: 0.9,
     });
   });
 

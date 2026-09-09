@@ -127,6 +127,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
         </a>
         <div className="header-actions">
           <div className="data-badge"><span aria-hidden="true" /> 전국 시장 {isPending ? "…" : `${markets.length.toLocaleString("ko-KR")}곳`}</div>
+          <a className="feedback-link" href="/onnuri">온누리상품권</a>
           <a className="feedback-link" href="/report?kind=service">불편 신고</a>
         </div>
       </header>

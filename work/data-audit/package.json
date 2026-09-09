@@ -5,6 +5,7 @@
   "scripts": {
     "audit": "tsx src/cli.ts",
     "generate": "tsx src/generate-public-markets.ts",
+    "enrich:onnuri": "tsx src/enrich-public-markets.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

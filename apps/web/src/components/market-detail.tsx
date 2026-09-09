@@ -1,6 +1,7 @@
 import type { PublicMarket } from "../lib/market";
 import { getDday, formatKoreanDate } from "../lib/market-view";
 import { getMarketDates, getNextMarketDate } from "../lib/schedule";
+import { OnnuriSummary } from "./onnuri-summary";
 
 interface MarketDetailProps {
   market: PublicMarket | null;
@@ -119,6 +120,10 @@ export function MarketDetail({ market, today, onClose }: MarketDetailProps) {
           </a>
         ) : null}
       </section>
+
+      <div className="detail-section">
+        <OnnuriSummary marketName={market.name} summary={market.onnuri} headingLevel={3} />
+      </div>
 
       <footer className="source-note">
         <span>정보 출처</span>

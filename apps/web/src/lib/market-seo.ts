@@ -30,6 +30,21 @@ export function createMarketSeoText(market: PublicMarket): { title: string; desc
   const region = getRegion(market);
   const locationPrefix = region ? `${region} ` : "";
 
+  if (market.onnuri && market.schedule.kind !== "unknown") {
+    const total = market.onnuri.totalCount.toLocaleString("ko-KR");
+    const digital = market.onnuri.digitalCount.toLocaleString("ko-KR");
+    const paper = market.onnuri.paperCount.toLocaleString("ko-KR");
+    const schedule = market.schedule.kind === "digit-pair"
+      ? formatSchedulePattern(market)
+      : "매일 운영";
+    return {
+      title: market.schedule.kind === "digit-pair"
+        ? `${market.name} 장날·온누리상품권 가맹점 ${total}곳 | 오늘 장날`
+        : `${market.name} 온누리상품권 가맹점 ${total}곳 | 오늘 장날`,
+      description: `${locationPrefix}${market.name}의 ${schedule}과 온누리상품권 가맹점 ${total}곳, 디지털 ${digital}곳·지류 ${paper}곳, 주소와 주차 정보를 확인하세요.`,
+    };
+  }
+
   if (market.schedule.kind === "digit-pair") {
     const schedule = formatSchedulePattern(market);
     return {

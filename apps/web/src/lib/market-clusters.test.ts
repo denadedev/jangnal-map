@@ -20,6 +20,7 @@ const marketAt = (id: string, latitude: number | null, longitude: number | null)
   referenceDate: null,
   status: "운영",
   statusVerified: false,
+  onnuri: null,
   source: { name: "테스트", url: "https://example.com", referenceDate: null },
 });
 

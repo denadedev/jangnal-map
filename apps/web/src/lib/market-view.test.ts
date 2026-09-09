@@ -18,6 +18,7 @@ const market: PublicMarket = {
   referenceDate: null,
   status: "운영",
   statusVerified: true,
+  onnuri: null,
   source: { name: "테스트", url: "https://example.com", referenceDate: null },
 };
 

@@ -19,6 +19,7 @@ const periodicMarket: PublicMarket = {
   referenceDate: "2025-11-10",
   status: "운영",
   statusVerified: false,
+  onnuri: null,
   source: { name: "공공데이터포털", url: "https://www.data.go.kr/", referenceDate: "2025-11-10" },
 };
 
@@ -47,6 +48,24 @@ describe("market SEO identity", () => {
 });
 
 describe("market SEO copy", () => {
+  it("가맹점 수가 있는 시장은 온누리 검색 의도를 제목과 설명에 담는다", () => {
+    const seo = createMarketSeoText({
+      ...periodicMarket,
+      onnuri: {
+        totalCount: 83,
+        digitalCount: 71,
+        paperCount: 65,
+        referenceDate: "2025-07-31",
+        source: { name: "공공데이터포털", url: "https://www.data.go.kr/" },
+      },
+    });
+
+    expect(seo.title).toBe("용인 중앙시장 장날·온누리상품권 가맹점 83곳 | 오늘 장날");
+    expect(seo.description).toContain("온누리상품권 가맹점 83곳");
+    expect(seo.description).toContain("디지털 71곳·지류 65곳");
+    expect(seo.description).toContain("5·10일장");
+  });
+
   it("uses durable schedule facts instead of an exact next date", () => {
     expect(createMarketSeoText(periodicMarket)).toEqual({
       title: "용인 중앙시장 장날 · 5·10일장 | 오늘 장날",

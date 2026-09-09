@@ -1,0 +1,37 @@
+.page { min-height: 100dvh; background: var(--paper); color: var(--ink); }
+.header { display: flex; min-height: 70px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding: 0 24px; background: var(--panel); }
+.brand { font-family: Georgia, "Noto Serif KR", serif; font-size: 20px; font-weight: 800; }
+.header nav { display: flex; gap: 16px; }
+.header nav a { min-height: 44px; font-size: 12px; font-weight: 800; line-height: 44px; }
+.main { width: min(880px, calc(100% - 32px)); margin: 0 auto; padding: 56px 0 80px; }
+.hero { border-bottom: 2px solid var(--ink); padding-bottom: 34px; }
+.hero p { margin: 0 0 10px; color: var(--persimmon-dark); font-size: 12px; font-weight: 800; }
+.hero h1 { margin: 0; font-family: Georgia, "Noto Serif KR", serif; font-size: clamp(32px, 6vw, 52px); letter-spacing: -0.055em; }
+.hero strong { display: block; margin-top: 16px; font-size: 16px; line-height: 1.6; }
+.hero small { display: block; margin-top: 9px; color: var(--muted); font-size: 11px; }
+.featured, .guide { margin-top: 48px; border-top: 1px solid var(--line); padding-top: 28px; }
+.sectionHeading h2, .guide h2 { margin: 0; font-size: 22px; }
+.sectionHeading p { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+.featured ul { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 20px 0 0; padding: 0; list-style: none; }
+.featured a { display: flex; min-height: 58px; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; background: var(--panel); }
+.featured a:hover { border-color: var(--persimmon); }
+.featured span { overflow: hidden; font-size: 12px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.featured strong { flex: 0 0 auto; color: var(--persimmon-dark); font-size: 12px; }
+.guideGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
+.guide article { border: 1px solid var(--line); border-radius: 7px; padding: 20px; background: var(--panel); }
+.guide h3 { margin: 0; font-size: 14px; }
+.guide article p { margin: 10px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.official { display: inline-flex; min-height: 44px; align-items: center; margin-top: 18px; border-radius: 4px; padding: 0 16px; background: var(--ink); color: white; font-size: 12px; font-weight: 800; }
+
+@media (max-width: 700px) {
+  .header { min-height: 59px; padding: 0 16px; }
+  .main { width: min(100% - 24px, 880px); padding: 32px 0 52px; }
+  .hero { padding-bottom: 26px; }
+  .hero h1 { font-size: 33px; }
+  .featured ul { grid-template-columns: 1fr 1fr; }
+  .guideGrid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 430px) {
+  .featured ul { grid-template-columns: 1fr; }
+}

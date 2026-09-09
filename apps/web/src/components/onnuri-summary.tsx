@@ -35,7 +35,7 @@ export function OnnuriSummary({ marketName, summary, headingLevel }: OnnuriSumma
       )}
       <p>점포별 취급 여부는 변경될 수 있으니 방문 전 공식 가맹점 찾기에서 확인하세요.</p>
       <div className={styles.links}>
-        <a href="https://onnurigift.or.kr/" target="_blank" rel="noreferrer">공식 가맹점 찾기</a>
+        <a href="https://www.onnuri.gift/place">공식 가맹점 찾기</a>
         {summary ? <a href={summary.source.url} target="_blank" rel="noreferrer">집계 데이터 출처</a> : null}
       </div>
     </section>

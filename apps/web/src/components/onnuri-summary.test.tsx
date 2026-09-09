@@ -34,8 +34,9 @@ describe("OnnuriSummary", () => {
     expect(screen.queryByText("0곳")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "공식 가맹점 찾기" })).toHaveAttribute(
       "href",
-      "https://onnurigift.or.kr/",
+      "https://www.onnuri.gift/place",
     );
+    expect(screen.getByRole("link", { name: "공식 가맹점 찾기" })).not.toHaveAttribute("target");
     expect(screen.getByText(/방문 전 공식 가맹점 찾기에서 확인/)).toBeInTheDocument();
   });
 });

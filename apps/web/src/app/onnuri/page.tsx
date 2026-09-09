@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 
-import { OnnuriMarketSearch } from "../../components/onnuri-market-search";
-import { publicMarkets } from "../../lib/market-catalog";
-import { getMarketPagePath } from "../../lib/market-seo";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -18,16 +15,6 @@ export const metadata: Metadata = {
   },
 };
 
-const featuredMarkets = publicMarkets
-  .filter((market) => market.onnuri !== null)
-  .sort((a, b) => b.onnuri!.totalCount - a.onnuri!.totalCount || a.name.localeCompare(b.name, "ko-KR"))
-  .slice(0, 12);
-
-const referenceDate = featuredMarkets[0]?.onnuri?.referenceDate.replace(
-  /^(\d{4})-(\d{2})-(\d{2})$/,
-  "$1.$2.$3",
-) ?? "기준일 확인 필요";
-
 export default function OnnuriPage() {
   return (
     <div className={styles.page}>
@@ -41,35 +28,13 @@ export default function OnnuriPage() {
       <main className={styles.main}>
         <section className={styles.hero}>
           <p>전통시장 결제 정보</p>
-          <h1>온누리상품권 사용처 찾기</h1>
-          <strong>시장별 전체·디지털·지류 가맹점 수를 한눈에 확인하세요.</strong>
-          <small>{referenceDate} 공식 데이터 기준</small>
-        </section>
-
-        <OnnuriMarketSearch />
-
-        <section className={styles.featured} aria-labelledby="featured-markets">
-          <div className={styles.sectionHeading}>
-            <h2 id="featured-markets">가맹점이 많은 전통시장</h2>
-            <p>전체 가맹점 수 기준 상위 시장입니다.</p>
-          </div>
-          <ul>
-            {featuredMarkets.map((market) => (
-              <li key={market.id}>
-                <a
-                  href={getMarketPagePath(market)}
-                  aria-label={`${market.name} 온누리상품권 가맹점 ${market.onnuri!.totalCount.toLocaleString("ko-KR")}곳`}
-                >
-                  <span>{market.name}</span>
-                  <strong>{market.onnuri!.totalCount.toLocaleString("ko-KR")}곳</strong>
-                </a>
-              </li>
-            ))}
-          </ul>
+          <h1>온누리상품권 이용안내</h1>
+          <strong>전통시장과 상점가에서 사용할 수 있는 온누리상품권을 알아보세요.</strong>
         </section>
 
         <section className={styles.guide} aria-labelledby="onnuri-guide">
-          <h2 id="onnuri-guide">온누리상품권 이용안내</h2>
+          <h2 id="onnuri-guide">온누리상품권이란?</h2>
+          <p className={styles.intro}>전통시장과 상점가의 소비를 돕기 위해 발행되는 상품권입니다. 모든 점포에서 자동으로 사용할 수 있는 것은 아니며, 온누리상품권 가맹점으로 등록된 점포에서 사용할 수 있습니다.</p>
           <div className={styles.guideGrid}>
             <article>
               <h3>디지털형과 지류형</h3>
@@ -80,8 +45,8 @@ export default function OnnuriPage() {
               <p>가맹 상태와 취급 유형은 변경될 수 있습니다. 결제 전 점포 표시나 공식 가맹점 찾기에서 다시 확인하세요.</p>
             </article>
           </div>
-          <a className={styles.official} href="https://onnurigift.or.kr/" target="_blank" rel="noreferrer">
-            온누리상품권 공식 가맹점 찾기
+          <a className={styles.official} href="https://www.onnuri.gift/place">
+            공식 온누리 가맹점 찾기
           </a>
         </section>
       </main>

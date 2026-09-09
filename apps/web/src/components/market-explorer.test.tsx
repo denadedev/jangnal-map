@@ -21,7 +21,16 @@ const markets: PublicMarket[] = [
     referenceDate: "2025-11-10",
     status: "운영",
     statusVerified: false,
-    onnuri: null,
+    onnuri: {
+      totalCount: 83,
+      digitalCount: 71,
+      paperCount: 65,
+      referenceDate: "2025-07-31",
+      source: {
+        name: "소상공인시장진흥공단 전국 온누리상품권 가맹점 현황",
+        url: "https://www.data.go.kr/data/3060079/fileData.do?recommendDataYn=Y",
+      },
+    },
     source: {
       name: "공공데이터포털 전국전통시장표준데이터",
       url: "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y",
@@ -189,6 +198,16 @@ describe("MarketExplorer", () => {
     expect(dates[1]).toHaveTextContent("장날");
     expect(dates[6]).toHaveTextContent("9");
     expect(dates[6]).toHaveTextContent("장날");
+  });
+
+  it("선택한 시장의 온누리상품권 가맹점 수를 보여준다", async () => {
+    const user = userEvent.setup();
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    await user.click(await screen.findByRole("link", { name: /운천전통시장/ }));
+
+    expect(screen.getByRole("heading", { level: 3, name: "온누리상품권" })).toBeInTheDocument();
+    expect(screen.getByText("가맹점 총 83곳")).toBeInTheDocument();
   });
 
   it("shows an actionable empty state when no market matches", async () => {

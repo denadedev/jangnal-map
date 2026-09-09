@@ -57,6 +57,15 @@ describe("market detail route", () => {
     expect(screen.queryByRole("region", { name: "운영 일정" })).not.toBeInTheDocument();
   });
 
+  it("공식 집계가 있는 시장의 온누리상품권 가맹점 수를 보여준다", async () => {
+    const market = publicMarkets.find((item) => item.onnuri !== null)!;
+
+    render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
+
+    expect(screen.getByRole("heading", { level: 2, name: "온누리상품권" })).toBeInTheDocument();
+    expect(screen.getByText(`가맹점 총 ${market.onnuri!.totalCount.toLocaleString("ko-KR")}곳`)).toBeInTheDocument();
+  });
+
   it("links both report scopes from a market page", async () => {
     const market = publicMarkets[0];
 

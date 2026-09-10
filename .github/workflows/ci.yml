@@ -42,7 +42,15 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run tests
-        run: pnpm test
+        run: |
+          node <<'NODE'
+          const { createRequire } = require('node:module');
+          const web = createRequire(`${process.cwd()}/apps/web/package.json`);
+          const jestDom = createRequire(web.resolve('@testing-library/jest-dom/vitest'));
+          console.log('Web Vitest:', web.resolve('vitest'));
+          console.log('jest-dom Vitest:', jestDom.resolve('vitest'));
+          NODE
+          pnpm test
 
       - name: Run type checks
         run: pnpm typecheck

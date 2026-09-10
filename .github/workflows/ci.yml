@@ -111,6 +111,8 @@ jobs:
     if: github.ref == 'refs/heads/main' && needs.verify.outputs.published == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      updated: ${{ steps.update.outputs.updated }}
     concurrency:
       group: jangnal-web-gitops
       cancel-in-progress: false
@@ -140,6 +142,7 @@ jobs:
           path: gitops
 
       - name: Update only the latest image with conflict retry
+        id: update
         working-directory: gitops
         env:
           GH_TOKEN: ${{ github.token }}
@@ -156,11 +159,41 @@ jobs:
             git fetch origin main
             git checkout --detach origin/main
             node "$GITHUB_WORKSPACE/scripts/update-gitops-image.mjs" "$manifest" "$GITHUB_SHA"
-            if git diff --quiet -- "$manifest"; then exit 0; fi
+            if git diff --quiet -- "$manifest"; then
+              echo 'updated=true' >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             git add "$manifest"
             git commit -m "Deploy Jangnal web $GITHUB_SHA"
-            if git push origin HEAD:main; then exit 0; fi
+            if git push origin HEAD:main; then
+              echo 'updated=true' >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             sleep "$attempt"
           done
           echo 'GitOps update failed after three attempts.'
           exit 1
+
+  release:
+    name: Record K3s deployment request
+    needs: [verify, gitops]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.gitops.outputs.updated == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    concurrency:
+      group: jangnal-web-release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Create release for the latest main commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/create-release.mjs

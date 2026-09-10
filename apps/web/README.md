@@ -1,7 +1,7 @@
 # Standalone 컨테이너
 
 저장소 루트에서 실행한다. Next.js 서버가 화면과 제보 API를 함께 제공한다.
-기존 Vercel 운영 설정을 변경하거나 실제 K3s 배포를 수행하는 명령은 아니다.
+아래 Docker 명령은 로컬 검증용이며 실제 K3s 배포는 GitHub Actions와 Argo CD가 담당한다.
 
 ```bash
 docker build -f apps/web/Dockerfile \
@@ -34,19 +34,19 @@ docker stop jangnal-web-smoke
 홈·시장 상세·제보·개인정보 안내·메타데이터·정적 자산·404·API 출처 거부를 확인한다.
 SMTP 자격증명은 없는 상태로 빌드해야 런타임 이메일 테스트가 의미 있다.
 
-## K3s 연결 전
+## K3s 런타임
 
 - `REPORT_ALLOWED_ORIGIN=https://jangnal.spamfam.kr`을 런타임 설정으로 주입한다.
   내부 HTTP 주소와 공개 HTTPS 주소가 달라도 제보 출처를 검증할 수 있다.
   클라이언트가 보낸 forwarding 헤더는 허용 출처 결정에 사용하지 않는다.
-  설정을 생략한 Vercel/직접 실행에서는 기존 request URL 기준 검사를 유지한다.
+  설정을 생략한 직접 실행에서는 request URL 기준 검사를 유지한다.
 
 - 이미지의 실행 사용자는 UID/GID 1000이며 기본 포트는 3000이다.
-- 실제 노드 아키텍처를 확인한 뒤 해당 플랫폼으로 빌드한다. 로컬 ARM64 검증만으로
-  Proxmox의 AMD64 노드 호환성이 검증된 것은 아니다.
-- 검증한 커밋의 이미지를 Harbor에 게시한 후 GitOps의 `not-built` 태그를 실제 SHA로 교체한다.
+- 현재 Proxmox K3s 노드는 AMD64이며 Actions도 `linux/amd64` 이미지를 빌드한다.
+- GitOps 이미지 태그는 Actions가 검증한 전체 커밋 SHA로 갱신한다.
 - 실제 지도 인증, SMTP 수신, 프록시 Origin/IP 전달, 요청 제한, TLS는 별도로 확인한다.
-- 제보 보호와 프록시 검증을 마치기 전 운영 도메인이나 DNS를 전환하지 않는다.
+- 공개 도메인의 DNS·TLS 전환은 완료했다. IP별 제보 요청 제한은 아직 미구현이며
+  실제 클라이언트 IP 신뢰 설정과 함께 별도 작업으로 남아 있다.
 
 ## GitHub Actions
 
@@ -54,7 +54,6 @@ SMTP 자격증명은 없는 상태로 빌드해야 런타임 이메일 테스트
 PR에서는 Harbor 로그인이나 GitOps 쓰기를 하지 않는다. main push 또는 main의 수동 실행은
 검사를 통과한 바로 그 이미지를 전체 커밋 SHA 태그로 Harbor에 올리고 GitOps의
 `apps/jangnal-map/web/manifests/deployment.yaml` 이미지 필드만 갱신한다.
-실제 K3s 노드가 AMD64인지 첫 배포 전에 확인한다.
 
 저장소에서 사용할 수 있도록 조직의 허용 저장소 범위를 확인한다:
 
@@ -70,11 +69,23 @@ GitOps 갱신은 직렬화하며 최신 main이 아닌 작업은 건너뛴다. �
 검사가 초록색이어도 이전 커밋이어서 게시를 건너뛰었는지 각 단계 로그를 확인한다.
 
 Actions 성공은 **이미지 게시·GitOps 갱신 성공**이지 Pod 배포 성공이 아니다.
-최초 Argo CD Application 등록·수동 Sync와 rollout/응답 검증은 별도로 수행한다.
-자동 Sync는 첫 배포 검증 후 켠다. 롤백할 때는 진행 중인 배포 실행을 먼저 멈추고
+현재 Argo CD Application 이름은 `jangnal-map`이며 자동 Sync가 켜져 있다.
+rollout/응답 검증은 별도로 수행한다. 롤백할 때는 진행 중인 배포 실행을 먼저 멈추고
 GitOps의 이미지 SHA를 검증된 이전 값으로 변경한다.
 
-기존 Vercel 운영을 유지하는 동안 `Release Vercel Deployment (legacy)`는 Vercel
-성공만 기록한다. 이를 K3s 운영 성공으로 간주하지 않으며, DNS 전환 후 제거 여부를 결정한다.
+## GitHub Release
+
+별도 Vercel 이벤트 대신 `CI`의 마지막 `release` job에서 생성한다.
+
+- 트리거: `main` push(일반적으로 PR 병합). PR과 `workflow_dispatch`에서는 생성하지 않는다.
+- 조건: 검증·이미지 게시 성공, GitOps가 해당 이미지로 갱신됐거나 이미 같은 이미지임을 확인.
+  오래된 main 작업으로 게시·갱신을 건너뛴 경우 Release도 만들지 않는다.
+- 태그: `k3s-<전체 커밋 SHA>`. 제목: `K3s <짧은 SHA>`. 변경 내용은 자동 생성한다.
+- 같은 push 실행을 재실행해도 기존 Release는 수정하거나 중복 생성하지 않는다.
+  Release만 실패하면 해당 push 실행의 실패한 job을 재실행한다.
+- Release는 **CI 검증·Harbor 게시·GitOps 갱신 완료**를 기록한다. 실제 K3s 배포를
+  기다리지 않으며 Argo CD 토큰은 필요 없다. 배포 상태는 Argo CD에서 확인한다.
+- Release job만 `contents: write`를 사용한다. 기존 Vercel 전용 워크플로와
+  `vercel.json`은 제거했으며 과거 GitHub Release는 이력으로 보존한다.
 
 참고: [Next.js standalone 출력](https://nextjs.org/docs/app/api-reference/config/next-config-js/output).

@@ -53,6 +53,13 @@ NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=your_naver_maps_client_id
 
 키를 비워 두면 지도 영역은 목록 탐색 안내로 대체되며, 검색·날짜 필터·시장 상세 정보는 계속 동작합니다.
 
+## 방문 통계
+
+방문자와 페이지뷰는 `https://analytics.spamfam.kr`의 셀프호스트 Umami로 집계합니다.
+추적 스크립트는 `jangnal.spamfam.kr` 도메인에서만 동작하므로 로컬 개발 접속은 집계하지 않습니다.
+검색어와 필터가 포함된 URL 쿼리 문자열은 수집하지 않습니다. 분석용 쿠키는 사용하지 않으며
+수집 내용은 `/privacy`에서 안내합니다.
+
 ## 사용자 제보 접수
 
 시장 정보 수정과 서비스 불편 신고는 오늘장날의 `/report` 화면에서 받고 `/api/report`가 Nodemailer와 Gmail SMTP를 통해 운영자 이메일로 전달합니다. 제보 데이터베이스는 사용하지 않습니다.

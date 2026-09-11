@@ -39,7 +39,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        {children}
+        <script
+          data-domains="jangnal.spamfam.kr"
+          data-exclude-search="true"
+          data-website-id="17d5f5df-067f-4606-82ba-a8471bf84d28"
+          defer
+          src="https://analytics.spamfam.kr/script.js"
+        />
+      </body>
     </html>
   );
 }

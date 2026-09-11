@@ -261,7 +261,10 @@ describe("MarketExplorer", () => {
 
     await user.click(await screen.findByRole("link", { name: /운천전통시장/ }));
 
-    expect(screen.getByRole("button", { name: "공유하기" })).toBeInTheDocument();
+    const shareAction = screen.getByRole("button", { name: "공유하기" });
+    expect(shareAction).toBeInTheDocument();
+    expect(shareAction).toHaveClass("market-action-secondary");
+    expect(shareAction.className).not.toMatch(/share/i);
   });
 
   it("홈 헤더에서 온누리상품권 사용처 허브로 연결한다", () => {

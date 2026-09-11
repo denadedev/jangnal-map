@@ -12,6 +12,9 @@ it("explains optional contact processing and deletion", () => {
   expect(screen.getByText(/전화번호 또는 이메일/)).toBeInTheDocument();
   expect(screen.getByText(/처리 완료 후 90일 이내/)).toBeInTheDocument();
   expect(screen.getByText(/운영 이메일로 전송/)).toBeInTheDocument();
+  expect(screen.getByText(/Umami Analytics/)).toBeInTheDocument();
+  expect(screen.getByText(/쿠키를 사용하지 않으며/)).toBeInTheDocument();
+  expect(screen.getByText(/방문 페이지, 유입 경로, 브라우저와 기기 유형/)).toBeInTheDocument();
   expect(screen.queryByText(/Formspree/)).not.toBeInTheDocument();
   expect(screen.getByRole("link", { name: "privacy@example.com" })).toHaveAttribute(
     "href",

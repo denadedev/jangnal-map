@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { MarketNextDate } from "../../../components/market-next-date";
+import { MarketShareButton } from "../../../components/market-share-button";
 import { OnnuriSummary } from "../../../components/onnuri-summary";
 import { publicMarkets } from "../../../lib/market-catalog";
 import {
@@ -113,6 +114,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
             <div className={styles.actions}>
               <a className={styles.primary} href={mapHref}>전국 장날 지도에서 보기</a>
               {directionsHref ? <a className={styles.secondary} href={directionsHref} target="_blank" rel="noreferrer">NAVER 지도에서 길찾기</a> : null}
+              <MarketShareButton market={market} className={styles.secondary} />
               <a className={styles.secondary} href={`/report?kind=market&market=${encodeURIComponent(market.id)}`}>
                 정보가 다른가요? 수정 제보
               </a>

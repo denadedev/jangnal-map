@@ -46,6 +46,7 @@ describe("market detail route", () => {
       "href",
       `/?when=all&market=${market.id}`,
     );
+    expect(screen.getByRole("button", { name: "공유하기" })).toBeInTheDocument();
   });
 
   it("uses MarketNextDate as the single schedule landmark", async () => {

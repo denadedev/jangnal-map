@@ -143,6 +143,7 @@ describe("MarketExplorer", () => {
     expect(screen.getByText("오늘 운영")).toBeInTheDocument();
     expect(screen.getAllByText("위치 확인 필요")).toHaveLength(2);
     expect(screen.queryByRole("link", { name: "NAVER 지도에서 길찾기" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "공유하기" }).closest(".detail-actions")).toHaveClass("share-only");
   });
 
   it("shows daily markets only in all and direct-date modes", async () => {
@@ -252,6 +253,15 @@ describe("MarketExplorer", () => {
       "href",
       "/report?kind=market&market=uncheon",
     );
+  });
+
+  it("shows a share action for the selected market", async () => {
+    const user = userEvent.setup();
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    await user.click(await screen.findByRole("link", { name: /운천전통시장/ }));
+
+    expect(screen.getByRole("button", { name: "공유하기" })).toBeInTheDocument();
   });
 
   it("홈 헤더에서 온누리상품권 사용처 허브로 연결한다", () => {

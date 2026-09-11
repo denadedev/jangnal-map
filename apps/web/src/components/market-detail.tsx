@@ -1,6 +1,7 @@
 import type { PublicMarket } from "../lib/market";
 import { getDday, formatKoreanDate } from "../lib/market-view";
 import { getMarketDates, getNextMarketDate } from "../lib/schedule";
+import { MarketShareButton } from "./market-share-button";
 import { OnnuriSummary } from "./onnuri-summary";
 
 interface MarketDetailProps {
@@ -113,12 +114,15 @@ export function MarketDetail({ market, today, onClose }: MarketDetailProps) {
           <div><dt>주차</dt><dd>{market.hasParking === true ? "주차 가능" : market.hasParking === false ? "주차장 없음" : "확인 필요"}</dd></div>
           {!hasCoordinates ? <div><dt>지도</dt><dd>위치 확인 필요</dd></div> : null}
         </dl>
-        {directionsUrl ? (
-          <a className="primary-button" href={directionsUrl} target="_blank" rel="noreferrer">
-            NAVER 지도에서 길찾기
-            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5 10 14M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></svg>
-          </a>
-        ) : null}
+        <div className={`detail-actions ${directionsUrl ? "" : "share-only"}`.trim()}>
+          {directionsUrl ? (
+            <a className="primary-button" href={directionsUrl} target="_blank" rel="noreferrer">
+              NAVER 지도에서 길찾기
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5 10 14M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></svg>
+            </a>
+          ) : null}
+          <MarketShareButton market={market} today={today} className="share-button" />
+        </div>
       </section>
 
       <div className="detail-section">

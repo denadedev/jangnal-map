@@ -18,3 +18,16 @@ describe("Umami Analytics", () => {
     expect(tracker?.getAttribute("data-exclude-search")).toBe("true");
   });
 });
+
+describe("AdSense", () => {
+  it("renders the publisher script in the document head", () => {
+    const html = renderToStaticMarkup(<RootLayout>content</RootLayout>);
+    const document = new DOMParser().parseFromString(html, "text/html");
+    const script = document.querySelector(
+      'head script[src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3237088758901901"]',
+    );
+
+    expect(script?.getAttribute("async")).not.toBeNull();
+    expect(script?.getAttribute("crossorigin")).toBe("anonymous");
+  });
+});

@@ -21,3 +21,15 @@ it("explains optional contact processing and deletion", () => {
     "mailto:privacy@example.com?subject=%5B%EC%98%A4%EB%8A%98%EC%9E%A5%EB%82%A0%5D%20%EA%B0%9C%EC%9D%B8%EC%A0%95%EB%B3%B4%20%EC%82%AD%EC%A0%9C%20%EC%9A%94%EC%B2%AD",
   );
 });
+
+it("discloses AdSense advertising data use and settings", () => {
+  render(<PrivacyPage />);
+
+  expect(screen.getByRole("heading", { name: "Google AdSense 광고" })).toBeInTheDocument();
+  expect(screen.getByText(/쿠키, 웹 비콘, IP 주소 또는 기기 식별자/)).toBeInTheDocument();
+  expect(screen.getByText(/맞춤형 광고가 제공될 수/)).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Google 광고 설정" })).toHaveAttribute(
+    "href",
+    "https://www.google.com/settings/ads",
+  );
+});

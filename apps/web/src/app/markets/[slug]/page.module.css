@@ -12,6 +12,7 @@
 .schedule { display: inline-flex; margin-top: 16px; border-radius: 999px; padding: 7px 11px; background: var(--persimmon-soft); color: var(--persimmon-dark); font-size: 12px; font-weight: 800; }
 .section { border-bottom: 1px solid var(--soft-line); }
 .section h2 { margin: 0 0 18px; font-size: 15px; }
+.scheduleAnswer { margin: 0; font-size: 14px; line-height: 1.7; }
 .nextDate > section { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .nextDate p { margin: 0; color: var(--muted); font-size: 11px; }
 .nextDate strong { display: block; margin-top: 6px; font-family: Georgia, "Noto Serif KR", serif; font-size: 22px; }
@@ -25,6 +26,8 @@
 .primary { background: var(--ink); color: white; }
 .secondary { border: 1px solid var(--line); background: white; }
 .footer { color: var(--muted); font-size: 11px; line-height: 1.6; }
+.relatedList { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.relatedList a { display: block; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 13px; font-weight: 700; }
 .footer p { margin: 4px 0 0; }
 .footer a { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 

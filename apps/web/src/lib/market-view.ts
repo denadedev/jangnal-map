@@ -119,6 +119,17 @@ export function formatSchedulePattern(market: PublicMarket): string {
   return `${first}·${second === 0 ? 10 : second}일장`;
 }
 
+export function formatScheduleDates(market: Pick<PublicMarket, "schedule">): string {
+  if (market.schedule.kind === "daily") return "매일";
+  if (market.schedule.kind === "unknown") return "일정 확인 필요";
+
+  const days = market.schedule.days;
+  return Array.from({ length: 31 }, (_, index) => index + 1)
+    .filter((day) => days.includes(day % 10))
+    .map((day) => `${day}일`)
+    .join("·");
+}
+
 export function formatKoreanDate(date: Date): string {
   const weekday = new Intl.DateTimeFormat("ko-KR", { weekday: "long" }).format(date);
   return `${date.getMonth() + 1}월 ${date.getDate()}일 ${weekday}`;

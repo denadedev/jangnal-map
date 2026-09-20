@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { PublicMarket } from "./market";
-import { filterMarkets, formatDistance, formatMarketTiming, formatSchedulePattern, getDateRange, normalizeDirectDate, sortMarketsByDistance } from "./market-view";
+import { filterMarkets, formatDistance, formatMarketTiming, formatScheduleDates, formatSchedulePattern, getDateRange, normalizeDirectDate, sortMarketsByDistance } from "./market-view";
 
 const market: PublicMarket = {
   id: "market",
@@ -43,6 +43,13 @@ describe("market explorer date semantics", () => {
     expect(formatSchedulePattern({ ...market, scheduleRaw: "5일+10일", schedule: { kind: "digit-pair", days: [5, 0] } })).toBe("5·10일장");
     expect(formatSchedulePattern({ ...market, scheduleRaw: "매일", schedule: { kind: "daily" } })).toBe("매일");
     expect(formatSchedulePattern({ ...market, scheduleRaw: "확인 중", schedule: { kind: "unknown", raw: "확인 중" } })).toBe("일정 확인");
+  });
+
+  it("formats recurring market days as explicit calendar dates", () => {
+    expect(formatScheduleDates(market)).toBe("2일·7일·12일·17일·22일·27일");
+    expect(formatScheduleDates({ ...market, schedule: { kind: "digit-pair", days: [5, 0] } })).toBe("5일·10일·15일·20일·25일·30일");
+    expect(formatScheduleDates({ ...market, schedule: { kind: "daily" } })).toBe("매일");
+    expect(formatScheduleDates({ ...market, schedule: { kind: "unknown", raw: "확인 중" } })).toBe("일정 확인 필요");
   });
 
   it("uses all markets without a date range and treats this week as the next seven days", () => {

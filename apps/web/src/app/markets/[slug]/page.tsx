@@ -7,7 +7,9 @@ import { OnnuriSummary } from "../../../components/onnuri-summary";
 import { publicMarkets } from "../../../lib/market-catalog";
 import {
   createMarketSeoText,
+  createMarketScheduleAnswer,
   createMarketSlug,
+  findRelatedMarkets,
   findMarketBySlug,
   getMarketPagePath,
   isMarketIndexable,
@@ -62,6 +64,12 @@ export default async function MarketPage({ params }: MarketPageProps) {
   const directionsHref = market.latitude !== null && market.longitude !== null
     ? `https://map.naver.com/p/directions/-/${market.longitude},${market.latitude},${encodeURIComponent(market.name)}/-/car`
     : null;
+  const pageTitle = market.schedule.kind === "digit-pair"
+    ? `${market.name} 장날 날짜`
+    : market.schedule.kind === "daily"
+      ? `${market.name} 영업일`
+      : `${market.name} 전통시장 정보`;
+  const relatedMarkets = findRelatedMarkets(market);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Place",
@@ -98,8 +106,12 @@ export default async function MarketPage({ params }: MarketPageProps) {
         <article className={styles.article}>
           <section className={styles.hero}>
             <p className={styles.eyebrow}>{market.marketType}</p>
-            <h1>{market.name}</h1>
+            <h1>{pageTitle}</h1>
             <span className={styles.schedule}>{formatSchedulePattern(market)}</span>
+          </section>
+          <section className={styles.section} aria-labelledby="schedule-answer-heading">
+            <h2 id="schedule-answer-heading">장날 날짜</h2>
+            <p className={styles.scheduleAnswer}>{createMarketScheduleAnswer(market)}</p>
           </section>
           <div className={`${styles.section} ${styles.nextDate}`}>
             <MarketNextDate market={market} />
@@ -123,6 +135,20 @@ export default async function MarketPage({ params }: MarketPageProps) {
           <div className={styles.section}>
             <OnnuriSummary marketName={market.name} summary={market.onnuri} headingLevel={2} />
           </div>
+          {relatedMarkets.length > 0 ? (
+            <section className={styles.section} aria-labelledby="related-markets-heading">
+              <h2 id="related-markets-heading">같은 지역 장날</h2>
+              <ul className={styles.relatedList}>
+                {relatedMarkets.map((relatedMarket) => (
+                  <li key={relatedMarket.id}>
+                    <a href={getMarketPagePath(relatedMarket)}>
+                      {relatedMarket.name} 장날 {formatSchedulePattern(relatedMarket)}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           <footer className={styles.footer}>
             <span>정보 출처</span>{" "}
             <a href={market.source.url} target="_blank" rel="noreferrer">{market.source.name}</a>

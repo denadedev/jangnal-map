@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { publicMarkets } from "../../../lib/market-catalog";
-import { createMarketSlug, SITE_URL } from "../../../lib/market-seo";
+import { createMarketSlug, findRelatedMarkets, SITE_URL } from "../../../lib/market-seo";
 import MarketPage, { generateMetadata, generateStaticParams } from "./page";
 
 describe("market detail route", () => {
@@ -20,10 +20,10 @@ describe("market detail route", () => {
 
     const metadata = await generateMetadata({ params: Promise.resolve({ slug }) });
 
-    expect(metadata.title).toContain("장날");
+    expect(metadata.title).toContain("장날 날짜");
     expect(metadata.alternates?.canonical).toBe(`${SITE_URL}/markets/${slug}`);
     expect(metadata.openGraph?.url).toBe(`${SITE_URL}/markets/${slug}`);
-    expect(metadata.description).toContain("일장");
+    expect(metadata.description).toContain("장날은 매월");
   });
 
   it("marks unknown schedules as noindex", async () => {
@@ -37,11 +37,13 @@ describe("market detail route", () => {
   });
 
   it("renders a selected-map link for a valid market", async () => {
-    const market = publicMarkets[0];
+    const market = publicMarkets.find((item) => item.schedule.kind === "digit-pair")!;
 
     render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
 
-    expect(screen.getByRole("heading", { name: market.name })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: new RegExp(`${market.name} 장날 날짜`) })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "장날 날짜" })).toBeInTheDocument();
+    expect(screen.getByText(/장날은 매월|매일 운영|운영 일정은 확인이 필요/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "전국 장날 지도에서 보기" })).toHaveAttribute(
       "href",
       `/?when=all&market=${market.id}`,
@@ -78,5 +80,14 @@ describe("market detail route", () => {
       "href",
       `/report?kind=market&market=${encodeURIComponent(market.id)}`,
     );
+  });
+
+  it("links to other indexable markets in the same region", async () => {
+    const market = publicMarkets.find((item) => findRelatedMarkets(item).length > 0)!;
+
+    render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
+
+    expect(screen.getByRole("heading", { name: "같은 지역 장날" })).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /장날/ }).length).toBeGreaterThan(1);
   });
 });

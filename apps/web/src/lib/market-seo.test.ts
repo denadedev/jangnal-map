@@ -60,16 +60,16 @@ describe("market SEO copy", () => {
       },
     });
 
-    expect(seo.title).toBe("용인 중앙시장 장날·온누리상품권 가맹점 83곳 | 오늘 장날");
+    expect(seo.title).toBe("용인 중앙시장 장날 날짜 (5·10일장) | 오늘 장날");
     expect(seo.description).toContain("온누리상품권 가맹점 83곳");
     expect(seo.description).toContain("디지털 71곳·지류 65곳");
-    expect(seo.description).toContain("5·10일장");
+    expect(seo.description).toContain("5일·10일·15일·20일·25일·30일");
   });
 
   it("uses durable schedule facts instead of an exact next date", () => {
     expect(createMarketSeoText(periodicMarket)).toEqual({
-      title: "용인 중앙시장 장날 · 5·10일장 | 오늘 장날",
-      description: "경기도 용인시 용인 중앙시장은 5·10일장입니다. 주소와 전화, 주차 정보를 확인하고 전국 장날 지도에서 위치를 찾아보세요.",
+      title: "용인 중앙시장 장날 날짜 (5·10일장) | 오늘 장날",
+      description: "경기도 용인시 용인 중앙시장 장날은 매월 5일·10일·15일·20일·25일·30일입니다. 주소와 전화, 주차 정보를 확인하고 전국 장날 지도에서 위치를 찾아보세요.",
     });
   });
 

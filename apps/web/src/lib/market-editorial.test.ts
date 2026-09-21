@@ -24,7 +24,23 @@ describe("market editorial catalog", () => {
       "market-46fa9022c9bff08d",
       "market-a3999c03b9b3e221",
     ]));
-    expect(marketEditorialEntries).toHaveLength(10);
+    expect(marketEditorialEntries.length).toBeGreaterThanOrEqual(10);
+  });
+
+  it("contains the second reviewed market batch", () => {
+    expect(marketEditorialEntries.map((entry) => entry.marketId)).toEqual(expect.arrayContaining([
+      "market-7bee231bddce4e22",
+      "market-57efa2a61ea8b011",
+      "market-54abc96559102d3e",
+      "market-989da9eee01d8dda",
+      "market-863a810b24632a10",
+      "market-1d91da2272ddf46a",
+      "market-a88b6fad98af479e",
+      "market-5f7c435508d5a3b5",
+      "market-df4d34f3be577ba5",
+      "market-a8530c90ef5bf06a",
+    ]));
+    expect(marketEditorialEntries).toHaveLength(20);
   });
 
   it("keeps each reviewed entry unique and connected to a public market", () => {

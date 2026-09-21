@@ -148,5 +148,155 @@
     ],
     "reviewedAt": "2026-09-21",
     "status": "reviewed"
+  },
+  {
+    "marketId": "market-7bee231bddce4e22",
+    "summary": "마산어시장은 남해안 수산물과 건어물·젓갈을 한자리에서 만나는 창원 마산합포구의 대표 어시장입니다.",
+    "visitTips": ["수산물·횟집 구역과 건어물·젓갈 구역을 나누어 보고, 제철 어종과 가격은 점포별로 확인하세요."],
+    "transportation": "경상남도 창원시 마산합포구 복요리로 7에 있으며 마산고속버스터미널과 마산역에서 버스로 접근할 수 있습니다.",
+    "parking": "한국관광공사 안내는 자체 주차장 이용을 안내합니다. 행사일 혼잡과 요금은 방문 전 확인하세요.",
+    "specialties": ["제철 수산물", "횟집과 수족관", "건어물·젓갈"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "한국관광공사 마산어시장", "url": "https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=897fb471-0923-4ff9-9f10-a76c6589bfdc", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-57efa2a61ea8b011",
+    "summary": "통영중앙전통시장은 400여 년의 역사를 가진 항구 시장으로 활어·건어물과 통영 공예 상권이 함께 있습니다.",
+    "visitTips": ["활어·선어·건어물 특화거리를 나누어 둘러보고 동피랑과 강구안 문화마당을 함께 연결해 보세요."],
+    "transportation": "경상남도 통영시 중앙시장1길14-16에 있으며 동피랑·강구안 문화마당과 가까운 도심 관광 동선입니다.",
+    "parking": "원본 시장 데이터에는 주차 가능한 시장으로 기록되어 있습니다. 항구 주변 주차와 행사일 혼잡은 방문 전 확인하세요.",
+    "specialties": ["활어·건어물 거리", "나전칠기·누비 제품", "꿀빵·바지개떡"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "한국관광공사 통영중앙전통시장", "url": "https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=70630e73-c3e2-4b7d-baa5-2e64bd972730", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-54abc96559102d3e",
+    "summary": "경주성동공설시장은 경주 도심에서 매일 운영되는 공설시장으로 지역 장보기와 여행 동선을 함께 고려할 수 있습니다.",
+    "visitTips": ["시장 이름과 주소를 지도에서 확인한 뒤 경주 도심 관광지와 묶어 방문하고 점포별 운영 여부를 현장에서 확인하세요."],
+    "transportation": "경상북도 경주시 원화로 281번길 11-11에 있으며 경주 도심에서 접근하는 시장입니다.",
+    "parking": "원본 시장 데이터에는 주차 가능한 시장으로 기록되어 있습니다. 경주 도심 주차장과 요금은 공식 관광 포털에서 다시 확인하세요.",
+    "specialties": ["매일 운영 공설시장", "경주 도심 장보기", "농수산물과 생활 먹거리"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "경주시 문화관광 공식 포털", "url": "https://www.gyeongju.go.kr/tour/", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-989da9eee01d8dda",
+    "summary": "안동 중앙신시장은 2·7일장 일정과 상설 장보기 정보를 함께 확인할 수 있는 안동 도심 시장입니다.",
+    "visitTips": ["2·7일장 방문 여부를 먼저 정하고, 안동 구시장 찜닭골목 등 주변 먹거리 동선은 별도로 확인하세요."],
+    "transportation": "경상북도 안동시 대안로98-15에 있으며 안동 도심 생활권에서 접근할 수 있습니다.",
+    "parking": "원본 시장 데이터에는 주차 가능한 시장으로 기록되어 있습니다. 안동시 관광 포털에서 주변 주차장과 요금을 확인하세요.",
+    "specialties": ["2·7일장", "안동 도심 상설시장", "지역 먹거리와 생활 상점"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "안동 관광 공식 포털", "url": "https://www.tourandong.com/", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-863a810b24632a10",
+    "summary": "서문시장2지구종합상가는 대구 큰장권에 속한 매일 운영 시장으로 대구 도심 장보기 정보를 제공합니다.",
+    "visitTips": ["서문시장 여러 지구의 위치가 나뉘므로 방문 전 지구명과 목적 점포를 확인해 이동을 줄이세요."],
+    "transportation": "대구광역시 중구 큰장로26길25에 있으며 대구 도심 관광 동선과 함께 위치를 확인할 수 있습니다.",
+    "parking": "원본 시장 데이터에는 주차 가능한 시장으로 기록되어 있습니다. 대구 관광 포털에서 큰장권 주차 정보를 방문 전에 확인하세요.",
+    "specialties": ["매일 운영", "큰장권 종합상가", "대구 도심 장보기"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "대구 관광 공식 포털", "url": "https://tour.daegu.go.kr/", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-1d91da2272ddf46a",
+    "summary": "칠성시장은 대구 북구 칠성남로에 자리한 매일 운영 시장으로 생활 장보기 목적에 맞는 시장입니다.",
+    "visitTips": ["칠성시장 안에서도 점포별 품목과 운영 시간이 다를 수 있으므로 필요한 품목을 정해 공식 관광 정보를 함께 확인하세요."],
+    "transportation": "대구광역시 북구 칠성남로 229에 있으며 대구 도심 이동 경로에서 주소를 기준으로 접근하세요.",
+    "parking": "원본 시장 데이터에는 주차 가능한 시장으로 기록되어 있습니다. 실제 주차장 위치와 요금은 방문 전에 확인하세요.",
+    "specialties": ["매일 운영", "생활 식재료", "대구 북구 전통시장"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "대구 관광 공식 포털", "url": "https://tour.daegu.go.kr/", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-a88b6fad98af479e",
+    "summary": "여수서시장주변시장은 여수 도심 중앙로에 있는 4·9일장 시장으로 전남 장날 일정을 확인하기 좋은 지점입니다.",
+    "visitTips": ["4·9일장 방문을 계획한다면 장날과 점포별 운영 여부를 함께 확인하고 여수 도심 관광 동선과 연결하세요."],
+    "transportation": "전라남도 여수시 중앙로 3-2에 있으며 여수 도심 이동 시 주소와 지도 위치를 기준으로 접근하세요.",
+    "parking": "원본 시장 데이터에는 주차 가능한 시장으로 기록되어 있습니다. 여수 관광 포털에서 주변 주차장과 행사일 교통을 확인하세요.",
+    "specialties": ["4·9일장", "여수 도심 장보기", "수산물과 지역 먹거리"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "여수 관광 공식 포털", "url": "https://www.yeosu.go.kr/tour", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-5f7c435508d5a3b5",
+    "summary": "나주목사고을시장은 나주시 청동길에 있는 4·9일장 시장으로 나주 도심 장날을 찾을 때 기준점이 됩니다.",
+    "visitTips": ["4·9일 장날의 농산물과 상설 점포를 구분해 살피고, 나주 관광 포털에서 주변 동선을 확인하세요."],
+    "transportation": "전라남도 나주시 청동길 14에 있으며 나주 도심에서 주소를 기준으로 접근하세요.",
+    "parking": "원본 시장 데이터에는 주차 가능한 시장으로 기록되어 있습니다. 현장 주차 구역과 요금은 방문 전 확인하세요.",
+    "specialties": ["4·9일장", "나주 도심 시장", "지역 농산물과 장터 먹거리"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "나주 관광 공식 포털", "url": "https://www.naju.go.kr/tour", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-df4d34f3be577ba5",
+    "summary": "전주남부시장은 전주 도심에서 매일 운영되는 전통시장으로 원도심 먹거리와 장보기를 함께 살필 수 있습니다.",
+    "visitTips": ["시장 방문 목적을 먹거리와 장보기로 나누고, 전주 관광 포털에서 원도심 주변 관광지와 연결해 보세요."],
+    "transportation": "전북특별차치도 전주시 완산구 풍남문1길 19-3에 있으며 전주 원도심 생활권에서 접근하세요.",
+    "parking": "원본 시장 데이터에는 주차 가능한 시장으로 기록되어 있습니다. 전주 원도심 주차장과 요금은 방문 전 확인하세요.",
+    "specialties": ["매일 운영", "전주 원도심 장보기", "지역 먹거리와 생활 상점"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "전주 관광 공식 포털", "url": "https://tour.jeonju.go.kr/", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-a8530c90ef5bf06a",
+    "summary": "대인시장은 광주 동구 제봉로에 있는 매일 운영 시장으로 원도심 장보기와 문화 동선을 함께 계획할 수 있습니다.",
+    "visitTips": ["시장 점포별 운영 시간이 다를 수 있으므로 원하는 점포와 광주 관광 동선을 방문 전에 확인하세요."],
+    "transportation": "광주광역시 동구 제봉로194번길 10에 있으며 광주 원도심에서 주소를 기준으로 접근하세요.",
+    "parking": "원본 시장 데이터에는 주차 가능한 시장으로 기록되어 있습니다. 광주 관광 포털에서 주변 주차장과 요금을 확인하세요.",
+    "specialties": ["매일 운영", "광주 동구 원도심 시장", "생활 식재료와 시장 먹거리"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "광주 관광 공식 포털", "url": "https://tour.gwangju.go.kr/", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
   }
 ]

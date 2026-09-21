@@ -5,7 +5,7 @@ test("finds a market through search and opens the mobile detail sheet", async ({
   await page.getByRole("searchbox", { name: "시장명 또는 지역 검색" }).fill("평택");
   await page.getByRole("link", { name: /통복시장/ }).first().click();
   await expect(page.getByRole("article", { name: /통복시장/ })).toContainText("다음 장날");
-  await page.getByRole("button", { name: "시장 상세 닫기" }).click();
+  await page.getByRole("button", { name: "닫기" }).click();
   await expect(page.getByRole("link", { name: /통복시장/ }).first()).toBeVisible();
 });
 
@@ -15,14 +15,14 @@ test("moves the result sheet with explicit controls", async ({ page }) => {
   await expect(sheet).toBeVisible();
   const snap = await sheet.getAttribute("data-snap");
   if (snap === "collapsed") {
-    await page.getByRole("button", { name: "결과 펼치기" }).click();
-    await expect(page.getByRole("button", { name: "전체 결과 보기" })).toBeVisible();
+    await page.getByRole("button", { name: "목록 열기" }).click();
+    await expect(page.getByRole("button", { name: "목록 크게 보기" })).toBeVisible();
   } else if (snap === "half") {
-    await page.getByRole("button", { name: "전체 결과 보기" }).click();
+    await page.getByRole("button", { name: "목록 크게 보기" }).click();
     await expect(page.getByRole("button", { name: "지도 보기" })).toBeVisible();
   } else {
     await page.getByRole("button", { name: "지도 보기" }).click();
-    await expect(page.getByRole("button", { name: "결과 펼치기" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "목록 열기" })).toBeVisible();
   }
 });
 
@@ -45,7 +45,7 @@ test("returns focus to the selected result after closing detail", async ({ page 
   const marketLink = page.getByRole("link", { name: /통복시장/ }).first();
   await marketLink.focus();
   await marketLink.click();
-  await page.getByRole("button", { name: "시장 상세 닫기" }).click();
+  await page.getByRole("button", { name: "닫기" }).click();
   await expect(marketLink).toBeFocused();
 });
 
@@ -64,7 +64,7 @@ test("restores a scrolled result sheet after closing detail", async ({ page }) =
   await content.evaluate((element) => { element.scrollTop = element.scrollHeight; });
   const before = await content.evaluate((element) => element.scrollTop);
   await page.getByRole("link", { name: /통복시장/ }).first().click();
-  await page.getByRole("button", { name: "시장 상세 닫기" }).click();
+  await page.getByRole("button", { name: "닫기" }).click();
   await expect.poll(() => content.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
   expect(before).toBeGreaterThanOrEqual(0);
 });

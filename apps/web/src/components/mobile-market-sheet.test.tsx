@@ -22,19 +22,20 @@ describe("MobileMarketSheet", () => {
     const onSnapChange = vi.fn((snap: "collapsed" | "half" | "full") => view.rerender(renderSheet(snap)));
     view = render(renderSheet("collapsed"));
 
-    await user.click(screen.getByRole("button", { name: "결과 펼치기" }));
+    await user.click(screen.getByRole("button", { name: "목록 열기" }));
     expect(onSnapChange).toHaveBeenCalledWith("half");
-    await user.click(screen.getByRole("button", { name: "전체 결과 보기" }));
+    await user.click(screen.getByRole("button", { name: "목록 크게 보기" }));
     expect(onSnapChange).toHaveBeenCalledWith("full");
   });
 
-  it("returns from detail mode to results with the map action", async () => {
+  it("returns from detail mode to results with the list action", async () => {
     const user = userEvent.setup();
     const onModeChange = vi.fn();
+    const onSnapChange = vi.fn();
     render(
       <MobileMarketSheet
-        snap="half"
-        onSnapChange={vi.fn()}
+        snap="full"
+        onSnapChange={onSnapChange}
         mode="detail"
         onModeChange={onModeChange}
         title="통복시장 상세"
@@ -43,7 +44,8 @@ describe("MobileMarketSheet", () => {
       </MobileMarketSheet>,
     );
 
-    await user.click(screen.getByRole("button", { name: "지도 보기" }));
+    await user.click(screen.getByRole("button", { name: "목록으로" }));
     expect(onModeChange).toHaveBeenCalledWith("results");
+    expect(onSnapChange).toHaveBeenCalledWith("full");
   });
 });

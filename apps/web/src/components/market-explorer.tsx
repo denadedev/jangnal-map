@@ -150,7 +150,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
     window.history.pushState({ ...(window.history.state ?? {}), mobileMarket: market.id }, "", `/?${params.toString()}`);
     setSelectedId(market.id);
     setSheetMode("detail");
-    setSheetSnap("half");
+    setSheetSnap("full");
   }, [sheetSnap]);
   const closeMarket = useCallback(() => {
     const selected = selectedOriginId.current;
@@ -163,6 +163,10 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
     setSheetSnap(previousSheetSnap.current);
     restoreResultContext();
   }, [restoreResultContext]);
+  const closeMarketToMap = useCallback(() => {
+    previousSheetSnap.current = "collapsed";
+    closeMarket();
+  }, [closeMarket]);
   const resetFilters = () => {
     setQuery("");
     setMode("week");
@@ -182,7 +186,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   useEffect(() => {
     if (!hasRestoredUrl || !selectedId) return;
     setSheetMode("detail");
-    setSheetSnap("half");
+    setSheetSnap("full");
   }, [hasRestoredUrl, selectedId]);
 
   useEffect(() => {
@@ -191,7 +195,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
       if (marketId) {
         setSelectedId(marketId);
         setSheetMode("detail");
-        setSheetSnap("half");
+        setSheetSnap("full");
         return;
       }
       setSelectedId(null);
@@ -286,7 +290,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
           referenceDate={referenceDate}
           selectedId={selectedId}
           clientId={mapClientId}
-          mobileSheetHeight={isMobile ? mobileSheetHeight : 0}
+          mobileSheetHeight={isMobile && sheetSnap !== "full" ? mobileSheetHeight : 0}
           onSelect={selectMarket}
           onLocationChange={setCurrentLocation}
           onStatusChange={handleMapStatus}
@@ -307,6 +311,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
             describedBy="mobile-market-sheet-status"
             contentRef={mobileSheetContentRef}
             onHeightChange={setMobileSheetHeight}
+            onClose={closeMarketToMap}
           >
             {sheetMode === "detail" ? (
               <MarketDetail market={selectedMarket} today={today} onClose={closeMarket} />

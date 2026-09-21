@@ -15,6 +15,7 @@ export interface MobileMarketSheetProps {
   describedBy?: string;
   contentRef?: RefObject<HTMLDivElement | null>;
   onHeightChange?: (height: number) => void;
+  onClose?: () => void;
 }
 
 const snaps: SheetSnap[] = ["collapsed", "half", "full"];
@@ -35,6 +36,7 @@ export function MobileMarketSheet({
   describedBy,
   contentRef,
   onHeightChange,
+  onClose,
 }: MobileMarketSheetProps) {
   const dragStartY = useRef<number | null>(null);
   const sheetRef = useRef<HTMLElement>(null);
@@ -102,9 +104,16 @@ export function MobileMarketSheet({
     onSnapChange(nextSnap(snap, delta < 0 ? "up" : "down"));
   };
 
-  const handleMapView = () => {
+  const handleClose = () => {
+    onClose?.();
+    if (onClose) return;
     onModeChange("results");
     onSnapChange("collapsed");
+  };
+
+  const handleListView = () => {
+    onModeChange("results");
+    onSnapChange("full");
   };
 
   return (
@@ -133,11 +142,14 @@ export function MobileMarketSheet({
       <div className="mobile-market-sheet-heading">
         <h2>{title}</h2>
         {mode === "detail" ? (
-          <button type="button" className="mobile-market-sheet-map-button" onClick={handleMapView}>지도 보기</button>
+          <div className="mobile-market-sheet-heading-actions">
+            <button type="button" className="mobile-market-sheet-close-button" onClick={handleClose}>닫기</button>
+            <button type="button" className="mobile-market-sheet-list-button" onClick={handleListView}>목록으로</button>
+          </div>
         ) : snap === "collapsed" ? (
-          <button type="button" className="mobile-market-sheet-expand-button" onClick={() => onSnapChange("half")}>결과 펼치기</button>
+          <button type="button" className="mobile-market-sheet-expand-button" onClick={() => onSnapChange("half")}>목록 열기</button>
         ) : snap === "half" ? (
-          <button type="button" className="mobile-market-sheet-expand-button" onClick={() => onSnapChange("full")}>전체 결과 보기</button>
+          <button type="button" className="mobile-market-sheet-expand-button" onClick={() => onSnapChange("full")}>목록 크게 보기</button>
         ) : (
           <button type="button" className="mobile-market-sheet-map-button" onClick={() => onSnapChange("collapsed")}>지도 보기</button>
         )}

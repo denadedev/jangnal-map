@@ -40,7 +40,27 @@ describe("market editorial catalog", () => {
       "market-df4d34f3be577ba5",
       "market-a8530c90ef5bf06a",
     ]));
-    expect(marketEditorialEntries).toHaveLength(20);
+    expect(marketEditorialEntries.length).toBeGreaterThanOrEqual(20);
+  });
+
+  it("contains the final reviewed market batch and regional coverage", () => {
+    expect(marketEditorialEntries.map((entry) => entry.marketId)).toEqual(expect.arrayContaining([
+      "market-263aa2113b292a27",
+      "market-8a0a187a44eb648a",
+      "market-67f0b7c541707a6c",
+      "market-ac45198fd61b05ce",
+      "market-2279d714eda1634a",
+      "market-8151f0a3f713aa4d",
+      "market-2190eaf44c48bbd8",
+      "market-2adc6a0bdfc73a7b",
+      "market-0b1ee7b765707fb2",
+      "market-00f8629bf12716ac",
+    ]));
+    expect(marketEditorialEntries).toHaveLength(30);
+    const reviewedRegions = new Set(reviewedMarkets.map((market) =>
+      (market.roadAddress ?? market.lotAddress ?? "").split(/\s+/)[0],
+    ));
+    expect(reviewedRegions.size).toBe(17);
   });
 
   it("keeps each reviewed entry unique and connected to a public market", () => {

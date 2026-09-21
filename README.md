@@ -53,6 +53,12 @@ NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=your_naver_maps_client_id
 
 키를 비워 두면 지도 영역은 목록 탐색 안내로 대체되며, 검색·날짜 필터·시장 상세 정보는 계속 동작합니다.
 
+## 모바일 탐색
+
+모바일 홈에서는 지도 위 결과 시트를 접기·절반·전체 높이로 전환하며 시장을 탐색할 수 있습니다. 시장을 선택하면 같은 시트에서 다음 장날과 방문 정보를 확인하고, 닫을 때 검색 조건·결과 스크롤·포커스가 복원됩니다. 홈과 시장 상세, 온누리, 제보, 개인정보 화면은 공통 모바일 앱 바와 보조 메뉴를 사용합니다.
+
+320·375·430px Chromium 회귀 테스트 범위와 실기기 미검증 항목은 [모바일 UX 검증 보고서](docs/verification/mobile-ux-2026-09-21.md)에 기록했습니다.
+
 ## 방문 통계
 
 방문자와 페이지뷰는 `https://analytics.spamfam.kr`의 셀프호스트 Umami로 집계합니다.
@@ -82,4 +88,5 @@ NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=your_naver_maps_client_id
 pnpm test
 pnpm typecheck
 pnpm build
+pnpm --filter @jangnal-map/web exec playwright test
 ```

@@ -499,13 +499,16 @@ a { color: inherit; text-decoration: none; }
   .mobile-market-sheet-grip { display: block; width: 38px; height: 4px; border-radius: 99px; background: #d4cabe; }
   .mobile-market-sheet-heading { display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: 8px; padding: 0 16px; }
   .mobile-market-sheet-heading h2 { min-width: 0; margin: 0; overflow: hidden; font-family: Georgia, "Noto Serif KR", serif; font-size: 18px; text-overflow: ellipsis; white-space: nowrap; }
-  .mobile-market-sheet-expand-button, .mobile-market-sheet-map-button { min-height: 44px; border: 0; border-radius: 999px; padding: 0 11px; background: var(--persimmon-soft); color: var(--persimmon-dark); font-size: 11px; font-weight: 800; white-space: nowrap; }
+  .mobile-market-sheet-heading-actions { display: flex; flex: 0 0 auto; gap: 4px; }
+  .mobile-market-sheet-expand-button, .mobile-market-sheet-map-button, .mobile-market-sheet-close-button, .mobile-market-sheet-list-button { min-height: 48px; border: 0; border-radius: 999px; padding: 0 13px; font-size: 13px; font-weight: 800; white-space: nowrap; }
+  .mobile-market-sheet-expand-button, .mobile-market-sheet-map-button, .mobile-market-sheet-list-button { background: var(--persimmon-soft); color: var(--persimmon-dark); }
+  .mobile-market-sheet-close-button { border: 1px solid var(--line); background: transparent; color: var(--muted); }
   .mobile-market-sheet-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
   .mobile-market-sheet-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 16px calc(22px + env(safe-area-inset-bottom)); }
   .mobile-market-sheet-content .list-heading { margin: 0 -16px; border-top: 1px solid var(--soft-line); border-bottom: 1px solid var(--soft-line); padding: 12px 16px; background: var(--panel); }
   .mobile-market-sheet-content .market-list-item { grid-template-columns: 52px minmax(0, 1fr) 18px; padding-right: 0; padding-left: 0; }
   .mobile-market-sheet-content .market-detail { min-height: auto; padding: 10px 4px 0; }
-  .mobile-market-sheet-content .detail-close { top: 8px; right: 0; }
+  .mobile-market-sheet-content .detail-close { display: none; top: 8px; right: 0; }
   .mobile-market-sheet-content .sheet-handle { display: none; }
   .mobile-market-sheet-content .detail-header h2 { font-size: 25px; }
   .mobile-market-sheet-content .detail-actions { padding-bottom: 2px; }

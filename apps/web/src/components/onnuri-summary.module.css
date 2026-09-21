@@ -58,6 +58,9 @@
 
 .links a {
   color: var(--persimmon-dark);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   font-size: 11px;
   font-weight: 800;
   text-decoration: underline;

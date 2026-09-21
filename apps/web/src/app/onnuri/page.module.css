@@ -24,4 +24,6 @@
   .hero { padding-bottom: 26px; }
   .hero h1 { font-size: 33px; }
   .guideGrid { grid-template-columns: 1fr; }
+  .guide article { padding: 18px; }
+  .official { width: 100%; }
 }

@@ -56,8 +56,8 @@ describe("SEO metadata routes", () => {
   it("allows crawling and declares the canonical sitemap", () => {
     expect(robots()).toEqual({
       rules: { userAgent: "*", allow: "/" },
-      sitemap: "https://jangnal.spamfam.kr/sitemap.xml",
-      host: "https://jangnal.spamfam.kr",
+      sitemap: "https://spamfam.kr/sitemap.xml",
+      host: "https://spamfam.kr",
     });
   });
 
@@ -69,13 +69,20 @@ describe("SEO metadata routes", () => {
     expect(redirects).toContainEqual({
       source: "/:path*",
       has: [{ type: "host", value: "jangnal-map.vercel.app" }],
-      destination: "https://jangnal.spamfam.kr/:path*",
+      destination: "https://spamfam.kr/:path*",
+      permanent: true,
+    });
+
+    expect(redirects).toContainEqual({
+      source: "/:path*",
+      has: [{ type: "host", value: "jangnal.spamfam.kr" }],
+      destination: "https://spamfam.kr/:path*",
       permanent: true,
     });
   });
 
   it("defines production root metadata defaults", () => {
-    expect(metadata.metadataBase).toEqual(new URL("https://jangnal.spamfam.kr"));
+    expect(metadata.metadataBase).toEqual(new URL("https://spamfam.kr"));
     expect(metadata.verification?.google).toEqual([
       "qLxSxOof1dITMeFrrNHReAC51FFUDTPDpCqKSpqJFgY",
       "ETYT-jUzdfgO29SuYzFjB8xuh52yLKhHF6bSi1hrjm0",

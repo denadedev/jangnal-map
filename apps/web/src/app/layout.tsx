@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://jangnal.spamfam.kr"),
+  metadataBase: new URL("https://spamfam.kr"),
   other: {
     "google-adsense-account": "ca-pub-3237088758901901",
   },
@@ -45,7 +45,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       <body>
         {children}
         <script
-          data-domains="jangnal.spamfam.kr"
+          data-domains="spamfam.kr"
           data-exclude-search="true"
           data-website-id="17d5f5df-067f-4606-82ba-a8471bf84d28"
           defer

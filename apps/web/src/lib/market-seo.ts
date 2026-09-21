@@ -5,7 +5,7 @@ import { createMarketSlug } from "./market-path";
 
 export { createMarketSlug, getMarketPagePath } from "./market-path";
 
-export const SITE_URL = "https://jangnal.spamfam.kr";
+export const SITE_URL = "https://spamfam.kr";
 
 const marketsBySlug = new Map(publicMarkets.map((market) => [createMarketSlug(market), market] as const));
 

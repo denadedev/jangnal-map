@@ -12,6 +12,7 @@ import { MarketDetail } from "./market-detail";
 import { MarketFilters, type DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
 import { MarketMap } from "./market-map";
+import { ReviewedMarketGuides, type ReviewedMarketGuide } from "./reviewed-market-guides";
 
 export interface ExplorerInitialState {
   query?: string;
@@ -25,6 +26,7 @@ interface MarketExplorerProps {
   mapClientId?: string;
   initialState?: ExplorerInitialState;
   reviewedMarketIds?: string[];
+  reviewedGuides?: ReviewedMarketGuide[];
 }
 
 const validModes = new Set<DateFilterMode>(["all", "today", "week", "weekend", "date"]);
@@ -52,7 +54,7 @@ async function fetchMarkets(): Promise<PublicMarket[]> {
 
 const emptyReviewedMarketIds: string[] = [];
 
-function MarketExplorerContent({ today: providedToday, mapClientId = "", initialState, reviewedMarketIds = emptyReviewedMarketIds }: MarketExplorerProps) {
+function MarketExplorerContent({ today: providedToday, mapClientId = "", initialState, reviewedMarketIds = emptyReviewedMarketIds, reviewedGuides = [] }: MarketExplorerProps) {
   const reviewedMarketIdSet = useMemo(() => new Set(reviewedMarketIds), [reviewedMarketIds]);
   const [today, setToday] = useState(() => providedToday ?? staticRenderDate);
   const resolvedInitial = useMemo(() => {
@@ -284,6 +286,8 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
           setMode("date");
         }}
       />
+
+      {reviewedGuides.length > 0 ? <ReviewedMarketGuides guides={reviewedGuides} /> : null}
 
       <div className={`explorer-grid ${selectedMarket ? "has-selection" : ""}`}>
         <aside className="list-pane" aria-label="시장 목록">

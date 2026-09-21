@@ -1,5 +1,7 @@
 import { MarketExplorer } from "../components/market-explorer";
-import { reviewedMarketIds } from "../lib/market-editorial";
+import { reviewedMarketIds, reviewedMarkets } from "../lib/market-editorial";
+import { formatSchedulePattern } from "../lib/market-view";
+import { getMarketPagePath } from "../lib/market-path";
 import { SITE_URL } from "../lib/market-seo";
 
 const websiteJsonLd = {
@@ -20,6 +22,12 @@ export default function HomePage() {
       <MarketExplorer
         mapClientId={process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID ?? ""}
         reviewedMarketIds={[...reviewedMarketIds]}
+        reviewedGuides={reviewedMarkets.map((market) => ({
+          id: market.id,
+          name: market.name,
+          schedule: formatSchedulePattern(market),
+          href: getMarketPagePath(market),
+        }))}
       />
     </>
   );

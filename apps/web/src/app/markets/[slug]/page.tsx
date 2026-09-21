@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { MarketNextDate } from "../../../components/market-next-date";
 import { MarketShareButton } from "../../../components/market-share-button";
+import { MarketEditorialSections } from "../../../components/market-editorial-sections";
 import { MobileAppBar } from "../../../components/mobile-app-bar";
 import { OnnuriSummary } from "../../../components/onnuri-summary";
 import { publicMarkets } from "../../../lib/market-catalog";
@@ -141,10 +142,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
           <div className={styles.section}>
             <OnnuriSummary marketName={market.name} summary={market.onnuri} headingLevel={2} />
           </div>
-          <section className={styles.section} aria-labelledby="editorial-summary-heading">
-            <h2 id="editorial-summary-heading">한눈에 보는 시장 특징</h2>
-            <p className={styles.scheduleAnswer}>{editorial.summary}</p>
-          </section>
+          <MarketEditorialSections editorial={editorial} />
           {relatedMarkets.length > 0 ? (
             <section className={styles.section} aria-labelledby="related-markets-heading">
               <h2 id="related-markets-heading">같은 지역 장날</h2>

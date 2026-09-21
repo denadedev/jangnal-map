@@ -3,8 +3,8 @@
 ## 배포 식별자
 
 - Production URL: `https://spamfam.kr`
-- 검증 대상 commit: Task 11 실행 시 `git rev-parse HEAD` 결과를 기록
-- 확인 시각: Task 11 실행 시 Asia/Seoul 현재 시각을 기록
+- 검증 대상 commit: `119fb4e69a4d0ded8374ea4d9b3810b88c62cb75c`
+- 확인 시각: `2026-09-21 19:31:21 KST`
 
 ## 자동 검증
 
@@ -16,6 +16,8 @@ pnpm typecheck
 pnpm build
 pnpm --filter @jangnal-map/web exec playwright test e2e/adsense-readiness.spec.ts
 ```
+
+결과: 네 명령 모두 exit code 0. 전체 Playwright 회귀는 63 passed.
 
 ## 운영 URL 검증
 

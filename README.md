@@ -87,7 +87,7 @@ NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=your_naver_maps_client_id
 
 `main` 반영 → CI 테스트·이미지 검증 → Harbor 게시 → GitOps 이미지 갱신 → GitHub Release 생성 순서입니다. Argo CD가 GitOps 변경을 감지해 K3s에 배포합니다. Release는 **배포 요청 완료 기록**이며 실제 Pod 배포 완료를 보장하지 않습니다.
 
-서비스 경로는 `jangnal.spamfam.kr` → NPMplus(TLS) → Traefik → Next.js 컨테이너입니다. Vercel Git 연결은 해제했고 기존 프로젝트는 일시 중지 상태입니다. 환경변수·권한·재실행·롤백 안내는 [웹 배포 안내](apps/web/README.md)를 참고합니다.
+서비스 경로는 `spamfam.kr` → NPMplus(TLS) → Traefik → Next.js 컨테이너입니다. Vercel Git 연결은 해제했고 기존 프로젝트는 일시 중지 상태입니다. 환경변수·권한·재실행·롤백 안내는 [웹 배포 안내](apps/web/README.md)를 참고합니다.
 
 배포 전에는 다음 검증을 실행합니다.
 

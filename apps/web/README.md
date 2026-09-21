@@ -36,7 +36,7 @@ SMTP 자격증명은 없는 상태로 빌드해야 런타임 이메일 테스트
 
 ## K3s 런타임
 
-- `REPORT_ALLOWED_ORIGIN=https://jangnal.spamfam.kr`을 런타임 설정으로 주입한다.
+- `REPORT_ALLOWED_ORIGIN=https://spamfam.kr`을 런타임 설정으로 주입한다.
   내부 HTTP 주소와 공개 HTTPS 주소가 달라도 제보 출처를 검증할 수 있다.
   클라이언트가 보낸 forwarding 헤더는 허용 출처 결정에 사용하지 않는다.
   설정을 생략한 직접 실행에서는 request URL 기준 검사를 유지한다.

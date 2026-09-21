@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { MobileAppBar } from "../../components/mobile-app-bar";
 import { SiteFooter } from "../../components/site-footer";
+import { reviewedMarkets } from "../../lib/market-editorial";
+import { getMarketPagePath } from "../../lib/market-path";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -51,6 +53,22 @@ export default function OnnuriPage() {
           <a className={styles.official} href="https://www.onnuri.gift/place">
             공식 온누리 가맹점 찾기
           </a>
+        </section>
+        <section className={styles.dataSection} aria-labelledby="onnuri-data-heading">
+          <h2 id="onnuri-data-heading">가맹점 수를 읽는 방법</h2>
+          <p>시장별 가맹점 수는 2025-07-31 기준 공공데이터 집계입니다. 디지털형과 지류형을 한 점포가 동시에 취급할 수 있어 유형별 합계가 전체 수와 다를 수 있습니다.</p>
+          <p>가맹 상태와 취급 유형은 바뀔 수 있으므로 결제 전 점포 표시와 공식 가맹점 찾기에서 다시 확인하세요.</p>
+          <a href="https://www.data.go.kr/data/3060079/fileData.do?recommendDataYn=Y">온누리 가맹점 집계 출처</a>
+        </section>
+        <section className={styles.dataSection} aria-labelledby="reviewed-onnuri-heading">
+          <h2 id="reviewed-onnuri-heading">검수된 시장에서 찾아보기</h2>
+          <ul className={styles.marketLinks}>
+            {reviewedMarkets.filter((market) => market.onnuri !== null).map((market) => (
+              <li key={market.id}>
+                <a href={getMarketPagePath(market)}>{market.name} · 가맹점 {market.onnuri!.totalCount.toLocaleString("ko-KR")}곳</a>
+              </li>
+            ))}
+          </ul>
         </section>
       </main>
       <SiteFooter />

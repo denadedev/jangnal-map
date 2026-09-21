@@ -1,1 +1,152 @@
-[]
+[
+  {
+    "marketId": "market-46dd8e03711ba7b6",
+    "summary": "동해 북평동에 자리한 3·8일장으로, 동해안 수산물과 계절 농산물을 함께 살펴볼 수 있는 오일장입니다.",
+    "visitTips": ["장날에는 수산물과 채소전이 함께 열리므로 냉장이 필요한 물건은 마지막에 구매하세요."],
+    "transportation": "주소는 강원특별자치도 동해시 오일장길 32이며, 방문 전 지도에서 북평민속시장 위치와 당일 교통 상황을 확인하세요.",
+    "parking": "원본 시장 데이터에는 주차 가능한 시장으로 기록되어 있습니다. 실제 이용 구역과 요금은 방문 전에 확인하세요.",
+    "specialties": ["3·8일장", "동해안 수산물", "계절 농산물과 장터 먹거리"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "한국관광공사 대한민국 구석구석 북평민속시장", "url": "https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=1b7a1e40-ec2a-4f13-abbb-787201560936", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-c3983f871839ecc8",
+    "summary": "속초종합중앙시장은 동해안 수산물과 속초 먹거리를 한자리에서 만나는 관광형 상설시장입니다.",
+    "visitTips": ["닭전골목과 수산물·젓갈 골목을 나누어 둘러보면 먹거리와 장보기 동선을 계획하기 쉽습니다."],
+    "transportation": "강원특별자치도 속초시 중앙로147번길 16에 있으며, 시장 공식 안내는 중앙로147번길 12를 길찾기 주소로 함께 안내합니다.",
+    "parking": "시장 공식 안내에는 350대 규모 주차장과 구매 시 주차권 이용 방법이 소개되어 있습니다. 주차권 조건은 현장에서 다시 확인하세요.",
+    "specialties": ["동해안 수산물", "닭강정과 오징어순대", "젓갈·건어물 골목"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "속초종합중앙시장 공식 홈페이지", "url": "https://sokchotm.com/default/", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-389b4a24f06ccd11",
+    "summary": "용인중앙시장은 상설시장과 5·10일 용인장이 이어지는 처인구의 전통시장입니다.",
+    "visitTips": ["5·10일 장날에는 상설시장 주변 오일장 구간까지 함께 살펴보면 농산물과 먹거리 선택지가 넓어집니다."],
+    "transportation": "용인시 처인구 중앙에 있으며 에버라인 운동장·송담대역에서 가까운 시장으로 안내됩니다.",
+    "parking": "한국관광공사 안내는 공영주차장과 시장 주변 주차 이용을 소개합니다. 만차 여부와 요금은 방문 전 확인하세요.",
+    "specialties": ["5·10일 용인장", "떡·순대·잡화 골목", "상설시장과 오일장 연계"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "한국관광공사 대한민국 구석구석 용인중앙시장", "url": "https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=853c710b-9bc1-443b-b8a7-4a354004495e", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-d8d1a37e4d63609b",
+    "summary": "광명전통시장은 1970년대부터 이어져 온 대형 종합시장으로 농수산물과 생활 상권을 함께 이용할 수 있습니다.",
+    "visitTips": ["시장 안 먹거리뿐 아니라 인접한 의류·가구 상권까지 묶어 생활형 장보기 동선으로 계획할 수 있습니다."],
+    "transportation": "경기도 광명시 광이로13번길 17-5에 있으며, 광명사거리역 7호선과 여러 버스 노선에서 접근할 수 있다고 광명시가 안내합니다.",
+    "parking": "광명시와 시장 공식 안내에서 공영주차장 이용 정보를 확인할 수 있습니다. 주차장 운영 조건은 방문 전 확인하세요.",
+    "specialties": ["350여 개 점포 규모", "농수산물·식료품", "먹자골목과 인접 생활 상권"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "한국관광공사 대한민국 구석구석 광명전통시장", "url": "https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=4a2869f9-0478-42f7-8091-ee1f922fe408", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-f9785614947c1065",
+    "summary": "광장시장은 1905년에 문을 연 서울의 대표 상설시장으로 먹거리장터와 직물·한복 상권이 함께 남아 있습니다.",
+    "visitTips": ["먹거리장터와 한복·직물 구역의 성격이 다르므로 원하는 목적을 먼저 정하고 방문하면 동선이 짧아집니다."],
+    "transportation": "서울 종로구 창경궁로 88에 있으며 종로5가역 8번 출구와 을지로4가역에서 접근할 수 있습니다.",
+    "parking": "한국관광공사 안내는 시장 인근 유료 주차장 이용을 안내합니다. 시장 전용 주차 여부와 요금은 방문 전 확인하세요.",
+    "specialties": ["1905년 개설 상설시장", "빈대떡·육회·마약김밥 먹거리장터", "주단·포목·한복 상권"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "한국관광공사 대한민국 구석구석 광장시장", "url": "https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=242c556a-2365-47b9-be5c-ea36d8db3663", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-5207a19f315d3216",
+    "summary": "경동시장은 1960년 개설 이후 농산물과 한약재를 중심으로 성장한 동대문구의 대형 상설시장입니다.",
+    "visitTips": ["농산물·청과와 한약재 구역을 구분해 둘러보고, 점포별 영업시간 차이를 고려해 오전 방문을 계획하세요."],
+    "transportation": "서울 동대문구 고산자로36길 3에 있으며 1호선 제기동역과 청량리역에서 접근할 수 있습니다.",
+    "parking": "한국관광공사 안내는 주차 가능과 유료 주차를 안내하지만 요금은 변동될 수 있으므로 방문 전 확인하세요.",
+    "specialties": ["1960년 개설 상설시장", "한약재와 농산물", "경동극장과 청년 상권"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "한국관광공사 대한민국 구석구석 경동시장", "url": "https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=e78e350f-c73e-43d7-a4ec-d8572d02ff13", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-a977f620b61db85b",
+    "summary": "소래포구전통어시장은 인천 소래포구의 수산물 상권과 바다 풍경을 함께 경험하는 어시장입니다.",
+    "visitTips": ["수산물 구매와 포구 산책을 나누어 계획하고, 계절별 어종과 점포별 가격은 현장에서 확인하세요."],
+    "transportation": "인천광역시 남동구 장도로 86-17에 있으며 소래포구 관광권과 함께 방문 동선을 짤 수 있습니다.",
+    "parking": "원본 시장 데이터에는 주차 가능한 시장으로 기록되어 있습니다. 포구 주변 주차 혼잡과 요금은 인천 관광 안내를 확인하세요.",
+    "specialties": ["소래포구 수산물", "새우 파시의 역사", "어시장과 포구 야경"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "인천투어 소래포구", "url": "https://itour.incheon.go.kr/ssst/ssst/detail.do?cotId=ITD21122814501472898", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-a096b1a38138db75",
+    "summary": "세종전통시장은 조치원시장 등 여러 시장이 통합된 90년 전통의 상설시장으로 4·9일장에 장터 분위기가 더해집니다.",
+    "visitTips": ["상설시장만 둘러볼 때와 4·9일장에 방문할 때의 점포 구성과 혼잡도가 다를 수 있으므로 목적에 맞는 날짜를 고르세요."],
+    "transportation": "세종특별자치시 조치원읍 조치원8길 42에 있으며 조치원 생활권과 함께 방문할 수 있습니다.",
+    "parking": "원본 시장 데이터에는 주차 가능한 시장으로 기록되어 있습니다. 시장 주변 공영주차장과 현장 안내를 방문 전에 확인하세요.",
+    "specialties": ["1931년 개설 시장", "4·9일 오일장", "수제 만두·씨앗호떡과 조치원 테마거리"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "한국관광공사 대한민국 구석구석 세종전통시장", "url": "https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=b999314d-9ff1-480d-90df-3b751129bad8", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-46fa9022c9bff08d",
+    "summary": "공주산성시장은 공산성 성곽 아래에서 백제 역사권과 전통시장 먹거리를 함께 연결할 수 있는 문화관광형 시장입니다.",
+    "visitTips": ["공산성 산책 전후에 시장을 연결하고, 계절 행사와 야시장 운영 여부는 방문 전에 확인하세요."],
+    "transportation": "충청남도 공주시 용당길 22에 있으며 공산성과 공주 원도심을 잇는 도보 여행 동선에 넣을 수 있습니다.",
+    "parking": "원본 시장 데이터에는 주차 가능한 시장으로 기록되어 있습니다. 공산성·시장 인근 주차장과 행사일 교통을 함께 확인하세요.",
+    "specialties": ["1937년 개설 시장", "공산성 아래 문화관광형 시장", "알밤 먹거리와 시장 행사"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "한국관광공사 대한민국 구석구석 공주산성시장", "url": "https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=d47ae1d6-e149-4d73-8ca8-6f002e67673a", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  },
+  {
+    "marketId": "market-a3999c03b9b3e221",
+    "summary": "충주자유시장은 자유시장·공설시장·충인상가가 이어지는 충주 도심 전통시장권의 중심입니다.",
+    "visitTips": ["의류·한복 상점과 순대·감자떡 같은 먹거리 구역을 나누어 살피면 세 시장이 합쳐진 특징을 이해하기 쉽습니다."],
+    "transportation": "충청북도 충주시 충인6길 16에 있으며 충주천 주변의 여러 시장을 함께 둘러보는 동선으로 접근할 수 있습니다.",
+    "parking": "시장 공식 채널은 1만원 이상 구매 시 구매 점포에서 무료 주차권을 받을 수 있다고 안내합니다. 행사·주차권 조건은 현장에서 확인하세요.",
+    "specialties": ["충주 도심 5개 시장권", "의류·한복 상점", "순대·감자떡과 골목 먹거리"],
+    "nearbyMarketIds": [],
+    "sources": [
+      { "name": "전국전통시장표준데이터", "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y", "checkedAt": "2026-09-21" },
+      { "name": "한국관광공사 충주 재래시장 나들이", "url": "https://korean.visitkorea.or.kr/detail/rem_detail.do?cotid=1f390d1d-6f63-4c6b-8b53-737dc3e1a0b2", "checkedAt": "2026-09-21" }
+    ],
+    "reviewedAt": "2026-09-21",
+    "status": "reviewed"
+  }
+]

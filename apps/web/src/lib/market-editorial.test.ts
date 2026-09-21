@@ -11,6 +11,22 @@ import {
 } from "./market-editorial";
 
 describe("market editorial catalog", () => {
+  it("contains the first reviewed market batch", () => {
+    expect(marketEditorialEntries.map((entry) => entry.marketId)).toEqual(expect.arrayContaining([
+      "market-46dd8e03711ba7b6",
+      "market-c3983f871839ecc8",
+      "market-389b4a24f06ccd11",
+      "market-d8d1a37e4d63609b",
+      "market-f9785614947c1065",
+      "market-5207a19f315d3216",
+      "market-a977f620b61db85b",
+      "market-a096b1a38138db75",
+      "market-46fa9022c9bff08d",
+      "market-a3999c03b9b3e221",
+    ]));
+    expect(marketEditorialEntries).toHaveLength(10);
+  });
+
   it("keeps each reviewed entry unique and connected to a public market", () => {
     expect(new Set(marketEditorialEntries.map((entry) => entry.marketId)).size)
       .toBe(marketEditorialEntries.length);

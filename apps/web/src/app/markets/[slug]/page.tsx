@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MarketNextDate } from "../../../components/market-next-date";
 import { MarketShareButton } from "../../../components/market-share-button";
 import { MarketEditorialSections } from "../../../components/market-editorial-sections";
+import { SiteFooter } from "../../../components/site-footer";
 import { MobileAppBar } from "../../../components/mobile-app-bar";
 import { OnnuriSummary } from "../../../components/onnuri-summary";
 import { publicMarkets } from "../../../lib/market-catalog";
@@ -164,6 +165,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
           </footer>
         </article>
       </main>
+      <SiteFooter />
     </div>
   );
 }

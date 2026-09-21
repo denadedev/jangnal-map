@@ -13,6 +13,7 @@ import { MarketFilters, type DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
 import { MarketMap } from "./market-map";
 import { ReviewedMarketGuides, type ReviewedMarketGuide } from "./reviewed-market-guides";
+import { SiteFooter } from "./site-footer";
 
 export interface ExplorerInitialState {
   query?: string;
@@ -344,6 +345,8 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
           </MobileMarketSheet>
         ) : null}
       </div>
+
+      <SiteFooter />
 
     </main>
   );

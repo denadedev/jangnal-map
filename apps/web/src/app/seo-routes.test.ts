@@ -17,9 +17,9 @@ describe("SEO metadata routes", () => {
       .map((market) => `${SITE_URL}${getMarketPagePath(market)}`)
       .sort();
 
-    expect(entries).toHaveLength(32);
+    expect(entries).toHaveLength(33);
     expect(new Set(urls)).toHaveLength(entries.length);
-    expect(urls.sort()).toEqual([SITE_URL, `${SITE_URL}/onnuri`, ...indexableUrls].sort());
+    expect(urls.sort()).toEqual([SITE_URL, `${SITE_URL}/about`, `${SITE_URL}/onnuri`, ...indexableUrls].sort());
     expect(urls).not.toContain(`${SITE_URL}/markets/삽교시장-09e8d20c`);
   });
 

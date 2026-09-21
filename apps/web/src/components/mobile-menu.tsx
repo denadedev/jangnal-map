@@ -94,6 +94,7 @@ export function MobileMenu({
           <a className="mobile-menu-link" href="/onnuri">온누리상품권</a>
           <a className="mobile-menu-link" href="/report?kind=service">불편 신고</a>
           <a className="mobile-menu-link" href="/privacy">개인정보 안내</a>
+          <a className="mobile-menu-link" href="/about">서비스 소개</a>
         </nav>
         {installPlatform ? (
           <div className="mobile-menu-install">

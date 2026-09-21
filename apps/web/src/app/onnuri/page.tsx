@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { MobileAppBar } from "../../components/mobile-app-bar";
+import { SiteFooter } from "../../components/site-footer";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -52,6 +53,7 @@ export default function OnnuriPage() {
           </a>
         </section>
       </main>
+      <SiteFooter />
     </div>
   );
 }

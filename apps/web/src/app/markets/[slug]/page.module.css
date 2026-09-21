@@ -37,4 +37,6 @@
   .hero, .section, .footer { padding: 22px 20px; }
   .actions { flex-direction: column; }
   .primary, .secondary { width: 100%; }
+  .actions[data-mobile-action-bar] { position: relative; padding-bottom: 70px; }
+  .actions[data-mobile-action-bar] [data-mobile-primary-action] { position: fixed; z-index: 20; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); left: 12px; border-color: var(--ink); background: var(--ink); color: white; box-shadow: 0 8px 20px rgb(37 35 31 / 18%); }
 }

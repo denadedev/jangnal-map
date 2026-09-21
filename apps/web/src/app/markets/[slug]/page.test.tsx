@@ -49,6 +49,7 @@ describe("market detail route", () => {
       `/?when=all&market=${market.id}`,
     );
     expect(screen.getByRole("button", { name: "공유하기" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "NAVER 지도에서 길찾기" }).closest("[data-mobile-action-bar]")).toBeInTheDocument();
   });
 
   it("uses MarketNextDate as the single schedule landmark", async () => {

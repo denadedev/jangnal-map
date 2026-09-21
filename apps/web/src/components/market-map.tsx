@@ -12,6 +12,7 @@ interface MarketMapProps {
   referenceDate: Date;
   selectedId: string | null;
   clientId: string;
+  mobileSheetHeight?: number;
   onSelect: (market: PublicMarket) => void;
   onLocationChange: (location: Coordinates) => void;
   onStatusChange?: (status: MapStatus) => void;
@@ -41,7 +42,7 @@ const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, (charact
   '"': "&quot;",
 })[character] ?? character);
 
-export function MarketMap({ markets, referenceDate, selectedId, clientId, onSelect, onLocationChange, onStatusChange, onLocationError }: MarketMapProps) {
+export function MarketMap({ markets, referenceDate, selectedId, clientId, mobileSheetHeight = 0, onSelect, onLocationChange, onStatusChange, onLocationError }: MarketMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<NaverMapInstance | null>(null);
   const markersRef = useRef<Array<{ marker: NaverMarker; listener: unknown }>>([]);
@@ -188,17 +189,25 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, onSele
     renderMarkers();
     const idleListener = naver.maps.Event.addListener(map, "idle", renderMarkers);
 
-    const selected = markets.find((market) => market.id === selectedId);
-    if (selected && selected.latitude !== null && selected.longitude !== null) {
-      if (map.getZoom() < 11) map.setZoom(11);
-      mapRef.current.panTo(new naver.maps.LatLng(selected.latitude, selected.longitude));
-    }
-
     return () => {
       naver.maps.Event.removeListener(idleListener);
       clearMarkers();
     };
   }, [markets, onSelect, referenceDate, selectedId, status]);
+
+  useEffect(() => {
+    if (status !== "ready" || !mapRef.current || !window.naver?.maps) return;
+    const naver = window.naver;
+    const map = mapRef.current;
+    const selected = markets.find((market) => market.id === selectedId);
+    if (selected && selected.latitude !== null && selected.longitude !== null) {
+      if (map.getZoom() < 11) map.setZoom(11);
+      map.panTo(new naver.maps.LatLng(selected.latitude, selected.longitude));
+      if (mobileSheetHeight > 0) {
+        map.panBy(new naver.maps.Point(0, -mobileSheetHeight / 2));
+      }
+    }
+  }, [markets, mobileSheetHeight, selectedId, status]);
 
   const showFallback = status === "error";
 

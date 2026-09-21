@@ -1,6 +1,12 @@
+export interface NaverPoint {
+  readonly x: number;
+  readonly y: number;
+}
+
 export interface NaverMapInstance {
   morph: (position: NaverLatLng, zoom: number) => void;
   panTo: (position: NaverLatLng) => void;
+  panBy: (offset: NaverPoint) => void;
   setZoom: (zoom: number) => void;
   getZoom: () => number;
   getBounds: () => NaverBounds;
@@ -30,7 +36,7 @@ export interface NaverMapsNamespace {
       icon: { content: string; anchor?: unknown };
       zIndex?: number;
     }) => NaverMarker;
-    Point: new (x: number, y: number) => unknown;
+    Point: new (x: number, y: number) => NaverPoint;
     Event: {
       addListener: (target: NaverMarker | NaverMapInstance, eventName: string, listener: () => void) => unknown;
       removeListener: (listener: unknown) => void;

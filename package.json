@@ -7,5 +7,5 @@
     "test": "pnpm -r test && node --test scripts/*.test.mjs",
     "typecheck": "pnpm -r typecheck"
   },
-  "version": "0.1.0"
+  "version": "0.1.1"
 }

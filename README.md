@@ -62,9 +62,16 @@ NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=your_naver_maps_client_id
 ## 방문 통계
 
 방문자와 페이지뷰는 `https://analytics.spamfam.kr`의 셀프호스트 Umami로 집계합니다.
-추적 스크립트는 `jangnal.spamfam.kr` 도메인에서만 동작하므로 로컬 개발 접속은 집계하지 않습니다.
+추적 스크립트는 `spamfam.kr` 도메인에서만 동작하므로 로컬 개발 접속은 집계하지 않습니다.
 검색어와 필터가 포함된 URL 쿼리 문자열은 수집하지 않습니다. 분석용 쿠키는 사용하지 않으며
 수집 내용은 `/privacy`에서 안내합니다.
+
+## AdSense 승인 준비
+
+승인 전에는 광고 요청을 만들지 않습니다. 사이트 연결은 루트 `ads.txt`와
+`google-adsense-account` 메타 태그로 확인하며, 전역 `adsbygoogle.js`를 복원하지 않습니다.
+검수된 시장만 독립 상세 URL과 sitemap에 포함하고, 미검수 시장은 홈 지도 선택 상태에서만 제공합니다.
+배포 전후 검증 순서는 [AdSense 승인 준비 검증](docs/verification/adsense-readiness-2026-09-21.md)을 따릅니다.
 
 ## 사용자 제보 접수
 

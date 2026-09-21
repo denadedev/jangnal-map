@@ -36,6 +36,15 @@ describe("market detail route", () => {
     expect(metadata.robots).toEqual({ index: false, follow: true });
   });
 
+  it("labels missing coordinates and omits directions", async () => {
+    const market = publicMarkets.find((item) => item.latitude === null || item.longitude === null)!;
+
+    render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
+
+    expect(screen.getByText("위치 확인 필요")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "NAVER 지도에서 길찾기" })).not.toBeInTheDocument();
+  });
+
   it("renders a selected-map link for a valid market", async () => {
     const market = publicMarkets.find((item) => item.schedule.kind === "digit-pair")!;
 

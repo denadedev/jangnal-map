@@ -124,6 +124,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
               <div><dt>주소</dt><dd>{address}</dd></div>
               <div><dt>전화</dt><dd>{market.phone ?? "정보 없음"}</dd></div>
               <div><dt>주차</dt><dd>{market.hasParking === true ? "주차 가능" : market.hasParking === false ? "주차장 없음" : "확인 필요"}</dd></div>
+              {!directionsHref ? <div><dt>지도</dt><dd>위치 확인 필요</dd></div> : null}
             </dl>
             <div className={styles.actions} data-mobile-action-bar>
               <a className={styles.primary} href={mapHref}>전국 장날 지도에서 보기</a>

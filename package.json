@@ -6,5 +6,6 @@
     "build": "pnpm --filter @jangnal-map/web build",
     "test": "pnpm -r test && node --test scripts/*.test.mjs",
     "typecheck": "pnpm -r typecheck"
-  }
+  },
+  "version": "0.1.0"
 }

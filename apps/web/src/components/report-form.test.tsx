@@ -7,6 +7,17 @@ import { ReportForm } from "./report-form";
 describe("ReportForm", () => {
   afterEach(() => vi.unstubAllGlobals());
 
+  it("focuses the first invalid field without clearing entered values", async () => {
+    const user = userEvent.setup();
+    render(<ReportForm configured supportEmail="help@example.com" scope="service" market={null} />);
+
+    await user.type(screen.getByRole("textbox", { name: "알려주실 내용" }), "입력 내용");
+    await user.click(screen.getByRole("button", { name: "제보 보내기" }));
+
+    expect(screen.getByRole("radio", { name: "화면·버튼 오류" })).toHaveFocus();
+    expect(screen.getByRole("textbox", { name: "알려주실 내용" })).toHaveValue("입력 내용");
+  });
+
   it("submits an anonymous market report with verified market context", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });

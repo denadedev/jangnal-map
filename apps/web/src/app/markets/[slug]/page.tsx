@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { MarketNextDate } from "../../../components/market-next-date";
 import { MarketShareButton } from "../../../components/market-share-button";
+import { MobileAppBar } from "../../../components/mobile-app-bar";
 import { OnnuriSummary } from "../../../components/onnuri-summary";
 import { publicMarkets } from "../../../lib/market-catalog";
 import {
@@ -90,7 +91,8 @@ export default async function MarketPage({ params }: MarketPageProps) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
+      <MobileAppBar title="시장 정보" backHref={mapHref} />
+      <header className={`${styles.header} desktop-route-header`}>
         <a href="/">오늘 장날</a>
         <nav aria-label="보조 메뉴">
           <a href="/onnuri">온누리상품권</a>
@@ -122,10 +124,11 @@ export default async function MarketPage({ params }: MarketPageProps) {
               <div><dt>주소</dt><dd>{address}</dd></div>
               <div><dt>전화</dt><dd>{market.phone ?? "정보 없음"}</dd></div>
               <div><dt>주차</dt><dd>{market.hasParking === true ? "주차 가능" : market.hasParking === false ? "주차장 없음" : "확인 필요"}</dd></div>
+              {!directionsHref ? <div><dt>지도</dt><dd>위치 확인 필요</dd></div> : null}
             </dl>
-            <div className={styles.actions}>
+            <div className={styles.actions} data-mobile-action-bar>
               <a className={styles.primary} href={mapHref}>전국 장날 지도에서 보기</a>
-              {directionsHref ? <a className={styles.secondary} href={directionsHref} target="_blank" rel="noreferrer">NAVER 지도에서 길찾기</a> : null}
+              {directionsHref ? <a className={styles.secondary} data-mobile-primary-action href={directionsHref} target="_blank" rel="noreferrer">NAVER 지도에서 길찾기</a> : null}
               <MarketShareButton market={market} className={styles.secondary} />
               <a className={styles.secondary} href={`/report?kind=market&market=${encodeURIComponent(market.id)}`}>
                 정보가 다른가요? 수정 제보

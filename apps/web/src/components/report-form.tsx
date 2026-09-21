@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
 import {
   MARKET_REPORT_TYPES,
@@ -28,7 +28,29 @@ export function ReportForm({ configured, supportEmail, scope, market }: ReportFo
   const [errors, setErrors] = useState<ReportFieldErrors>({});
   const [status, setStatus] = useState<SubmissionStatus>("idle");
   const [fallbackMailto, setFallbackMailto] = useState("");
+  const detailTypeRef = useRef<HTMLInputElement>(null);
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+  const evidenceUrlRef = useRef<HTMLInputElement>(null);
+  const contactRef = useRef<HTMLInputElement>(null);
+  const consentRef = useRef<HTMLInputElement>(null);
   const types = scope === "market" ? MARKET_REPORT_TYPES : SERVICE_REPORT_TYPES;
+
+  const focusFirstError = (nextErrors: ReportFieldErrors) => {
+    const target = nextErrors.detailType
+      ? detailTypeRef.current
+      : nextErrors.message
+        ? messageRef.current
+        : nextErrors.evidenceUrl
+          ? evidenceUrlRef.current
+          : nextErrors.contact
+            ? contactRef.current
+            : nextErrors.consent
+              ? consentRef.current
+              : null;
+    if (!target) return;
+    target.scrollIntoView?.({ block: "center" });
+    target.focus();
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -43,7 +65,10 @@ export function ReportForm({ configured, supportEmail, scope, market }: ReportFo
     };
     const nextErrors = validateReport(values);
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
+    if (Object.keys(nextErrors).length > 0) {
+      focusFirstError(nextErrors);
+      return;
+    }
 
     const subject = scope === "market" ? "[오늘장날] 시장 정보 수정 제보" : "[오늘장날] 서비스 불편 신고";
     data.set("page_url", window.location.href);
@@ -97,9 +122,9 @@ export function ReportForm({ configured, supportEmail, scope, market }: ReportFo
       <fieldset aria-describedby={errors.detailType ? "detail-type-error" : undefined}>
         <legend>어떤 내용인가요?</legend>
         <div className="report-options">
-          {types.map(([value, label]) => (
+          {types.map(([value, label], index) => (
             <label key={value}>
-              <input type="radio" name="detail_type" value={value} />
+              <input ref={index === 0 ? detailTypeRef : undefined} type="radio" name="detail_type" value={value} />
               <span>{label}</span>
             </label>
           ))}
@@ -110,6 +135,7 @@ export function ReportForm({ configured, supportEmail, scope, market }: ReportFo
       <label className="report-field">
         알려주실 내용
         <textarea
+          ref={messageRef}
           name="message"
           rows={6}
           maxLength={1_000}
@@ -122,6 +148,7 @@ export function ReportForm({ configured, supportEmail, scope, market }: ReportFo
       <label className="report-field">
         관련 홈페이지 주소 <small>선택</small>
         <input
+          ref={evidenceUrlRef}
           name="evidence_url"
           type="url"
           inputMode="url"
@@ -134,6 +161,7 @@ export function ReportForm({ configured, supportEmail, scope, market }: ReportFo
       <label className="report-field">
         답변받을 연락처 <small>선택</small>
         <input
+          ref={contactRef}
           name="contact"
           maxLength={100}
           aria-invalid={Boolean(errors.contact)}
@@ -147,6 +175,7 @@ export function ReportForm({ configured, supportEmail, scope, market }: ReportFo
       </p>
       <label className="consent-field">
         <input
+          ref={consentRef}
           type="checkbox"
           name="privacy_consent"
           value="yes"

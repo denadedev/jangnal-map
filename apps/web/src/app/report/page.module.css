@@ -220,12 +220,34 @@
 
 @media (max-width: 700px) {
   .page {
-    padding-top: 18px;
+    padding: 18px 12px calc(36px + env(safe-area-inset-bottom));
+  }
+
+  .back {
+    display: none;
   }
 
   .card {
-    padding: 24px 18px;
+    border: 0;
+    border-radius: 0;
+    padding: 24px 6px calc(28px + env(safe-area-inset-bottom));
+    box-shadow: none;
   }
+
+  .card h2 { margin-top: 26px; }
+
+  .card a { overflow-wrap: anywhere; }
+
+  .card :global(textarea),
+  .card :global(input[type="url"]),
+  .card :global(input[name="contact"]) {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .card :global(textarea) { min-height: 144px; }
+
+  .card :global(button[type="submit"]) { min-height: 52px; }
 
   .card :global(.report-options) {
     grid-template-columns: 1fr;

@@ -1,0 +1,24 @@
+.page { min-height: 100dvh; background: var(--paper); color: var(--ink); }
+.header { display: flex; min-height: 70px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding: 0 24px; background: var(--panel); }
+.header a { font-family: Georgia, "Noto Serif KR", serif; font-size: 20px; font-weight: 800; }
+.header nav { display: flex; gap: 16px; }
+.header nav a { min-height: 44px; font-family: inherit; font-size: 12px; line-height: 44px; }
+.main { width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 54px 0 72px; }
+.article { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); box-shadow: var(--shadow); }
+.article > * { padding-right: 32px; padding-left: 32px; }
+.eyebrow { margin: 0; padding-top: 32px; color: var(--persimmon-dark); font-size: 12px; font-weight: 800; }
+.article h1 { margin: 8px 0 0; padding-bottom: 20px; font-family: Georgia, "Noto Serif KR", serif; font-size: clamp(28px, 5vw, 42px); letter-spacing: -0.05em; }
+.lead { margin: 0; border-top: 1px solid var(--soft-line); padding-top: 24px; padding-bottom: 24px; font-size: 15px; line-height: 1.8; }
+.section { border-top: 1px solid var(--soft-line); padding-top: 24px; padding-bottom: 24px; }
+.section h2 { margin: 0 0 12px; font-size: 16px; }
+.section p { margin: 0 0 10px; font-size: 13px; line-height: 1.8; }
+.section p:last-of-type { margin-bottom: 0; }
+.primary { display: inline-flex; min-height: 44px; align-items: center; margin-top: 10px; border-radius: 5px; padding: 0 16px; background: var(--ink); color: white; font-size: 13px; font-weight: 800; }
+
+@media (max-width: 700px) {
+  .header { min-height: 59px; padding: 0 16px; }
+  .main { width: min(100% - 24px, 760px); padding: 24px 0 40px; }
+  .article > * { padding-right: 20px; padding-left: 20px; }
+  .eyebrow { padding-top: 22px; }
+  .article h1 { font-size: 31px; }
+}

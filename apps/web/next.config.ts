@@ -9,7 +9,13 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         has: [{ type: "host", value: "jangnal-map.vercel.app" }],
-        destination: "https://jangnal.spamfam.kr/:path*",
+        destination: "https://spamfam.kr/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "jangnal.spamfam.kr" }],
+        destination: "https://spamfam.kr/:path*",
         permanent: true,
       },
     ];

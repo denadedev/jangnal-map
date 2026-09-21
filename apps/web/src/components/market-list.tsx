@@ -1,9 +1,10 @@
 import type { PublicMarket } from "../lib/market";
-import { getMarketPagePath } from "../lib/market-path";
+import { getMarketBrowsePath } from "../lib/market-path";
 import { formatDistance, formatMarketTiming, formatSchedulePattern, getDistanceKm, type Coordinates } from "../lib/market-view";
 
 interface MarketListProps {
   markets: PublicMarket[];
+  reviewedMarketIds?: ReadonlySet<string>;
   referenceDate: Date;
   selectedId: string | null;
   onSelect: (market: PublicMarket) => void;
@@ -11,7 +12,7 @@ interface MarketListProps {
   currentLocation: Coordinates | null;
 }
 
-export function MarketList({ markets, referenceDate, selectedId, onSelect, onReset, currentLocation }: MarketListProps) {
+export function MarketList({ markets, reviewedMarketIds = new Set(), referenceDate, selectedId, onSelect, onReset, currentLocation }: MarketListProps) {
   if (markets.length === 0) {
     return (
       <div className="empty-state">
@@ -34,7 +35,7 @@ export function MarketList({ markets, referenceDate, selectedId, onSelect, onRes
         return (
         <li key={market.id}>
           <a
-            href={getMarketPagePath(market)}
+            href={getMarketBrowsePath(market, reviewedMarketIds.has(market.id))}
             data-market-id={market.id}
             className="market-list-item"
             aria-current={market.id === selectedId ? "true" : undefined}

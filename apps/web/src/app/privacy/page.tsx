@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { MobileAppBar } from "../../components/mobile-app-bar";
+import { SiteFooter } from "../../components/site-footer";
 import styles from "../report/page.module.css";
 
 // SMTP/contact settings are injected at container runtime, not image build time.
@@ -27,6 +28,7 @@ export default function PrivacyPage() {
           <h2>Google AdSense 광고</h2>
           <p>이 사이트는 Google AdSense를 통해 광고를 제공할 수 있습니다. Google과 광고 파트너는 광고 제공, 측정, 빈도 제한을 위해 쿠키, 웹 비콘, IP 주소 또는 기기 식별자와 같은 정보를 사용할 수 있습니다. 이용자 동의와 설정에 따라 맞춤형 광고가 제공될 수 있습니다.</p>
           <p>맞춤형 광고 설정은 <a href="https://www.google.com/settings/ads">Google 광고 설정</a>에서 관리할 수 있습니다.</p>
+          <p>Google 파트너 사이트에서 Google이 데이터를 사용하는 방식은 <a href="https://policies.google.com/technologies/partner-sites?hl=ko">Google 파트너 사이트의 데이터 사용 방식</a>에서 확인할 수 있습니다.</p>
           <h2>수집 항목과 목적</h2>
           <p>제보 유형, 내용, 근거 URL과 대상 시장 정보를 제보 확인에 사용합니다. 답변을 원하는 경우에만 전화번호 또는 이메일을 선택적으로 받으며 제보 확인과 답변에만 사용합니다.</p>
           <h2>보유 기간</h2>
@@ -41,6 +43,7 @@ export default function PrivacyPage() {
           )}
         </article>
       </main>
+      <SiteFooter />
     </>
   );
 }

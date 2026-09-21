@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { MobileAppBar } from "../../components/mobile-app-bar";
+import { SiteFooter } from "../../components/site-footer";
 import { ReportForm } from "../../components/report-form";
 import { publicMarkets } from "../../lib/market-catalog";
 import styles from "./page.module.css";
@@ -33,6 +34,7 @@ export default async function ReportPage({ searchParams }: ReportPageProps) {
             <a className={styles.primary} href="/?when=all">지도에서 시장 선택하기</a>
           </section>
         </main>
+        <SiteFooter />
       </>
     );
   }
@@ -62,6 +64,7 @@ export default async function ReportPage({ searchParams }: ReportPageProps) {
           />
         </section>
       </main>
+      <SiteFooter />
     </>
   );
 }

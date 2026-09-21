@@ -3,9 +3,12 @@ import { notFound } from "next/navigation";
 
 import { MarketNextDate } from "../../../components/market-next-date";
 import { MarketShareButton } from "../../../components/market-share-button";
+import { MarketEditorialSections } from "../../../components/market-editorial-sections";
+import { SiteFooter } from "../../../components/site-footer";
 import { MobileAppBar } from "../../../components/mobile-app-bar";
 import { OnnuriSummary } from "../../../components/onnuri-summary";
 import { publicMarkets } from "../../../lib/market-catalog";
+import { findMarketEditorial } from "../../../lib/market-editorial";
 import {
   createMarketSeoText,
   createMarketScheduleAnswer,
@@ -29,13 +32,13 @@ const formatSourceDate = (value: string | null): string => value
 
 export function generateStaticParams() {
   return publicMarkets
-    .filter((market) => market.status === "운영")
+    .filter(isMarketIndexable)
     .map((market) => ({ slug: createMarketSlug(market) }));
 }
 
 export async function generateMetadata({ params }: MarketPageProps): Promise<Metadata> {
   const market = findMarketBySlug((await params).slug);
-  if (!market) return {};
+  if (!market || !isMarketIndexable(market)) return { robots: { index: false, follow: false } };
 
   const seo = createMarketSeoText(market);
   const path = getMarketPagePath(market);
@@ -58,7 +61,9 @@ export async function generateMetadata({ params }: MarketPageProps): Promise<Met
 
 export default async function MarketPage({ params }: MarketPageProps) {
   const market = findMarketBySlug((await params).slug);
-  if (!market) notFound();
+  if (!market || !isMarketIndexable(market)) notFound();
+  const editorial = findMarketEditorial(market.id);
+  if (!editorial) notFound();
 
   const address = market.roadAddress ?? market.lotAddress ?? "주소 정보 없음";
   const mapHref = `/?when=all&market=${encodeURIComponent(market.id)}`;
@@ -129,7 +134,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
             <div className={styles.actions} data-mobile-action-bar>
               <a className={styles.primary} href={mapHref}>전국 장날 지도에서 보기</a>
               {directionsHref ? <a className={styles.secondary} data-mobile-primary-action href={directionsHref} target="_blank" rel="noreferrer">NAVER 지도에서 길찾기</a> : null}
-              <MarketShareButton market={market} className={styles.secondary} />
+              <MarketShareButton market={market} sharePath={getMarketPagePath(market)} className={styles.secondary} />
               <a className={styles.secondary} href={`/report?kind=market&market=${encodeURIComponent(market.id)}`}>
                 정보가 다른가요? 수정 제보
               </a>
@@ -138,6 +143,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
           <div className={styles.section}>
             <OnnuriSummary marketName={market.name} summary={market.onnuri} headingLevel={2} />
           </div>
+          <MarketEditorialSections editorial={editorial} />
           {relatedMarkets.length > 0 ? (
             <section className={styles.section} aria-labelledby="related-markets-heading">
               <h2 id="related-markets-heading">같은 지역 장날</h2>
@@ -159,6 +165,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
           </footer>
         </article>
       </main>
+      <SiteFooter />
     </div>
   );
 }

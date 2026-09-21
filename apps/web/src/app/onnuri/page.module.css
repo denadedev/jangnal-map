@@ -17,6 +17,12 @@
 .guide h3 { margin: 0; font-size: 14px; }
 .guide article p { margin: 10px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
 .official { display: inline-flex; min-height: 44px; align-items: center; margin-top: 18px; border-radius: 4px; padding: 0 16px; background: var(--ink); color: white; font-size: 12px; font-weight: 800; }
+.dataSection { margin-top: 30px; border-top: 1px solid var(--line); padding-top: 26px; }
+.dataSection h2 { margin: 0 0 12px; font-size: 20px; }
+.dataSection p { max-width: 720px; margin: 0 0 9px; color: var(--muted); font-size: 13px; line-height: 1.8; }
+.dataSection > a { display: inline-block; margin-top: 8px; color: var(--persimmon-dark); font-size: 12px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+.marketLinks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.marketLinks a { display: block; border: 1px solid var(--line); border-radius: 6px; padding: 11px 12px; background: var(--panel); font-size: 12px; font-weight: 750; }
 
 @media (max-width: 700px) {
   .header { min-height: 59px; padding: 0 16px; }
@@ -26,4 +32,5 @@
   .guideGrid { grid-template-columns: 1fr; }
   .guide article { padding: 18px; }
   .official { width: 100%; }
+  .marketLinks { grid-template-columns: 1fr; }
 }

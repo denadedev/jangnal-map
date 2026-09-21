@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const routes = [
   "/?when=all",
-  "/markets/운천전통시장-45b640cc",
+  "/markets/용인중앙시장-389b4a24",
   "/onnuri",
   "/report?kind=service",
   "/privacy",

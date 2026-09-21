@@ -1,11 +1,12 @@
 import type { PublicMarket } from "./market";
 import { formatScheduleDates, formatSchedulePattern } from "./market-view";
 import { publicMarkets } from "./market-catalog";
+import { reviewedMarketIds } from "./market-editorial";
 import { createMarketSlug } from "./market-path";
 
 export { createMarketSlug, getMarketPagePath } from "./market-path";
 
-export const SITE_URL = "https://jangnal.spamfam.kr";
+export const SITE_URL = "https://spamfam.kr";
 
 const marketsBySlug = new Map(publicMarkets.map((market) => [createMarketSlug(market), market] as const));
 
@@ -18,7 +19,7 @@ export function findMarketBySlug(slug: string): PublicMarket | undefined {
 }
 
 export function isMarketIndexable(market: PublicMarket): boolean {
-  return market.status === "운영" && market.schedule.kind !== "unknown";
+  return market.status === "운영" && market.schedule.kind !== "unknown" && reviewedMarketIds.has(market.id);
 }
 
 export function findRelatedMarkets(market: PublicMarket, limit = 6): PublicMarket[] {

@@ -8,11 +8,12 @@ import { getNextMarketDate } from "../lib/schedule";
 
 interface MarketShareButtonProps {
   market: PublicMarket;
+  sharePath?: string;
   today?: Date;
   className?: string;
 }
 
-export function MarketShareButton({ market, today, className }: MarketShareButtonProps) {
+export function MarketShareButton({ market, sharePath, today, className }: MarketShareButtonProps) {
   const [feedback, setFeedback] = useState<{ marketId: string; message: string; isError: boolean } | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const isSharingRef = useRef(false);
@@ -33,7 +34,7 @@ export function MarketShareButton({ market, today, className }: MarketShareButto
         ? getNextMarketDate(market, referenceDate)
         : null;
       const datePrefix = nextDate ? `${nextDate.getMonth() + 1}월 ${nextDate.getDate()}일 ` : "";
-      const url = `${window.location.origin}${getMarketPagePath(market)}`;
+      const url = `${window.location.origin}${sharePath ?? getMarketPagePath(market)}`;
 
       if (typeof navigator.share === "function") {
         try {

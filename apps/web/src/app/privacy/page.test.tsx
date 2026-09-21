@@ -32,4 +32,8 @@ it("discloses AdSense advertising data use and settings", () => {
     "href",
     "https://www.google.com/settings/ads",
   );
+  expect(screen.getByRole("link", { name: "Google 파트너 사이트의 데이터 사용 방식" })).toHaveAttribute(
+    "href",
+    "https://policies.google.com/technologies/partner-sites?hl=ko",
+  );
 });

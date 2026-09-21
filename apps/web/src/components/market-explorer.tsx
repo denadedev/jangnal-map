@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-quer
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
+import { getMarketBrowsePath } from "../lib/market-path";
 import { filterMarkets, getDateRange, normalizeDirectDate, sortMarketsByDistance, toIsoDate, type Coordinates } from "../lib/market-view";
 import { MobileAppBar } from "./mobile-app-bar";
 import { MobileMarketSheet, type SheetMode, type SheetSnap } from "./mobile-market-sheet";
@@ -11,6 +12,8 @@ import { MarketDetail } from "./market-detail";
 import { MarketFilters, type DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
 import { MarketMap } from "./market-map";
+import { ReviewedMarketGuides, type ReviewedMarketGuide } from "./reviewed-market-guides";
+import { SiteFooter } from "./site-footer";
 
 export interface ExplorerInitialState {
   query?: string;
@@ -23,6 +26,8 @@ interface MarketExplorerProps {
   today?: Date;
   mapClientId?: string;
   initialState?: ExplorerInitialState;
+  reviewedMarketIds?: string[];
+  reviewedGuides?: ReviewedMarketGuide[];
 }
 
 const validModes = new Set<DateFilterMode>(["all", "today", "week", "weekend", "date"]);
@@ -48,7 +53,10 @@ async function fetchMarkets(): Promise<PublicMarket[]> {
   return data as PublicMarket[];
 }
 
-function MarketExplorerContent({ today: providedToday, mapClientId = "", initialState }: MarketExplorerProps) {
+const emptyReviewedMarketIds: string[] = [];
+
+function MarketExplorerContent({ today: providedToday, mapClientId = "", initialState, reviewedMarketIds = emptyReviewedMarketIds, reviewedGuides = [] }: MarketExplorerProps) {
+  const reviewedMarketIdSet = useMemo(() => new Set(reviewedMarketIds), [reviewedMarketIds]);
   const [today, setToday] = useState(() => providedToday ?? staticRenderDate);
   const resolvedInitial = useMemo(() => {
     const rawState = initialState ?? {};
@@ -229,6 +237,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   ) : (
     <MarketList
       markets={listedMarkets}
+      reviewedMarketIds={reviewedMarketIdSet}
       referenceDate={referenceDate}
       selectedId={selectedId}
       onSelect={selectMarket}
@@ -279,6 +288,8 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
         }}
       />
 
+      {reviewedGuides.length > 0 ? <ReviewedMarketGuides guides={reviewedGuides} /> : null}
+
       <div className={`explorer-grid ${selectedMarket ? "has-selection" : ""}`}>
         <aside className="list-pane" aria-label="시장 목록">
           {listHeading}
@@ -298,7 +309,12 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
         />
 
         <aside className="detail-pane" aria-live="polite">
-          <MarketDetail market={selectedMarket} today={today} onClose={closeMarket} />
+          <MarketDetail
+            market={selectedMarket}
+            sharePath={selectedMarket ? getMarketBrowsePath(selectedMarket, reviewedMarketIdSet.has(selectedMarket.id)) : undefined}
+            today={today}
+            onClose={closeMarket}
+          />
         </aside>
 
         {isMobile ? (
@@ -314,7 +330,12 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
             onClose={closeMarketToMap}
           >
             {sheetMode === "detail" ? (
-              <MarketDetail market={selectedMarket} today={today} onClose={closeMarket} />
+              <MarketDetail
+                market={selectedMarket}
+                sharePath={selectedMarket ? getMarketBrowsePath(selectedMarket, reviewedMarketIdSet.has(selectedMarket.id)) : undefined}
+                today={today}
+                onClose={closeMarket}
+              />
             ) : (
               <div className="mobile-market-results" data-map-status={mapStatus}>
                 {listHeading}
@@ -324,6 +345,8 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
           </MobileMarketSheet>
         ) : null}
       </div>
+
+      <SiteFooter />
 
     </main>
   );

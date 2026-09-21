@@ -91,6 +91,19 @@ describe("MarketShareButton", () => {
     expect(screen.getByRole("status")).toHaveTextContent("링크를 복사했어요");
   });
 
+  it("shares a supplied home selection URL for an unreviewed market", async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    vi.stubGlobal("navigator", { share });
+    render(<MarketShareButton market={market} sharePath="/?when=all&market=uncheon" today={new Date(2026, 8, 3)} />);
+
+    await user.click(screen.getByRole("button", { name: "공유하기" }));
+
+    expect(share).toHaveBeenCalledWith(expect.objectContaining({
+      url: "http://localhost:3000/?when=all&market=uncheon",
+    }));
+  });
+
   it("silently handles a canceled native share", async () => {
     const share = vi.fn().mockRejectedValue(new DOMException("Share canceled", "AbortError"));
     const user = userEvent.setup();

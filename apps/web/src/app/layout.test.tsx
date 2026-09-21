@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import RootLayout from "./layout";
+import RootLayout, { metadata } from "./layout";
 
 describe("Umami Analytics", () => {
   it("renders the tracker for the production domain", () => {
@@ -14,20 +14,18 @@ describe("Umami Analytics", () => {
     expect(tracker?.getAttribute("data-website-id")).toBe(
       "17d5f5df-067f-4606-82ba-a8471bf84d28",
     );
-    expect(tracker?.getAttribute("data-domains")).toBe("jangnal.spamfam.kr");
+    expect(tracker?.getAttribute("data-domains")).toBe("spamfam.kr");
     expect(tracker?.getAttribute("data-exclude-search")).toBe("true");
   });
 });
 
 describe("AdSense", () => {
-  it("renders the publisher script in the document head", () => {
+  it("uses ownership metadata without loading AdSense ads", () => {
     const html = renderToStaticMarkup(<RootLayout>content</RootLayout>);
     const document = new DOMParser().parseFromString(html, "text/html");
-    const script = document.querySelector(
-      'head script[src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3237088758901901"]',
-    );
 
-    expect(script?.getAttribute("async")).not.toBeNull();
-    expect(script?.getAttribute("crossorigin")).toBe("anonymous");
+    expect(metadata.other?.["google-adsense-account"]).toBe("ca-pub-3237088758901901");
+    expect(html).not.toContain("pagead2.googlesyndication.com/pagead/js/adsbygoogle.js");
+    expect(document.querySelector('meta[name="google-adsense-account"]')).toBeNull();
   });
 });

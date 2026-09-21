@@ -16,8 +16,9 @@ describe("온누리상품권 허브", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: "온누리상품권 이용안내" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 3, name: "디지털형과 지류형" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "시장별 가맹점 찾기" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "가맹점이 많은 전통시장" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "가맹점 수를 읽는 방법" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "검수된 시장에서 찾아보기" })).toBeInTheDocument();
+    expect(screen.getByText(/2025-07-31 기준/)).toBeInTheDocument();
     const officialLink = screen.getByRole("link", { name: "공식 온누리 가맹점 찾기" });
     expect(officialLink).toHaveAttribute("href", "https://www.onnuri.gift/place");
     expect(officialLink).not.toHaveAttribute("target");

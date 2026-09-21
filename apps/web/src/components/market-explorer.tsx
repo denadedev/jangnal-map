@@ -1,11 +1,12 @@
 "use client";
 
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
 import { filterMarkets, getDateRange, normalizeDirectDate, sortMarketsByDistance, toIsoDate, type Coordinates } from "../lib/market-view";
 import { MobileAppBar } from "./mobile-app-bar";
+import { MobileMarketSheet, type SheetMode, type SheetSnap } from "./mobile-market-sheet";
 import { MarketDetail } from "./market-detail";
 import { MarketFilters, type DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
@@ -59,8 +60,13 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   const [mode, setMode] = useState<DateFilterMode>(resolvedInitial.mode ?? "week");
   const [directDate, setDirectDate] = useState(resolvedInitial.directDate ?? toIsoDate(today));
   const [selectedId, setSelectedId] = useState<string | null>(resolvedInitial.selectedId ?? null);
+  const [sheetSnap, setSheetSnap] = useState<SheetSnap>("half");
+  const [sheetMode, setSheetMode] = useState<SheetMode>(resolvedInitial.selectedId ? "detail" : "results");
+  const previousSheetSnap = useRef<SheetSnap>("half");
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
   const [hasRestoredUrl, setHasRestoredUrl] = useState(false);
+  const [mapStatus, setMapStatus] = useState<"idle" | "loading" | "ready" | "error">(mapClientId ? "idle" : "error");
+  const [isMobile, setIsMobile] = useState(false);
   const { data: markets = [], isPending, isError, refetch } = useQuery({
     queryKey: ["public-markets"],
     queryFn: fetchMarkets,
@@ -110,13 +116,82 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
     window.history.replaceState(null, "", suffix ? `/?${suffix}` : "/");
   }, [directDate, hasRestoredUrl, mode, query, selectedId]);
 
-  const selectMarket = useCallback((market: PublicMarket) => setSelectedId(market.id), []);
+  const selectMarket = useCallback((market: PublicMarket) => {
+    previousSheetSnap.current = sheetSnap;
+    setSelectedId(market.id);
+    setSheetMode("detail");
+    setSheetSnap("half");
+  }, [sheetSnap]);
+  const closeMarket = useCallback(() => {
+    setSelectedId(null);
+    setSheetMode("results");
+    setSheetSnap(previousSheetSnap.current);
+  }, []);
   const resetFilters = () => {
     setQuery("");
     setMode("week");
     setDirectDate(toIsoDate(today));
-    setSelectedId(null);
+    closeMarket();
   };
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+    const media = window.matchMedia("(max-width: 700px)");
+    const update = () => setIsMobile(media.matches);
+    update();
+    media.addEventListener?.("change", update);
+    return () => media.removeEventListener?.("change", update);
+  }, []);
+
+  useEffect(() => {
+    if (!hasRestoredUrl || !selectedId) return;
+    setSheetMode("detail");
+    setSheetSnap("half");
+  }, [hasRestoredUrl, selectedId]);
+
+  const listHeading = (
+    <div className="list-heading">
+      <div>
+        <p>{mode === "all" ? "전체 전통시장" : mode === "date" ? "선택한 날짜에 운영하는 시장" : "선택한 기간의 장날 시장"}</p>
+        <strong>{filteredMarkets.length}곳</strong>
+        {mapMissingCount > 0 ? <small>지도 미표시 {mapMissingCount}곳</small> : null}
+      </div>
+      <span>{query ? `“${query}” 검색` : "전국"}</span>
+    </div>
+  );
+
+  const marketListContent = isPending ? (
+    <div className="list-loading" role="status"><span /><span /><span /><p>시장 정보를 불러오는 중입니다.</p></div>
+  ) : isError ? (
+    <div className="empty-state">
+      <h2>시장 정보를 불러오지 못했어요</h2>
+      <p>잠시 후 다시 시도해 주세요.</p>
+      <button type="button" className="secondary-button" onClick={() => void refetch()}>다시 시도</button>
+    </div>
+  ) : (
+    <MarketList
+      markets={listedMarkets}
+      referenceDate={referenceDate}
+      selectedId={selectedId}
+      onSelect={selectMarket}
+      onReset={resetFilters}
+      currentLocation={currentLocation}
+    />
+  );
+
+  const handleMapStatus = useCallback((status: "idle" | "loading" | "ready" | "error") => {
+    setMapStatus(status);
+    if (status === "error") {
+      setSheetMode("results");
+      setSheetSnap("full");
+    }
+  }, []);
+
+  const focusSearchAfterLocationError = useCallback((message: string, permissionDenied: boolean) => {
+    if (!permissionDenied) return;
+    window.setTimeout(() => document.querySelector<HTMLInputElement>('.search-field input[type="search"]')?.focus(), 0);
+    void message;
+  }, []);
 
   return (
     <main className="explorer-shell">
@@ -148,33 +223,8 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
 
       <div className={`explorer-grid ${selectedMarket ? "has-selection" : ""}`}>
         <aside className="list-pane" aria-label="시장 목록">
-          <div className="list-heading">
-            <div>
-              <p>{mode === "all" ? "전체 전통시장" : mode === "date" ? "선택한 날짜에 운영하는 시장" : "선택한 기간의 장날 시장"}</p>
-              <strong>{filteredMarkets.length}곳</strong>
-              {mapMissingCount > 0 ? <small>지도 미표시 {mapMissingCount}곳</small> : null}
-            </div>
-            <span>{query ? `“${query}” 검색` : "전국"}</span>
-          </div>
-
-          {isPending ? (
-            <div className="list-loading" role="status"><span /><span /><span /><p>시장 정보를 불러오는 중입니다.</p></div>
-          ) : isError ? (
-            <div className="empty-state">
-              <h2>시장 정보를 불러오지 못했어요</h2>
-              <p>잠시 후 다시 시도해 주세요.</p>
-              <button type="button" className="secondary-button" onClick={() => void refetch()}>다시 시도</button>
-            </div>
-          ) : (
-            <MarketList
-              markets={listedMarkets}
-              referenceDate={referenceDate}
-              selectedId={selectedId}
-              onSelect={selectMarket}
-              onReset={resetFilters}
-              currentLocation={currentLocation}
-            />
-          )}
+          {listHeading}
+          {marketListContent}
         </aside>
 
         <MarketMap
@@ -184,11 +234,33 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
           clientId={mapClientId}
           onSelect={selectMarket}
           onLocationChange={setCurrentLocation}
+          onStatusChange={handleMapStatus}
+          onLocationError={focusSearchAfterLocationError}
         />
 
         <aside className="detail-pane" aria-live="polite">
-          <MarketDetail market={selectedMarket} today={today} onClose={() => setSelectedId(null)} />
+          <MarketDetail market={selectedMarket} today={today} onClose={closeMarket} />
         </aside>
+
+        {isMobile ? (
+          <MobileMarketSheet
+            snap={sheetSnap}
+            onSnapChange={setSheetSnap}
+            mode={sheetMode}
+            onModeChange={setSheetMode}
+            title={sheetMode === "detail" && selectedMarket ? `${selectedMarket.name} 상세` : `${filteredMarkets.length}곳 시장 결과`}
+            describedBy="mobile-market-sheet-status"
+          >
+            {sheetMode === "detail" ? (
+              <MarketDetail market={selectedMarket} today={today} onClose={closeMarket} />
+            ) : (
+              <div className="mobile-market-results" data-map-status={mapStatus}>
+                {listHeading}
+                {marketListContent}
+              </div>
+            )}
+          </MobileMarketSheet>
+        ) : null}
       </div>
 
     </main>

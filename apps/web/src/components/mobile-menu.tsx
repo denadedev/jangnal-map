@@ -33,6 +33,8 @@ export function MobileMenu({
     if (!open || !dialogRef.current) return;
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const dialog = dialogRef.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const focusables = getFocusable(dialog);
     focusables[0]?.focus();
 
@@ -64,6 +66,7 @@ export function MobileMenu({
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
       previous?.focus();
     };
   }, [onClose, open]);

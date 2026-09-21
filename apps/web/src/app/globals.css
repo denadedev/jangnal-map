@@ -473,31 +473,32 @@ a { color: inherit; text-decoration: none; }
   .feedback-link { min-height: 36px; padding: 0 9px; }
 
   .market-filters { position: relative; top: auto; grid-template-columns: 1fr; gap: 9px; flex: 0 0 auto; min-height: auto; padding: 10px 12px 11px; }
-  .search-field { height: 43px; }
+  .search-field { height: 48px; }
+  .search-field input { font-size: 16px; }
   .date-filter-row { min-width: 0; flex-wrap: nowrap; gap: 7px; overflow: hidden; }
-  .filter-pills { min-width: max-content; gap: 5px; overflow-x: auto; padding-bottom: 2px; }
-  .filter-pill { height: 34px; padding: 0 9px; font-size: 11px; }
-  .direct-date { height: 34px; flex: 0 0 auto; border-left: 0; padding-left: 0; }
+  .filter-pills { min-width: 0; flex: 1 1 auto; gap: 5px; overflow-x: auto; padding-bottom: 2px; }
+  .filter-pill { height: 44px; flex: 0 0 auto; padding: 0 9px; font-size: 11px; }
+  .direct-date { height: 44px; flex: 0 0 124px; border-left: 0; padding-left: 0; }
   .direct-date span { display: none; }
-  .direct-date input { width: 38px; max-width: 38px; border: 1px solid #cfc5b6; border-radius: 999px; padding: 0; color: transparent; font-size: 0; }
+  .direct-date input { width: 124px; max-width: 124px; height: 44px; border: 1px solid #cfc5b6; border-radius: 999px; padding: 0 10px; color: var(--ink); font-size: 12px; }
 
   .explorer-grid { position: relative; display: block; flex: 1 1 auto; min-height: 0; overflow: hidden; }
   .map-stage { position: absolute; inset: 0; min-height: 0; }
   .map-legend { display: none; }
   .location-control { top: 10px; right: 10px; }
   .location-button span { display: none; }
-  .location-button { width: 40px; justify-content: center; padding: 0; }
+  .location-button { width: 44px; height: 44px; justify-content: center; padding: 0; }
   .list-pane, .detail-pane { display: none !important; }
   .list-heading { position: static; }
   .mobile-market-sheet { position: absolute; z-index: 70; right: 0; bottom: 0; left: 0; display: flex; max-height: calc(100% - 12px); flex-direction: column; overflow: hidden; border-radius: 18px 18px 0 0; background: var(--panel); box-shadow: 0 -10px 40px rgb(49 39 29 / 22%); transition: height 180ms ease-out; }
   .mobile-market-sheet[data-snap="collapsed"] { height: 164px; }
   .mobile-market-sheet[data-snap="half"] { height: 49%; }
   .mobile-market-sheet[data-snap="full"] { height: 88%; }
-  .mobile-market-sheet-handle { display: grid; width: 100%; min-height: 32px; flex: 0 0 32px; place-items: center; border: 0; background: transparent; touch-action: none; }
+  .mobile-market-sheet-handle { display: grid; width: 100%; min-height: 44px; flex: 0 0 44px; place-items: center; border: 0; background: transparent; touch-action: none; }
   .mobile-market-sheet-grip { display: block; width: 38px; height: 4px; border-radius: 99px; background: #d4cabe; }
   .mobile-market-sheet-heading { display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: 8px; padding: 0 16px; }
   .mobile-market-sheet-heading h2 { min-width: 0; margin: 0; overflow: hidden; font-family: Georgia, "Noto Serif KR", serif; font-size: 18px; text-overflow: ellipsis; white-space: nowrap; }
-  .mobile-market-sheet-expand-button, .mobile-market-sheet-map-button { min-height: 40px; border: 0; border-radius: 999px; padding: 0 11px; background: var(--persimmon-soft); color: var(--persimmon-dark); font-size: 11px; font-weight: 800; white-space: nowrap; }
+  .mobile-market-sheet-expand-button, .mobile-market-sheet-map-button { min-height: 44px; border: 0; border-radius: 999px; padding: 0 11px; background: var(--persimmon-soft); color: var(--persimmon-dark); font-size: 11px; font-weight: 800; white-space: nowrap; }
   .mobile-market-sheet-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
   .mobile-market-sheet-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 16px calc(22px + env(safe-area-inset-bottom)); }
   .mobile-market-sheet-content .list-heading { margin: 0 -16px; border-top: 1px solid var(--soft-line); border-bottom: 1px solid var(--soft-line); padding: 12px 16px; background: var(--panel); }

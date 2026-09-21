@@ -63,6 +63,9 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   const [sheetSnap, setSheetSnap] = useState<SheetSnap>("half");
   const [sheetMode, setSheetMode] = useState<SheetMode>(resolvedInitial.selectedId ? "detail" : "results");
   const previousSheetSnap = useRef<SheetSnap>("half");
+  const selectedOriginId = useRef<string | null>(null);
+  const resultScrollTop = useRef(0);
+  const mobileSheetContentRef = useRef<HTMLDivElement | null>(null);
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
   const [hasRestoredUrl, setHasRestoredUrl] = useState(false);
   const [mapStatus, setMapStatus] = useState<"idle" | "loading" | "ready" | "error">(mapClientId ? "idle" : "error");
@@ -91,6 +94,9 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   useEffect(() => {
     if (!isPending && selectedId && !filteredMarkets.some((market) => market.id === selectedId)) {
       setSelectedId(null);
+      setSheetMode("results");
+      setSheetSnap("half");
+      selectedOriginId.current = null;
     }
   }, [filteredMarkets, isPending, selectedId]);
 
@@ -113,20 +119,49 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
     if (mode === "date") params.set("date", directDate);
     if (selectedId) params.set("market", selectedId);
     const suffix = params.toString();
-    window.history.replaceState(null, "", suffix ? `/?${suffix}` : "/");
+    const nextState = { ...(window.history.state ?? {}) } as Record<string, unknown>;
+    if (selectedId) nextState.mobileMarket = selectedId;
+    else delete nextState.mobileMarket;
+    window.history.replaceState(nextState, "", suffix ? `/?${suffix}` : "/");
   }, [directDate, hasRestoredUrl, mode, query, selectedId]);
+
+  const restoreResultContext = useCallback(() => {
+    const originId = selectedOriginId.current;
+    window.requestAnimationFrame(() => {
+      if (mobileSheetContentRef.current) mobileSheetContentRef.current.scrollTop = resultScrollTop.current;
+      if (originId) {
+        const origin = Array.from(document.querySelectorAll<HTMLElement>(".mobile-market-sheet [data-market-id]"))
+          .find(
+          (element) => element.dataset.marketId === originId,
+          );
+        origin?.focus();
+      }
+      selectedOriginId.current = null;
+    });
+  }, []);
 
   const selectMarket = useCallback((market: PublicMarket) => {
     previousSheetSnap.current = sheetSnap;
+    selectedOriginId.current = market.id;
+    resultScrollTop.current = mobileSheetContentRef.current?.scrollTop ?? 0;
+    const params = new URLSearchParams(window.location.search);
+    params.set("market", market.id);
+    window.history.pushState({ ...(window.history.state ?? {}), mobileMarket: market.id }, "", `/?${params.toString()}`);
     setSelectedId(market.id);
     setSheetMode("detail");
     setSheetSnap("half");
   }, [sheetSnap]);
   const closeMarket = useCallback(() => {
+    const selected = selectedOriginId.current;
+    if (selected && window.history.state?.mobileMarket === selected) {
+      window.history.back();
+      return;
+    }
     setSelectedId(null);
     setSheetMode("results");
     setSheetSnap(previousSheetSnap.current);
-  }, []);
+    restoreResultContext();
+  }, [restoreResultContext]);
   const resetFilters = () => {
     setQuery("");
     setMode("week");
@@ -148,6 +183,24 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
     setSheetMode("detail");
     setSheetSnap("half");
   }, [hasRestoredUrl, selectedId]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const marketId = new URLSearchParams(window.location.search).get("market");
+      if (marketId) {
+        setSelectedId(marketId);
+        setSheetMode("detail");
+        setSheetSnap("half");
+        return;
+      }
+      setSelectedId(null);
+      setSheetMode("results");
+      setSheetSnap(previousSheetSnap.current);
+      restoreResultContext();
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [restoreResultContext]);
 
   const listHeading = (
     <div className="list-heading">
@@ -250,6 +303,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
             onModeChange={setSheetMode}
             title={sheetMode === "detail" && selectedMarket ? `${selectedMarket.name} 상세` : `${filteredMarkets.length}곳 시장 결과`}
             describedBy="mobile-market-sheet-status"
+            contentRef={mobileSheetContentRef}
           >
             {sheetMode === "detail" ? (
               <MarketDetail market={selectedMarket} today={today} onClose={closeMarket} />

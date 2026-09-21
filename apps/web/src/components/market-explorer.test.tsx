@@ -188,7 +188,7 @@ describe("MarketExplorer", () => {
     const user = userEvent.setup();
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
-    await user.click(await screen.findByRole("link", { name: /운천전통시장/ }));
+    await user.click((await screen.findAllByRole("link", { name: /운천전통시장/ }))[0]);
     const timeline = screen.getByRole("list", { name: "오늘부터 7일간 장날" });
     const dates = within(timeline).getAllByRole("listitem");
 
@@ -205,7 +205,7 @@ describe("MarketExplorer", () => {
     const user = userEvent.setup();
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
-    await user.click(await screen.findByRole("link", { name: /운천전통시장/ }));
+    await user.click((await screen.findAllByRole("link", { name: /운천전통시장/ }))[0]);
 
     expect(screen.getByRole("heading", { level: 3, name: "온누리상품권" })).toBeInTheDocument();
     expect(screen.getByText("가맹점 총 83곳")).toBeInTheDocument();
@@ -232,6 +232,27 @@ describe("MarketExplorer", () => {
 
     await waitFor(() => expect(screen.queryByRole("heading", { name: "운천전통시장" })).not.toBeInTheDocument());
     await waitFor(() => expect(window.location.search).not.toContain("market=uncheon"));
+  });
+
+  it("returns the mobile sheet to results when a filter excludes the selected market", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("matchMedia", vi.fn((query: string) => ({
+      matches: query === "(max-width: 700px)",
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })));
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    await user.click((await screen.findAllByRole("link", { name: /운천전통시장/ }))[0]);
+    await user.type(screen.getByRole("searchbox", { name: "시장명 또는 지역 검색" }), "평택");
+
+    await waitFor(() => expect(screen.queryByRole("article", { name: /운천전통시장/ })).not.toBeInTheDocument());
+    expect(within(screen.getByRole("region", { name: /시장 결과/ })).getByText("통복시장")).toBeInTheDocument();
   });
 
   it("restores search, date mode, and selected market from the URL", async () => {

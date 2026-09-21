@@ -35,6 +35,7 @@ export function MarketList({ markets, referenceDate, selectedId, onSelect, onRes
         <li key={market.id}>
           <a
             href={getMarketPagePath(market)}
+            data-market-id={market.id}
             className="market-list-item"
             aria-current={market.id === selectedId ? "true" : undefined}
             onClick={(event) => {

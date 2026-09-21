@@ -61,4 +61,48 @@ describe("MarketMap current location", () => {
     expect(panTo).not.toHaveBeenCalled();
     expect(setZoom).not.toHaveBeenCalled();
   });
+
+  it("reports denied location permission so the parent can focus region search", async () => {
+    class FakeMap {
+      getZoom = () => 7;
+      getBounds = () => ({
+        getNE: () => ({ lat: () => 38, lng: () => 130 }),
+        getSW: () => ({ lat: () => 33, lng: () => 124 }),
+      });
+    }
+    class FakeLatLng {}
+    class FakeMarker { setMap = vi.fn(); }
+    class FakePoint {}
+    window.naver = {
+      maps: {
+        Map: FakeMap,
+        LatLng: FakeLatLng,
+        Marker: FakeMarker,
+        Point: FakePoint,
+        Event: { addListener: () => ({}), removeListener: () => undefined },
+      },
+    } as unknown as NaverMapsNamespace;
+    const getCurrentPosition = vi.fn((_success: PositionCallback, failure: PositionErrorCallback) => failure({
+      code: 1,
+      message: "denied",
+    } as GeolocationPositionError));
+    vi.stubGlobal("navigator", { geolocation: { getCurrentPosition } });
+    const onLocationError = vi.fn();
+
+    render(<MarketMap
+      markets={[]}
+      referenceDate={new Date(2026, 8, 7)}
+      selectedId={null}
+      clientId="test-client-id"
+      onSelect={() => undefined}
+      onLocationChange={() => undefined}
+      onLocationError={onLocationError}
+    />);
+
+    const button = screen.getByRole("button", { name: "현재 위치로 이동" });
+    await waitFor(() => expect(button).toBeEnabled());
+    await userEvent.click(button);
+
+    expect(onLocationError).toHaveBeenCalledWith(expect.stringContaining("위치 권한"), true);
+  });
 });

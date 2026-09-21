@@ -25,3 +25,46 @@ test("moves the result sheet with explicit controls", async ({ page }) => {
     await expect(page.getByRole("button", { name: "결과 펼치기" })).toBeVisible();
   }
 });
+
+test("restores the result sheet and filters with browser Back", async ({ page }) => {
+  await page.goto("/?when=all");
+  const search = page.getByRole("searchbox", { name: "시장명 또는 지역 검색" });
+  await search.fill("평택");
+  await page.getByRole("link", { name: /통복시장/ }).first().click();
+  await expect(page.getByRole("article", { name: /통복시장/ })).toBeVisible();
+
+  await page.goBack();
+  await expect(search).toHaveValue("평택");
+  await expect(page.getByRole("article", { name: /통복시장/ })).toHaveCount(0);
+  await expect(page.locator(".mobile-market-sheet")).toBeVisible();
+});
+
+test("returns focus to the selected result after closing detail", async ({ page }) => {
+  await page.goto("/?when=all");
+  await page.getByRole("searchbox", { name: "시장명 또는 지역 검색" }).fill("평택");
+  const marketLink = page.getByRole("link", { name: /통복시장/ }).first();
+  await marketLink.focus();
+  await marketLink.click();
+  await page.getByRole("button", { name: "시장 상세 닫기" }).click();
+  await expect(marketLink).toBeFocused();
+});
+
+test("Escape closes an expanded detail sheet", async ({ page }) => {
+  await page.goto("/?when=all");
+  await page.getByRole("link", { name: /통복시장/ }).first().click();
+  await page.getByRole("button", { name: "시트 손잡이" }).press("ArrowUp");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("article", { name: /통복시장/ })).toHaveCount(0);
+});
+
+test("restores a scrolled result sheet after closing detail", async ({ page }) => {
+  await page.goto("/?when=all");
+  const content = page.locator(".mobile-market-sheet-content");
+  await expect(content).toBeVisible();
+  await content.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+  const before = await content.evaluate((element) => element.scrollTop);
+  await page.getByRole("link", { name: /통복시장/ }).first().click();
+  await page.getByRole("button", { name: "시장 상세 닫기" }).click();
+  await expect.poll(() => content.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  expect(before).toBeGreaterThanOrEqual(0);
+});

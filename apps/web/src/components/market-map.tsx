@@ -119,7 +119,7 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, onSele
         setLocationMessage("현재 위치로 이동했어요.");
       },
       (error) => {
-        const permissionDenied = error.code === error.PERMISSION_DENIED;
+        const permissionDenied = error.code === 1;
         const message = permissionDenied
           ? "위치 권한이 필요해요. 브라우저 설정에서 허용한 뒤 다시 시도해 주세요."
           : "현재 위치를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.";

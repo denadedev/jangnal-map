@@ -475,12 +475,13 @@ a { color: inherit; text-decoration: none; }
   .market-filters { position: relative; top: auto; grid-template-columns: 1fr; gap: 9px; flex: 0 0 auto; min-height: auto; padding: 10px 12px 11px; }
   .search-field { height: 48px; }
   .search-field input { font-size: 16px; }
-  .date-filter-row { min-width: 0; flex-wrap: nowrap; gap: 7px; overflow: hidden; }
-  .filter-pills { min-width: 0; flex: 1 1 auto; gap: 5px; overflow-x: auto; padding-bottom: 2px; }
+  .date-filter-row { min-width: 0; flex-wrap: wrap; gap: 7px; overflow: visible; }
+  .filter-pills { width: 100%; min-width: 0; flex: 1 1 100%; gap: 5px; overflow-x: auto; padding-bottom: 2px; }
   .filter-pill { height: 44px; flex: 0 0 auto; padding: 0 9px; font-size: 11px; }
-  .direct-date { height: 44px; flex: 0 0 124px; border-left: 0; padding-left: 0; }
+  .direct-date { display: none; height: 44px; flex: 0 0 100%; border-left: 0; padding-left: 0; }
+  .direct-date.is-visible { display: flex; }
   .direct-date span { display: none; }
-  .direct-date input { width: 124px; max-width: 124px; height: 44px; border: 1px solid #cfc5b6; border-radius: 999px; padding: 0 10px; color: var(--ink); font-size: 12px; }
+  .direct-date input { width: 100%; max-width: none; height: 44px; border: 1px solid #cfc5b6; border-radius: 999px; padding: 0 10px; color: var(--ink); font-size: 12px; }
 
   .explorer-grid { position: relative; display: block; flex: 1 1 auto; min-height: 0; overflow: hidden; }
   .map-stage { position: absolute; inset: 0; min-height: 0; }

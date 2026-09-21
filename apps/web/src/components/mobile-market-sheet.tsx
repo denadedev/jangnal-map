@@ -14,6 +14,7 @@ export interface MobileMarketSheetProps {
   title: string;
   describedBy?: string;
   contentRef?: RefObject<HTMLDivElement | null>;
+  onHeightChange?: (height: number) => void;
 }
 
 const snaps: SheetSnap[] = ["collapsed", "half", "full"];
@@ -33,9 +34,21 @@ export function MobileMarketSheet({
   title,
   describedBy,
   contentRef,
+  onHeightChange,
 }: MobileMarketSheetProps) {
   const dragStartY = useRef<number | null>(null);
   const sheetRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const sheet = sheetRef.current;
+    if (!sheet || !onHeightChange) return;
+    const reportHeight = () => onHeightChange(sheet.getBoundingClientRect().height);
+    reportHeight();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(reportHeight);
+    observer.observe(sheet);
+    return () => observer.disconnect();
+  }, [onHeightChange]);
 
   useEffect(() => {
     if (mode !== "detail" || snap !== "full" || !sheetRef.current) return;

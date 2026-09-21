@@ -70,6 +70,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   const [hasRestoredUrl, setHasRestoredUrl] = useState(false);
   const [mapStatus, setMapStatus] = useState<"idle" | "loading" | "ready" | "error">(mapClientId ? "idle" : "error");
   const [isMobile, setIsMobile] = useState(false);
+  const [mobileSheetHeight, setMobileSheetHeight] = useState(0);
   const { data: markets = [], isPending, isError, refetch } = useQuery({
     queryKey: ["public-markets"],
     queryFn: fetchMarkets,
@@ -285,6 +286,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
           referenceDate={referenceDate}
           selectedId={selectedId}
           clientId={mapClientId}
+          mobileSheetHeight={isMobile ? mobileSheetHeight : 0}
           onSelect={selectMarket}
           onLocationChange={setCurrentLocation}
           onStatusChange={handleMapStatus}
@@ -304,6 +306,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
             title={sheetMode === "detail" && selectedMarket ? `${selectedMarket.name} 상세` : `${filteredMarkets.length}곳 시장 결과`}
             describedBy="mobile-market-sheet-status"
             contentRef={mobileSheetContentRef}
+            onHeightChange={setMobileSheetHeight}
           >
             {sheetMode === "detail" ? (
               <MarketDetail market={selectedMarket} today={today} onClose={closeMarket} />

@@ -24,9 +24,26 @@ const market: PublicMarket = {
 };
 
 describe("MarketList", () => {
-  it("links every market name to its canonical detail page", () => {
+  it("uses the home selection URL for an unreviewed market", () => {
     render(<MarketList
       markets={[market]}
+      referenceDate={new Date(2026, 8, 7)}
+      selectedId={null}
+      onSelect={() => undefined}
+      onReset={() => undefined}
+      currentLocation={null}
+    />);
+
+    expect(screen.getByRole("link", { name: /가까운시장/ })).toHaveAttribute(
+      "href",
+      "/?when=all&market=nearby",
+    );
+  });
+
+  it("uses the canonical detail page for a reviewed market", () => {
+    render(<MarketList
+      markets={[market]}
+      reviewedMarketIds={new Set([market.id])}
       referenceDate={new Date(2026, 8, 7)}
       selectedId={null}
       onSelect={() => undefined}

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-quer
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
+import { getMarketBrowsePath } from "../lib/market-path";
 import { filterMarkets, getDateRange, normalizeDirectDate, sortMarketsByDistance, toIsoDate, type Coordinates } from "../lib/market-view";
 import { MobileAppBar } from "./mobile-app-bar";
 import { MobileMarketSheet, type SheetMode, type SheetSnap } from "./mobile-market-sheet";
@@ -23,6 +24,7 @@ interface MarketExplorerProps {
   today?: Date;
   mapClientId?: string;
   initialState?: ExplorerInitialState;
+  reviewedMarketIds?: string[];
 }
 
 const validModes = new Set<DateFilterMode>(["all", "today", "week", "weekend", "date"]);
@@ -48,7 +50,10 @@ async function fetchMarkets(): Promise<PublicMarket[]> {
   return data as PublicMarket[];
 }
 
-function MarketExplorerContent({ today: providedToday, mapClientId = "", initialState }: MarketExplorerProps) {
+const emptyReviewedMarketIds: string[] = [];
+
+function MarketExplorerContent({ today: providedToday, mapClientId = "", initialState, reviewedMarketIds = emptyReviewedMarketIds }: MarketExplorerProps) {
+  const reviewedMarketIdSet = useMemo(() => new Set(reviewedMarketIds), [reviewedMarketIds]);
   const [today, setToday] = useState(() => providedToday ?? staticRenderDate);
   const resolvedInitial = useMemo(() => {
     const rawState = initialState ?? {};
@@ -229,6 +234,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   ) : (
     <MarketList
       markets={listedMarkets}
+      reviewedMarketIds={reviewedMarketIdSet}
       referenceDate={referenceDate}
       selectedId={selectedId}
       onSelect={selectMarket}
@@ -298,7 +304,12 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
         />
 
         <aside className="detail-pane" aria-live="polite">
-          <MarketDetail market={selectedMarket} today={today} onClose={closeMarket} />
+          <MarketDetail
+            market={selectedMarket}
+            sharePath={selectedMarket ? getMarketBrowsePath(selectedMarket, reviewedMarketIdSet.has(selectedMarket.id)) : undefined}
+            today={today}
+            onClose={closeMarket}
+          />
         </aside>
 
         {isMobile ? (
@@ -314,7 +325,12 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
             onClose={closeMarketToMap}
           >
             {sheetMode === "detail" ? (
-              <MarketDetail market={selectedMarket} today={today} onClose={closeMarket} />
+              <MarketDetail
+                market={selectedMarket}
+                sharePath={selectedMarket ? getMarketBrowsePath(selectedMarket, reviewedMarketIdSet.has(selectedMarket.id)) : undefined}
+                today={today}
+                onClose={closeMarket}
+              />
             ) : (
               <div className="mobile-market-results" data-map-status={mapStatus}>
                 {listHeading}

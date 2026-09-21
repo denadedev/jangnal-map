@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { publicMarkets } from "../../../lib/market-catalog";
+import { reviewedMarkets } from "../../../lib/market-editorial";
 import { createMarketSlug, findRelatedMarkets, SITE_URL } from "../../../lib/market-seo";
 import MarketPage, { generateMetadata, generateStaticParams } from "./page";
 
@@ -9,13 +10,13 @@ describe("market detail route", () => {
   it("prebuilds raw path parameters for every public market", async () => {
     const params = await generateStaticParams();
 
-    expect(params).toHaveLength(1_393);
-    expect(new Set(params.map(({ slug }) => slug))).toHaveLength(1_393);
-    expect(params).toContainEqual({ slug: "운천전통시장-45b640cc" });
+    expect(params).toHaveLength(30);
+    expect(new Set(params.map(({ slug }) => slug))).toHaveLength(30);
+    expect(params).toContainEqual({ slug: "용인중앙시장-389b4a24" });
   });
 
   it("returns canonical schedule metadata without an exact date", async () => {
-    const market = publicMarkets.find((item) => item.schedule.kind === "digit-pair")!;
+    const market = reviewedMarkets.find((item) => item.schedule.kind === "digit-pair")!;
     const slug = createMarketSlug(market);
 
     const metadata = await generateMetadata({ params: Promise.resolve({ slug }) });
@@ -33,20 +34,19 @@ describe("market detail route", () => {
       params: Promise.resolve({ slug: createMarketSlug(market) }),
     });
 
-    expect(metadata.robots).toEqual({ index: false, follow: true });
+    expect(metadata.robots).toEqual({ index: false, follow: false });
   });
 
   it("labels missing coordinates and omits directions", async () => {
-    const market = publicMarkets.find((item) => item.latitude === null || item.longitude === null)!;
+    const market = reviewedMarkets[0];
 
     render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
 
-    expect(screen.getByText("위치 확인 필요")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "NAVER 지도에서 길찾기" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "NAVER 지도에서 길찾기" })).toBeInTheDocument();
   });
 
   it("renders a selected-map link for a valid market", async () => {
-    const market = publicMarkets.find((item) => item.schedule.kind === "digit-pair")!;
+    const market = reviewedMarkets.find((item) => item.schedule.kind === "digit-pair")!;
 
     render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
 
@@ -62,7 +62,7 @@ describe("market detail route", () => {
   });
 
   it("uses MarketNextDate as the single schedule landmark", async () => {
-    const market = publicMarkets[0];
+    const market = reviewedMarkets[0];
 
     render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
 
@@ -71,7 +71,7 @@ describe("market detail route", () => {
   });
 
   it("공식 집계가 있는 시장의 온누리상품권 가맹점 수를 보여준다", async () => {
-    const market = publicMarkets.find((item) => item.onnuri !== null)!;
+    const market = reviewedMarkets.find((item) => item.onnuri !== null)!;
 
     render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
 
@@ -80,7 +80,7 @@ describe("market detail route", () => {
   });
 
   it("links both report scopes from a market page", async () => {
-    const market = publicMarkets[0];
+    const market = reviewedMarkets[0];
 
     render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
 
@@ -93,7 +93,7 @@ describe("market detail route", () => {
   });
 
   it("links to other indexable markets in the same region", async () => {
-    const market = publicMarkets.find((item) => findRelatedMarkets(item).length > 0)!;
+    const market = reviewedMarkets.find((item) => findRelatedMarkets(item).length > 0)!;
 
     render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
 

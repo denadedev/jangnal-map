@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import nextConfig from "../../next.config";
 import { publicMarkets } from "../lib/market-catalog";
+import { reviewedMarkets } from "../lib/market-editorial";
 import { getMarketPagePath, isMarketIndexable, SITE_URL } from "../lib/market-seo";
 import { metadata } from "./layout";
 import robots from "./robots";
@@ -11,12 +12,12 @@ describe("SEO metadata routes", () => {
   it("publishes exactly every indexable market with unique canonical URLs", () => {
     const entries = sitemap();
     const urls = entries.map(({ url }) => url);
-    const indexableUrls = publicMarkets
+    const indexableUrls = reviewedMarkets
       .filter(isMarketIndexable)
       .map((market) => `${SITE_URL}${getMarketPagePath(market)}`)
       .sort();
 
-    expect(entries).toHaveLength(1_393);
+    expect(entries).toHaveLength(32);
     expect(new Set(urls)).toHaveLength(entries.length);
     expect(urls.sort()).toEqual([SITE_URL, `${SITE_URL}/onnuri`, ...indexableUrls].sort());
     expect(urls).not.toContain(`${SITE_URL}/markets/삽교시장-09e8d20c`);
@@ -41,12 +42,12 @@ describe("SEO metadata routes", () => {
   it("uses durable catalog metadata for periodic and daily sitemap entries", () => {
     const entries = sitemap();
 
-    expect(entries.find(({ url }) => url === `${SITE_URL}/markets/운천전통시장-45b640cc`)).toMatchObject({
+    expect(entries.find(({ url }) => url === `${SITE_URL}/markets/용인중앙시장-389b4a24`)).toMatchObject({
       lastModified: "2025-11-10",
       changeFrequency: "monthly",
       priority: 0.8,
     });
-    expect(entries.find(({ url }) => url === `${SITE_URL}/markets/성정시장-da2941e1`)).toMatchObject({
+    expect(entries.find(({ url }) => url === `${SITE_URL}/markets/광명전통시장-d8d1a37e`)).toMatchObject({
       lastModified: "2025-11-10",
       changeFrequency: "monthly",
       priority: 0.6,

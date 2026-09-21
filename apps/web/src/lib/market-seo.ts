@@ -1,6 +1,7 @@
 import type { PublicMarket } from "./market";
 import { formatScheduleDates, formatSchedulePattern } from "./market-view";
 import { publicMarkets } from "./market-catalog";
+import { reviewedMarketIds } from "./market-editorial";
 import { createMarketSlug } from "./market-path";
 
 export { createMarketSlug, getMarketPagePath } from "./market-path";
@@ -18,7 +19,7 @@ export function findMarketBySlug(slug: string): PublicMarket | undefined {
 }
 
 export function isMarketIndexable(market: PublicMarket): boolean {
-  return market.status === "운영" && market.schedule.kind !== "unknown";
+  return market.status === "운영" && market.schedule.kind !== "unknown" && reviewedMarketIds.has(market.id);
 }
 
 export function findRelatedMarkets(market: PublicMarket, limit = 6): PublicMarket[] {

@@ -15,3 +15,9 @@ export function createMarketSlug(market: PublicMarket): string {
 export function getMarketPagePath(market: PublicMarket): string {
   return `/markets/${createMarketSlug(market)}`;
 }
+
+export function getMarketBrowsePath(market: PublicMarket, reviewed: boolean): string {
+  return reviewed
+    ? getMarketPagePath(market)
+    : `/?when=all&market=${encodeURIComponent(market.id)}`;
+}

@@ -1,4 +1,5 @@
 import { MarketExplorer } from "../components/market-explorer";
+import { reviewedMarketIds } from "../lib/market-editorial";
 import { SITE_URL } from "../lib/market-seo";
 
 const websiteJsonLd = {
@@ -16,7 +17,10 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c") }}
       />
-      <MarketExplorer mapClientId={process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID ?? ""} />
+      <MarketExplorer
+        mapClientId={process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID ?? ""}
+        reviewedMarketIds={[...reviewedMarketIds]}
+      />
     </>
   );
 }

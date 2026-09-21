@@ -6,6 +6,7 @@ import { OnnuriSummary } from "./onnuri-summary";
 
 interface MarketDetailProps {
   market: PublicMarket | null;
+  sharePath?: string;
   today: Date;
   onClose: () => void;
 }
@@ -26,7 +27,7 @@ const datesThrough = (start: Date, end: Date): Date[] => {
   return dates;
 };
 
-export function MarketDetail({ market, today, onClose }: MarketDetailProps) {
+export function MarketDetail({ market, sharePath, today, onClose }: MarketDetailProps) {
   if (!market) {
     return (
       <div className="detail-placeholder">
@@ -121,7 +122,7 @@ export function MarketDetail({ market, today, onClose }: MarketDetailProps) {
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5 10 14M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></svg>
             </a>
           ) : null}
-          <MarketShareButton market={market} today={today} className="market-action-secondary" />
+          <MarketShareButton market={market} sharePath={sharePath} today={today} className="market-action-secondary" />
         </div>
       </section>
 

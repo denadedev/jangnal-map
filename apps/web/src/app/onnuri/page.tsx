@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { MobileAppBar } from "../../components/mobile-app-bar";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -18,7 +19,8 @@ export const metadata: Metadata = {
 export default function OnnuriPage() {
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
+      <MobileAppBar title="온누리상품권" backHref="/" />
+      <header className={`${styles.header} desktop-route-header`}>
         <a className={styles.brand} href="/">오늘 장날</a>
         <nav aria-label="보조 메뉴">
           <a href="/?when=all">전국 지도</a>

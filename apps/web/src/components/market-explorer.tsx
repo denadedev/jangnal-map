@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
 import { filterMarkets, getDateRange, normalizeDirectDate, sortMarketsByDistance, toIsoDate, type Coordinates } from "../lib/market-view";
-import { InstallPrompt } from "./install-prompt";
+import { MobileAppBar } from "./mobile-app-bar";
 import { MarketDetail } from "./market-detail";
 import { MarketFilters, type DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
@@ -120,6 +120,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
 
   return (
     <main className="explorer-shell">
+      <MobileAppBar />
       <header className="app-header">
         <a className="brand" href="/" aria-label="오늘 장날 홈">
           <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
@@ -131,8 +132,6 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
           <a className="feedback-link" href="/report?kind=service">불편 신고</a>
         </div>
       </header>
-
-      <InstallPrompt />
 
       <MarketFilters
         mode={mode}

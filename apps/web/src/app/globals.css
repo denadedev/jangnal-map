@@ -65,6 +65,38 @@ a { color: inherit; text-decoration: none; }
   background: var(--panel);
 }
 
+.mobile-app-bar { display: none; }
+
+.mobile-menu-backdrop {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  background: rgb(37 35 31 / 34%);
+}
+
+.mobile-menu-dialog {
+  width: min(330px, calc(100% - 24px));
+  min-height: 100%;
+  overflow-y: auto;
+  padding: calc(18px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: -12px 0 34px rgb(49 39 29 / 18%);
+}
+
+.mobile-menu-heading { display: flex; min-height: 48px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.mobile-menu-heading strong { font-family: Georgia, "Noto Serif KR", serif; font-size: 19px; }
+.mobile-menu-close { display: grid; width: 44px; height: 44px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--ink); font-size: 25px; }
+.mobile-menu-link { display: flex; min-height: 52px; align-items: center; border-bottom: 1px solid var(--soft-line); font-size: 14px; font-weight: 750; }
+.mobile-menu-install { margin-top: 20px; border-radius: 9px; padding: 15px; background: var(--persimmon-soft); }
+.mobile-menu-install strong { display: block; color: var(--persimmon-dark); font-size: 13px; }
+.mobile-menu-install p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.mobile-menu-install-guide { color: var(--persimmon-dark) !important; font-weight: 700; }
+.mobile-menu-install-action { min-height: 42px; margin-top: 11px; border: 1px solid var(--persimmon); border-radius: 5px; padding: 0 13px; background: var(--panel); color: var(--persimmon-dark); font-size: 12px; font-weight: 800; }
+.mobile-menu-dismiss { display: block; min-height: 38px; margin-top: 5px; border: 0; padding: 0; background: transparent; color: var(--muted); font-size: 11px; text-decoration: underline; text-underline-offset: 3px; }
+
 .brand { display: inline-flex; align-items: center; gap: 11px; }
 .brand > span:last-child { display: flex; flex-direction: column; gap: 1px; }
 
@@ -421,7 +453,16 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (max-width: 700px) {
+  .desktop-route-header { display: none !important; }
   .explorer-shell { height: auto; min-height: 100dvh; overflow: visible; }
+  .app-header { display: none; }
+  .mobile-app-bar { display: flex; min-height: calc(59px + env(safe-area-inset-top)); align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--line); padding: env(safe-area-inset-top) 12px 0 16px; background: var(--panel); }
+  .mobile-app-bar-brand { display: inline-flex; min-width: 0; align-items: center; gap: 8px; font-family: Georgia, "Noto Serif KR", serif; font-size: 18px; font-weight: 800; }
+  .mobile-app-bar-brand > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-app-bar-mark { display: grid; width: 33px; height: 33px; place-items: center; border-radius: 50%; background: var(--persimmon); color: #fff7e9; font-family: Georgia, serif; font-size: 15px; }
+  .mobile-app-bar-back { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; color: var(--ink); font-size: 23px; }
+  .mobile-app-bar-back + .mobile-app-bar-brand { margin-left: -3px; }
+  .mobile-app-bar-menu { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--ink); font-size: 20px; }
   .app-header { min-height: 59px; padding: 0 16px; }
   .brand-mark { width: 33px; height: 33px; }
   .brand h1 { font-size: 18px; }

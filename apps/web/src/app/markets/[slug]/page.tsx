@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { MarketNextDate } from "../../../components/market-next-date";
 import { MarketShareButton } from "../../../components/market-share-button";
+import { MobileAppBar } from "../../../components/mobile-app-bar";
 import { OnnuriSummary } from "../../../components/onnuri-summary";
 import { publicMarkets } from "../../../lib/market-catalog";
 import {
@@ -90,7 +91,8 @@ export default async function MarketPage({ params }: MarketPageProps) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
+      <MobileAppBar title="시장 정보" backHref={mapHref} />
+      <header className={`${styles.header} desktop-route-header`}>
         <a href="/">오늘 장날</a>
         <nav aria-label="보조 메뉴">
           <a href="/onnuri">온누리상품권</a>

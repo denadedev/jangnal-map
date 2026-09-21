@@ -2,7 +2,8 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { InstallPrompt } from "./install-prompt";
+import { MobileMenu } from "./mobile-menu";
+import { useInstallPrompt } from "./install-prompt";
 
 const setMobileBrowser = (userAgent: string, standalone = false) => {
   Object.defineProperty(window.navigator, "userAgent", { configurable: true, value: userAgent });
@@ -19,7 +20,22 @@ const setMobileBrowser = (userAgent: string, standalone = false) => {
   })));
 };
 
-describe("InstallPrompt", () => {
+function InstallMenuHarness() {
+  const { platform, install, showIosGuide, iosGuide, dismiss } = useInstallPrompt();
+  return (
+    <MobileMenu
+      open
+      onClose={() => undefined}
+      installPlatform={platform}
+      installAction={install}
+      onShowIosGuide={showIosGuide}
+      iosGuide={iosGuide}
+      onDismissInstall={dismiss}
+    />
+  );
+}
+
+describe("useInstallPrompt", () => {
   beforeEach(() => window.localStorage.clear());
 
   afterEach(() => vi.unstubAllGlobals());
@@ -29,35 +45,35 @@ describe("InstallPrompt", () => {
     const prompt = vi.fn().mockResolvedValue(undefined);
     const userChoice = Promise.resolve({ outcome: "accepted", platform: "web" });
     setMobileBrowser("Mozilla/5.0 (Linux; Android 15) Chrome/140 Mobile");
-    render(<InstallPrompt />);
+    render(<InstallMenuHarness />);
 
     const event = Object.assign(new Event("beforeinstallprompt", { cancelable: true }), { prompt, userChoice });
     act(() => window.dispatchEvent(event));
     await user.click(screen.getByRole("button", { name: "추가하기" }));
 
     expect(prompt).toHaveBeenCalledOnce();
-    expect(screen.queryByRole("complementary", { name: "홈 화면 추가 안내" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "추가하기" })).not.toBeInTheDocument();
   });
 
   it("shows iPhone instructions and remembers dismissal", async () => {
     const user = userEvent.setup();
     setMobileBrowser("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit Mobile Safari");
-    const view = render(<InstallPrompt />);
+    const view = render(<InstallMenuHarness />);
 
     await user.click(screen.getByRole("button", { name: "추가 방법" }));
     expect(screen.getByText("Safari의 공유 버튼을 누른 뒤 ‘홈 화면에 추가’를 선택하세요.")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "14일 동안 닫기" }));
     view.unmount();
-    render(<InstallPrompt />);
+    render(<InstallMenuHarness />);
 
-    expect(screen.queryByRole("complementary", { name: "홈 화면 추가 안내" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "추가 방법" })).not.toBeInTheDocument();
   });
 
   it("stays hidden when already running from the home screen", () => {
     setMobileBrowser("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit Mobile Safari", true);
-    render(<InstallPrompt />);
+    render(<InstallMenuHarness />);
 
-    expect(screen.queryByRole("complementary", { name: "홈 화면 추가 안내" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "추가 방법" })).not.toBeInTheDocument();
   });
 });

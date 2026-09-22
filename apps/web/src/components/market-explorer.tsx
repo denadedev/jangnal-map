@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-quer
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
-import { getMarketBrowsePath } from "../lib/market-path";
+import { getMarketBrowsePath, getMarketPagePath } from "../lib/market-path";
 import { filterMarkets, getDateRange, normalizeDirectDate, sortMarketsByDistance, toIsoDate, type Coordinates } from "../lib/market-view";
 import { MobileAppBar } from "./mobile-app-bar";
 import { MobileMarketSheet, type SheetMode, type SheetSnap } from "./mobile-market-sheet";
@@ -311,6 +311,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
         <aside className="detail-pane" aria-live="polite">
           <MarketDetail
             market={selectedMarket}
+            detailPath={selectedMarket && reviewedMarketIdSet.has(selectedMarket.id) ? getMarketPagePath(selectedMarket) : undefined}
             sharePath={selectedMarket ? getMarketBrowsePath(selectedMarket, reviewedMarketIdSet.has(selectedMarket.id)) : undefined}
             today={today}
             onClose={closeMarket}
@@ -332,6 +333,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
             {sheetMode === "detail" ? (
               <MarketDetail
                 market={selectedMarket}
+                detailPath={selectedMarket && reviewedMarketIdSet.has(selectedMarket.id) ? getMarketPagePath(selectedMarket) : undefined}
                 sharePath={selectedMarket ? getMarketBrowsePath(selectedMarket, reviewedMarketIdSet.has(selectedMarket.id)) : undefined}
                 today={today}
                 onClose={closeMarket}

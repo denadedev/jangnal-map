@@ -9,6 +9,26 @@ test("finds a market through search and opens the mobile detail sheet", async ({
   await expect(page.getByRole("link", { name: /통복시장/ }).first()).toBeVisible();
 });
 
+test("opens a reviewed market's standalone page from the detail title", async ({ page }) => {
+  await page.goto("/?when=all");
+  await page.getByRole("searchbox", { name: "시장명 또는 지역 검색" }).fill("북평민속시장");
+  await page.locator(".mobile-market-sheet").getByRole("link", { name: /북평민속시장/ }).click();
+
+  const detail = page.getByRole("article", { name: "북평민속시장 상세정보" });
+  const titleLink = detail.getByRole("link", { name: "북평민속시장" });
+  await expect(titleLink).toHaveAttribute("href", /\/markets\/북평민속시장-/);
+  await expect(titleLink).toHaveCSS("text-decoration-line", "underline");
+  const underlineColor = await titleLink.evaluate((element) => getComputedStyle(element).textDecorationColor);
+  await titleLink.hover();
+  await expect.poll(() => titleLink.evaluate((element) => getComputedStyle(element).textDecorationColor))
+    .not.toBe(underlineColor);
+
+  await titleLink.click();
+
+  await expect(page.getByRole("heading", { level: 1, name: /북평민속시장/ })).toBeVisible();
+  expect(decodeURIComponent(new URL(page.url()).pathname)).toMatch(/^\/markets\/북평민속시장-/);
+});
+
 test("moves the result sheet with explicit controls", async ({ page }) => {
   await page.goto("/?when=all");
   const sheet = page.locator(".mobile-market-sheet");

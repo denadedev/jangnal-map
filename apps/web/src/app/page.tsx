@@ -1,8 +1,8 @@
 import { MarketExplorer } from "../components/market-explorer";
-import { reviewedMarketIds, reviewedMarkets } from "../lib/market-editorial";
+import { reviewedMarkets } from "../lib/market-editorial";
 import { formatSchedulePattern } from "../lib/market-view";
 import { getMarketPagePath } from "../lib/market-path";
-import { SITE_URL } from "../lib/market-seo";
+import { isMarketIndexable, SITE_URL } from "../lib/market-seo";
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
@@ -13,6 +13,8 @@ const websiteJsonLd = {
 };
 
 export default function HomePage() {
+  const indexableReviewedMarkets = reviewedMarkets.filter(isMarketIndexable);
+
   return (
     <>
       <script
@@ -21,8 +23,8 @@ export default function HomePage() {
       />
       <MarketExplorer
         mapClientId={process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID ?? ""}
-        reviewedMarketIds={[...reviewedMarketIds]}
-        reviewedGuides={reviewedMarkets.map((market) => ({
+        reviewedMarketIds={indexableReviewedMarkets.map((market) => market.id)}
+        reviewedGuides={indexableReviewedMarkets.map((market) => ({
           id: market.id,
           name: market.name,
           schedule: formatSchedulePattern(market),

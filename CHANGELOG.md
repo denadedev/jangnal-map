@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0.5] - 2026-09-22
+
+### Changed
+
+- Umami Analytics 사이트 식별자를 `kmarketday.com` 운영 추적용 값으로 교체합니다.
+
 ## [0.2.0.4] - 2026-09-22
 
 ### Changed

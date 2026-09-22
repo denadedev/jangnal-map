@@ -42,7 +42,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <script
           data-domains={SITE_HOST}
           data-exclude-search="true"
-          data-website-id="17d5f5df-067f-4606-82ba-a8471bf84d28"
+          data-website-id="43733c6d-a6fe-43e2-ae63-bc3860d7a8f8"
           defer
           src="https://analytics.spamfam.kr/script.js"
         />

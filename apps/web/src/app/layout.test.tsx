@@ -12,7 +12,7 @@ describe("Umami Analytics", () => {
     );
 
     expect(tracker?.getAttribute("data-website-id")).toBe(
-      "17d5f5df-067f-4606-82ba-a8471bf84d28",
+      "43733c6d-a6fe-43e2-ae63-bc3860d7a8f8",
     );
     expect(tracker?.getAttribute("data-domains")).toBe("kmarketday.com");
     expect(tracker?.getAttribute("data-exclude-search")).toBe("true");

@@ -91,16 +91,9 @@ describe("SEO metadata routes", () => {
 
   it("defines production root metadata defaults", () => {
     expect(metadata.metadataBase).toEqual(new URL("https://kmarketday.com"));
-    expect(metadata.verification?.google).toEqual([
-      "qLxSxOof1dITMeFrrNHReAC51FFUDTPDpCqKSpqJFgY",
-      "ETYT-jUzdfgO29SuYzFjB8xuh52yLKhHF6bSi1hrjm0",
-    ]);
+    expect(metadata.verification?.google).toBe("iTnI4yy_bzEL-eOrfqhBfEo6VusJEs7MgkVCrZpgV_U");
     expect(metadata.verification?.other).toEqual({
-      "naver-site-verification": [
-        "d7bf1253f88fe2410c22eb065f4af604dfccac18",
-        "d98fd747905c7cae55b86be4beb8dd7584935cc8",
-        "b00a4ff86fb6e0c4c07cd46de8c1d7f3c35f1087",
-      ],
+      "naver-site-verification": "474ca7369654e9ba939c810a7988fdd9ae455a95",
     });
     expect(metadata.alternates?.canonical).toBe("/");
     expect(metadata.openGraph?.url).toBe("/");

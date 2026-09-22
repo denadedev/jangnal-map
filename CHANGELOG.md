@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0.4] - 2026-09-22
+
+### Changed
+
+- Google Search Console과 Naver Search Advisor 인증 메타 태그를 새 소유권 값으로 교체합니다.
+
 ## [0.2.0.3] - 2026-09-22
 
 ### Changed

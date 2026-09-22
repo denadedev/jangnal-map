@@ -20,6 +20,7 @@ export const metadata: Metadata = {
       "naver-site-verification": [
         "d7bf1253f88fe2410c22eb065f4af604dfccac18",
         "d98fd747905c7cae55b86be4beb8dd7584935cc8",
+        "b00a4ff86fb6e0c4c07cd46de8c1d7f3c35f1087",
       ],
     },
   },

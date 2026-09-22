@@ -12,7 +12,8 @@ describe("ReviewedMarketGuides", () => {
   it("renders reviewed market links with their schedule", () => {
     render(<ReviewedMarketGuides guides={guides} />);
 
-    expect(screen.getByRole("heading", { name: "검수된 장날 방문 가이드" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "시장별 방문 정보" })).toBeInTheDocument();
+    expect(screen.getByText("주소·주차·교통·방문 팁을 정리했어요.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /첫 시장.*4·9일장/ })).toHaveAttribute("href", guides[0].href);
     expect(screen.getAllByRole("link")).toHaveLength(2);
   });

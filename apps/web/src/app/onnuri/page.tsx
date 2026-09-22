@@ -61,7 +61,7 @@ export default function OnnuriPage() {
           <a href="https://www.data.go.kr/data/3060079/fileData.do?recommendDataYn=Y">온누리 가맹점 집계 출처</a>
         </section>
         <section className={styles.dataSection} aria-labelledby="reviewed-onnuri-heading">
-          <h2 id="reviewed-onnuri-heading">검수된 시장에서 찾아보기</h2>
+          <h2 id="reviewed-onnuri-heading">자세히 볼 시장 찾기</h2>
           <ul className={styles.marketLinks}>
             {reviewedMarkets.filter((market) => market.onnuri !== null).map((market) => (
               <li key={market.id}>

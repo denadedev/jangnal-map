@@ -51,6 +51,14 @@ NPMplus에는 다음 우선순위를 적용한다.
 
 리디렉션 호스트가 애플리케이션까지 전달되어 200을 반환하는 상태가 되면 중복 콘텐츠가 생기므로, NPMplus의 redirect rule이 애플리케이션 route보다 먼저 평가되어야 한다.
 
+### 1-1. GitOps Ingress 변경
+
+현재 앱 저장소에는 Ingress manifest가 없다. GitHub Actions가 참조하는 별도 `denadedev/gitops` 저장소에서 `apps/jangnal-map/` 아래의 실제 `Ingress` 또는 Traefik `IngressRoute` 리소스를 검색해 수정한다. 리소스 종류와 파일 경로는 저장소에서 확인한 값을 사용하며 추측하지 않는다.
+
+Ingress의 동일한 web Service/포트 대상에 `kmarketday.com` Host를 추가하고, 기존 `spamfam.kr` Host는 전환 기간 동안 유지한다. NPMplus가 기존 Host의 301을 먼저 처리하므로 정상 운영 시 old host는 Ingress까지 도달하지 않지만, 우회·롤백 경로를 보존하기 위해 Ingress의 old host를 즉시 삭제하지 않는다. Traefik `IngressRoute`라면 `Host(\`kmarketday.com\`)`을 기존 Host match와 같은 route에 추가하고, Kubernetes `Ingress`라면 `spec.rules[].host`와 TLS hosts를 같은 Service에 추가한다.
+
+TLS가 NPMplus에서만 종료되면 Ingress의 TLS secret은 새로 만들지 않고 Host routing만 변경한다. Traefik도 TLS를 종료하는 구조라면 인증서 resolver 또는 TLS secret에 `kmarketday.com`을 추가하고, NPMplus와 Traefik 양쪽에서 인증서의 SAN과 갱신 상태를 확인한다. Ingress 변경 후 새 도메인은 같은 Next.js Pod로 200을 반환해야 하며, Service·Deployment 이름·포트·Harbor image 경로는 변경하지 않는다.
+
 ### 2. 애플리케이션 기준 URL 교체
 
 애플리케이션은 새 canonical 값을 단일 상수와 루트 metadata 기준으로 사용한다.
@@ -84,6 +92,7 @@ NPMplus에는 다음 우선순위를 적용한다.
 
 - `README.md`: 분석 대상, 공식 서비스 경로, 도메인 전환 후 운영 주소 갱신
 - `apps/web/README.md`: `REPORT_ALLOWED_ORIGIN`, K3s 도메인 경로, DNS/TLS와 rollout 검증 문구 갱신
+- 별도 `denadedev/gitops` 저장소의 실제 Ingress/IngressRoute manifest: `kmarketday.com` Host와 TLS 대상 추가, old host 유지
 - `scripts/create-release.mjs`: Release 본문의 Site 링크를 `https://kmarketday.com/`으로 변경. Harbor registry 주소는 서비스 도메인이 아니므로 유지
 - `scripts/create-release.test.mjs`: 새 Site 링크 기대값 추가. 이미지 registry 기대값은 유지
 - `docs/verification/2026-09-22-kmarketday-domain-migration.md`: 실제 전환 commit, 확인 시각, HTTP 응답, TLS·rollout·SEO·제보 검증 결과를 기록

@@ -27,7 +27,7 @@
 - **Redirect integrity:** 기존 호스트의 대표 경로와 쿼리가 HTTP 301로 새 호스트에 그대로 도착하고 레거시 호스트가 콘텐츠를 200으로 내놓지 않아야 한다. Task 1의 proxy preflight와 Task 6의 curl 검증이 고정한다.
 - **Origin enforcement:** 새 canonical Origin은 제보 API를 통과하고 공격자 Origin 및 위조된 forwarding header는 거부되어야 한다. Task 3의 handler/route 테스트와 Task 6의 운영 API 검증이 고정한다.
 - **Analytics split:** 분석 script 서버는 `analytics.spamfam.kr`로 유지되지만 수집 대상은 `kmarketday.com`이어야 한다. Task 2의 layout 테스트와 Task 6의 HTML/네트워크 확인이 고정한다.
-- **Infrastructure consistency:** DNS, TLS SAN, NPMplus Host rule, Traefik 전달, 런타임 Secret, Argo CD rollout이 같은 canonical 기준을 가져야 한다. Task 1과 Task 5·6의 운영 체크리스트가 고정한다.
+- **Infrastructure consistency:** DNS, TLS SAN, NPMplus Host rule, GitOps Ingress/IngressRoute, Traefik 전달, 런타임 Secret, Argo CD rollout이 같은 canonical 기준을 가져야 한다. Task 1·1A와 Task 5·6의 운영 체크리스트가 고정한다.
 
 ## 변경 파일 지도
 
@@ -44,6 +44,7 @@
 - `scripts/create-release.mjs`: Release 본문의 Site URL
 - `scripts/create-release.test.mjs`: Release 본문 Site URL 기대값
 - `README.md`, `apps/web/README.md`: 운영 주소·환경변수·검증 안내
+- 별도 `denadedev/gitops` 저장소의 실제 `Ingress` 또는 `IngressRoute` manifest: 새 Host/TLS 대상과 기존 Host 유지
 - `docs/verification/2026-09-22-kmarketday-domain-migration.md`: 실제 배포 후 증적
 
 ---
@@ -88,6 +89,73 @@ Expected: TLS handshake가 성공하고 `kmarketday.com`이 기존 앱에 도달
 - [ ] **Step 4: 커밋**
 
 이 단계는 외부 인프라 상태만 변경하므로 저장소 커밋은 만들지 않는다. DNS target, 인증서 발급 시각, Host rule 이름은 운영 전환 기록에만 보관한다.
+
+---
+
+### Task 1A: GitOps Ingress/IngressRoute에 새 Host 추가
+
+**Files:**
+- External Modify: 별도 `denadedev/gitops` 저장소의 `apps/jangnal-map/` 아래 실제 `Ingress` 또는 Traefik `IngressRoute` manifest
+- Verify: 동일 web Service, 포트, TLS resolver/secret, Argo CD Application `jangnal-map`
+
+**Interfaces:**
+- Consumes: Task 1의 `kmarketday.com` DNS/TLS 준비, 현재 GitOps route와 Service 대상
+- Produces: `kmarketday.com` 요청이 기존 Next.js Service/포트로 전달되는 GitOps 선언
+
+- [ ] **Step 1: Ingress 리소스 종류와 파일을 확인한다**
+
+별도 GitOps 저장소의 root에서 다음을 실행한다.
+
+```bash
+rg -n -i "kind: (Ingress|IngressRoute)|spamfam\\.kr|Host\\(|jangnal-map|web" apps/jangnal-map
+git status --short
+```
+
+Expected: 실제 리소스 kind, 파일 경로, 대상 Service 이름·포트, TLS 종료 위치가 확인된다. 현재 앱 저장소에 없는 파일 경로를 새로 추측해 만들지 않는다.
+
+- [ ] **Step 2: Kubernetes Ingress인 경우 Host와 TLS hosts를 추가한다**
+
+기존 Service backend를 그대로 둔 채 `spec.rules`에 다음 host를 추가하고, 기존 `spamfam.kr` rule을 삭제하지 않는다.
+
+```yaml
+spec:
+  rules:
+    - host: spamfam.kr
+      # 기존 http paths와 같은 Service/port 유지
+    - host: kmarketday.com
+      # 기존 http paths와 같은 Service/port 사용
+```
+
+Traefik 또는 cert-manager가 Ingress TLS를 직접 처리하는 경우에만 같은 TLS 항목의 `hosts`에 `kmarketday.com`을 추가한다. TLS를 NPMplus에서만 종료하면 Ingress TLS secret을 임의로 바꾸지 않는다.
+
+- [ ] **Step 3: Traefik IngressRoute인 경우 Host match와 TLS를 추가한다**
+
+기존 route의 Service/port와 middleware를 유지하고 match를 다음 논리로 확장한다.
+
+```yaml
+match: Host(`spamfam.kr`) || Host(`kmarketday.com`)
+```
+
+기존 match에 path 조건이나 다른 host가 있으면 그 조건을 보존한 채 host 조건만 확장한다. `kmarketday.com`을 별도 Service로 보내거나 Deployment image·port를 바꾸지 않는다. Traefik TLS termination이 실제로 사용될 때만 기존 resolver 또는 secret에 새 host를 추가한다.
+
+- [ ] **Step 4: GitOps manifest와 route diff를 검증한다**
+
+```bash
+git diff --check
+git diff -- apps/jangnal-map
+```
+
+Expected: 새 host가 동일 Service/포트로 향하고, 기존 `spamfam.kr` host와 TLS 경로가 보존되며, unrelated manifest 변경이 없다. 클러스터 접근이 가능하면 해당 manifest에 `kubectl diff` 또는 server-side dry-run을 실행하고, 불가능하면 Argo CD sync 전에 YAML/CRD schema 검증 결과를 남긴다.
+
+- [ ] **Step 5: GitOps 변경을 별도 커밋/PR로 반영한다**
+
+```bash
+git add apps/jangnal-map
+git commit -m "feat: route jangnal web on kmarketday.com"
+git push origin HEAD:main
+```
+
+GitOps 저장소의 협업 절차가 PR인 경우 직접 main push 대신 PR을 만들고 병합 승인을 받는다. 앱 저장소의 `scripts/update-gitops-image.mjs`가 관리하는 Deployment image line은 도메인 변경과 무관하므로 수동으로 수정하지 않는다.
 
 ---
 
@@ -397,7 +465,7 @@ git commit -m "test: update canonical domain e2e checks"
 ### Task 6: 배포·canonical 전환·운영 redirect 적용
 
 **Files:**
-- External: GitHub Actions, Harbor, GitOps repository, Argo CD Application `jangnal-map`, K3s Secret, NPMplus
+- External: GitHub Actions, Harbor, GitOps repository, GitOps Ingress/IngressRoute, Argo CD Application `jangnal-map`, K3s Secret, NPMplus
 - Verify: deployed image and public hosts
 
 **Interfaces:**
@@ -411,6 +479,8 @@ PR을 병합하거나 승인된 main push를 진행한다. CI가 `pnpm test`, `p
 - [ ] **Step 2: K3s runtime Secret을 새 Origin으로 반영한다**
 
 `jangnal-web-env`에 `REPORT_ALLOWED_ORIGIN=https://kmarketday.com`을 반영하고, 기존 SMTP 값은 건드리지 않는다. Argo CD의 `jangnal-map` Application이 새 image와 Secret 변경을 Sync했는지 확인한다.
+
+`kmarketday.com` Host가 같은 web Service로 전달되는지 Ingress/IngressRoute status와 Argo CD diff에서 확인한다. 새 host용 TLS secret 또는 resolver가 필요한 구조라면 인증서 Ready 상태도 확인한다.
 
 - [ ] **Step 3: 새 도메인의 애플리케이션을 먼저 검증한다**
 
@@ -495,15 +565,69 @@ git commit -m "docs: record kmarketday.com domain migration"
 
 ---
 
+## 사용자가 직접 수행해야 하는 항목
+
+현재 앱 저장소에서 제가 처리할 수 있는 범위는 Next.js canonical/redirect 코드, 테스트, 운영 문서, 로컬 검증입니다. 다음 항목은 DNS·클러스터·외부 계정 권한과 실제 서비스 상태를 변경하므로 사용자가 직접 수행하거나 해당 운영 담당자에게 요청해야 합니다.
+
+### 필수 인프라 작업
+
+1. **도메인·DNS 권한 확인**
+   - `kmarketday.com` 등록기관/DNS 관리 화면에 접근한다.
+   - 현재 `spamfam.kr`이 사용하는 동일 public endpoint를 확인해 `kmarketday.com`의 A/AAAA 또는 CNAME을 추가한다.
+   - `www.kmarketday.com`은 현재 canonical 계약에 포함하지 않는다. 이미 존재하는 경우에만 apex로 redirect하고, 새 레코드는 별도 요구가 없으면 만들지 않는다.
+   - DNS 전파 전까지 기존 `spamfam.kr` 레코드와 TTL을 삭제·변경하지 않는다.
+
+2. **NPMplus TLS·Host rule 설정**
+   - `kmarketday.com` 인증서를 발급하고 인증서 SAN/갱신 상태를 확인한다.
+   - `kmarketday.com`을 기존 Traefik upstream/포트로 전달한다.
+   - `spamfam.kr`과 실제 연결된 레거시 host는 application route보다 먼저 `https://kmarketday.com`으로 path/query 보존 301을 하도록 설정한다.
+   - 새 도메인 200을 확인하기 전에는 기존 host redirect를 켜지 않는다.
+
+3. **GitOps Ingress/IngressRoute 수정**
+   - 별도 `denadedev/gitops` 저장소에서 실제 `Ingress` 또는 `IngressRoute` manifest를 찾는다.
+   - 기존 web Service·포트에 `kmarketday.com` Host와 필요한 TLS host를 추가한다.
+   - 전환 기간 동안 `spamfam.kr` Host는 유지한다. 새 host를 별도 Service·Deployment로 보내지 않는다.
+   - manifest를 GitOps 저장소의 협업 절차에 맞춰 commit/PR/merge하고 Argo CD `jangnal-map`의 Sync/Health를 확인한다.
+
+4. **K3s Secret과 rollout**
+   - `jangnal-web-env`의 `REPORT_ALLOWED_ORIGIN`을 정확히 `https://kmarketday.com`으로 바꾼다.
+   - `SMTP_USER`, `SMTP_PASS`, `REPORT_TO_EMAIL`은 변경하지 않는다.
+   - Argo CD Sync 뒤 새 Pod rollout과 Ingress route status를 확인한다.
+
+### 외부 서비스 작업
+
+5. **Umami**
+   - 앱이 로드하는 script URL `https://analytics.spamfam.kr/script.js`는 유지한다.
+   - Umami 관리 화면에 별도 허용 도메인 목록이 있다면 `kmarketday.com`을 추가하고, 기존 `spamfam.kr`은 바로 삭제하지 않는다.
+   - 실제 페이지에서 `data-domains="kmarketday.com"`과 수집 여부를 확인한다.
+
+6. **검색·광고 소유권**
+   - Google Search Console에 `https://kmarketday.com` 속성을 추가·검증하고 `https://kmarketday.com/sitemap.xml`을 제출한다.
+   - 기존 `spamfam.kr` 속성과 sitemap은 새 주소의 색인 상태가 안정화될 때까지 유지한다.
+   - AdSense 사이트 목록에 새 주소를 추가하고 `https://kmarketday.com/ads.txt` 및 사이트 연결 상태를 확인한다.
+   - Naver Search Advisor를 운영 중이면 새 도메인을 별도 등록·소유 확인하고, 기존 verification token으로 확인되지 않을 때 새 token을 앱 metadata에 반영한다.
+
+7. **배포 승인과 모니터링**
+   - 앱 저장소 변경의 PR/main 반영을 승인하고 GitHub Actions, Harbor image, GitOps commit, Argo CD rollout을 확인한다.
+   - 새 도메인 200·제보·SEO 검증이 끝난 뒤에만 NPMplus의 기존 host 301을 활성화한다.
+   - 전환 직후 주요 경로, TLS, redirect, 제보 API, Umami 수집, Search Console/AdSense 상태를 확인한다.
+
+8. **운영 데이터·보존 정책**
+   - 실제 운영 제보 메일을 보내는 검증은 별도 명시적 승인 후 한 건만 수행하고, 테스트 데이터 삭제 여부를 확인한다.
+   - `spamfam.kr` DNS, TLS, NPMplus redirect, Search Console 속성은 새 주소가 안정화될 때까지 삭제하지 않는다.
+
+---
+
 ## 최종 실행 순서
 
 1. Task 1에서 `kmarketday.com` DNS/TLS/NPMplus 전달을 준비한다.
-2. Task 2에서 canonical·SEO·fallback redirect를 테스트 우선으로 변경한다.
-3. Task 3에서 제보 Origin과 메일 URL fixture를 변경한다.
-4. Task 4에서 운영 문서와 Release Site URL을 갱신한다.
-5. Task 5에서 전체 테스트·타입·build·Playwright·container smoke를 통과시킨다.
-6. Task 6에서 main 배포, K3s Secret, 새 도메인 200, 기존 호스트 301을 순서대로 적용한다.
-7. Task 7에서 운영 기능·SEO·분석·외부 콘솔을 검증하고 증적 문서를 커밋한다.
+2. Task 1A에서 GitOps Ingress/IngressRoute에 새 Host와 필요한 TLS host를 추가한다.
+3. Task 2에서 canonical·SEO·fallback redirect를 테스트 우선으로 변경한다.
+4. Task 3에서 제보 Origin과 메일 URL fixture를 변경한다.
+5. Task 4에서 운영 문서와 Release Site URL을 갱신한다.
+6. Task 5에서 전체 테스트·타입·build·Playwright·container smoke를 통과시킨다.
+7. 사용자가 K3s Secret과 Argo CD rollout을 확인한 뒤 Task 6에서 main 배포, 새 도메인 200, 기존 호스트 301을 순서대로 적용한다.
+8. Task 7에서 운영 기능·SEO·분석·외부 콘솔을 검증하고 증적 문서를 커밋한다.
 
 ## 롤백 기준
 

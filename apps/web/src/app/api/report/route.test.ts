@@ -1,9 +1,11 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createReportHandler } from "../../../lib/report-handler";
 
-const request = (body: unknown, origin = "https://jangnal-map.vercel.app") => new Request(
-  "https://jangnal-map.vercel.app/api/report",
+afterEach(() => vi.unstubAllEnvs());
+
+const request = (body: unknown, origin = "https://kmarketday.com") => new Request(
+  "https://kmarketday.com/api/report",
   {
     method: "POST",
     headers: { "Content-Type": "application/json", Origin: origin },
@@ -24,7 +26,7 @@ describe("POST /api/report", () => {
       contact: "",
       privacy_consent: "",
       market_id: "market-45b640ccbe294100",
-      page_url: "https://jangnal-map.vercel.app/report?kind=market",
+      page_url: "https://kmarketday.com/report?kind=market",
       _gotcha: "",
     }));
 
@@ -45,7 +47,7 @@ describe("POST /api/report", () => {
       evidence_url: " https://example.com/screenshot ",
       contact: " reporter@example.com ",
       privacy_consent: "yes",
-      page_url: "https://jangnal-map.vercel.app/",
+      page_url: "https://kmarketday.com/",
     }));
 
     expect(response.status).toBe(200);
@@ -55,7 +57,7 @@ describe("POST /api/report", () => {
       message: "버튼이 동작하지 않습니다.",
       evidenceUrl: "https://example.com/screenshot",
       contact: "reporter@example.com",
-      pageUrl: "https://jangnal-map.vercel.app/",
+      pageUrl: "https://kmarketday.com/",
       market: null,
     });
   });
@@ -85,6 +87,19 @@ describe("POST /api/report", () => {
     expect(sendMail).not.toHaveBeenCalled();
   });
 
+  it("accepts the legacy origin during the domain transition", async () => {
+    vi.stubEnv("REPORT_ALLOWED_ORIGINS", "https://spamfam.kr, https://kmarketday.com");
+    const sendMail = vi.fn().mockResolvedValue(undefined);
+    const response = await createReportHandler(sendMail)(request({
+      scope: "service",
+      detail_type: "interface",
+      message: "버튼이 동작하지 않습니다.",
+    }, "https://spamfam.kr"));
+
+    expect(response.status).toBe(200);
+    expect(sendMail).toHaveBeenCalledOnce();
+  });
+
   it("silently accepts honeypot submissions without sending mail", async () => {
     const sendMail = vi.fn();
     const response = await createReportHandler(sendMail)(request({
@@ -110,7 +125,7 @@ describe("POST /api/report", () => {
   it("rejects a request without an Origin header", async () => {
     const sendMail = vi.fn();
     const response = await createReportHandler(sendMail)(new Request(
-      "https://jangnal-map.vercel.app/api/report",
+      "https://kmarketday.com/api/report",
       { method: "POST", body: JSON.stringify({ scope: "service" }) },
     ));
 
@@ -121,8 +136,8 @@ describe("POST /api/report", () => {
   it("rejects malformed JSON", async () => {
     const sendMail = vi.fn();
     const response = await createReportHandler(sendMail)(new Request(
-      "https://jangnal-map.vercel.app/api/report",
-      { method: "POST", headers: { Origin: "https://jangnal-map.vercel.app" }, body: "{" },
+      "https://kmarketday.com/api/report",
+      { method: "POST", headers: { Origin: "https://kmarketday.com" }, body: "{" },
     ));
 
     expect(response.status).toBe(400);

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0.3] - 2026-09-22
+
+### Changed
+
+- canonical 서비스 주소와 SEO 산출물을 `https://kmarketday.com`으로 전환합니다.
+- 기존 도메인 유입과 전환 중 두 public Origin 제보 접수를 유지합니다.
+
 ## [0.2.0.2] - 2026-09-22
 
 ### Added

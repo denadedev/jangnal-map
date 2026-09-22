@@ -21,7 +21,7 @@ docker build -f apps/web/Dockerfile \
 ```bash
 docker run --rm -d --name jangnal-web-smoke \
   -p 127.0.0.1:3100:3000 \
-  -e REPORT_ALLOWED_ORIGIN=http://127.0.0.1:3100 \
+  -e REPORT_ALLOWED_ORIGINS=http://127.0.0.1:3100 \
   -e SMTP_USER=runtime-smoke@example.invalid \
   -e SMTP_PASS=not-a-real-password \
   -e REPORT_TO_EMAIL=runtime-smoke@example.invalid \
@@ -36,8 +36,10 @@ SMTP 자격증명은 없는 상태로 빌드해야 런타임 이메일 테스트
 
 ## K3s 런타임
 
-- `REPORT_ALLOWED_ORIGIN=https://spamfam.kr`을 런타임 설정으로 주입한다.
+- 전환 중에는 `REPORT_ALLOWED_ORIGINS=https://spamfam.kr,https://kmarketday.com`을 런타임 설정으로 주입한다.
+  새 주소가 안정화되면 `REPORT_ALLOWED_ORIGINS=https://kmarketday.com` 하나로 축소한다.
   내부 HTTP 주소와 공개 HTTPS 주소가 달라도 제보 출처를 검증할 수 있다.
+  `REPORT_ALLOWED_ORIGIN`은 로컬·preview 호환을 위한 기존 단일 값 fallback이다.
   클라이언트가 보낸 forwarding 헤더는 허용 출처 결정에 사용하지 않는다.
   설정을 생략한 직접 실행에서는 request URL 기준 검사를 유지한다.
 
@@ -45,7 +47,7 @@ SMTP 자격증명은 없는 상태로 빌드해야 런타임 이메일 테스트
 - 현재 Proxmox K3s 노드는 AMD64이며 Actions도 `linux/amd64` 이미지를 빌드한다.
 - GitOps 이미지 태그는 Actions가 검증한 전체 커밋 SHA로 갱신한다.
 - 실제 지도 인증, SMTP 수신, 프록시 Origin/IP 전달, 요청 제한, TLS는 별도로 확인한다.
-- 공개 도메인의 DNS·TLS 전환은 완료했다. IP별 제보 요청 제한은 아직 미구현이며
+- 공개 도메인의 DNS·TLS 전환은 운영 전환 체크리스트에 따라 별도로 확인한다. IP별 제보 요청 제한은 아직 미구현이며
   실제 클라이언트 IP 신뢰 설정과 함께 별도 작업으로 남아 있다.
 
 ## GitHub Actions

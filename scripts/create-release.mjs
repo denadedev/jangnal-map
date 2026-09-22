@@ -41,7 +41,7 @@ export async function createRelease({ repository, sha, token }, fetchImpl = fetc
         'CI 검증·Harbor 이미지 게시·GitOps 갱신 완료 기록입니다. 실제 K3s 배포 완료를 보장하지 않습니다.',
         '',
         `Image: \`registry.spamfam.kr/jangnal-map/web:${sha}\``,
-        'Site: https://jangnal.spamfam.kr/',
+        'Site: https://kmarketday.com/',
         '배포 상태는 Argo CD의 jangnal-map Application에서 별도로 확인합니다.',
       ].join('\n'),
     },

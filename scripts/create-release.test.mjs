@@ -30,6 +30,7 @@ test('creates a release for the exact source SHA after confirming latest main', 
   assert.equal(body.generate_release_notes, true);
   assert.match(body.body, /배포 완료를 보장하지/);
   assert.match(body.body, new RegExp(`registry.spamfam.kr/jangnal-map/web:${sha}`));
+  assert.match(body.body, /Site: https:\/\/kmarketday\.com\//);
 });
 
 test('does not publish a stale main commit', async () => {

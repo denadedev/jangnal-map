@@ -9,7 +9,7 @@ describe("HomePage SEO", () => {
 
     expect(html).toContain('type="application/ld+json"');
     expect(html).toContain(
-      '{"@context":"https://schema.org","@type":"WebSite","name":"오늘 장날","alternateName":["장날 지도","오늘장날"],"url":"https://spamfam.kr"}',
+      '{"@context":"https://schema.org","@type":"WebSite","name":"오늘 장날","alternateName":["장날 지도","오늘장날"],"url":"https://kmarketday.com"}',
     );
   });
 });

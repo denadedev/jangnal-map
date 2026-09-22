@@ -6,6 +6,7 @@ import { OnnuriSummary } from "./onnuri-summary";
 
 interface MarketDetailProps {
   market: PublicMarket | null;
+  detailPath?: string;
   sharePath?: string;
   today: Date;
   onClose: () => void;
@@ -27,7 +28,7 @@ const datesThrough = (start: Date, end: Date): Date[] => {
   return dates;
 };
 
-export function MarketDetail({ market, sharePath, today, onClose }: MarketDetailProps) {
+export function MarketDetail({ market, detailPath, sharePath, today, onClose }: MarketDetailProps) {
   if (!market) {
     return (
       <div className="detail-placeholder">
@@ -73,7 +74,7 @@ export function MarketDetail({ market, sharePath, today, onClose }: MarketDetail
 
       <header className="detail-header">
         <p>{market.marketType}</p>
-        <h2>{market.name}</h2>
+        <h2>{detailPath ? <a href={detailPath}>{market.name}</a> : market.name}</h2>
         <span>{address}</span>
       </header>
 

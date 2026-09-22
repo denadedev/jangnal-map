@@ -178,10 +178,44 @@ describe("MarketExplorer", () => {
 
     await user.click(screen.getByRole("link", { name: /통복시장/ }));
 
-    expect(screen.getByRole("heading", { name: "통복시장" })).toBeInTheDocument();
+    const detail = screen.getByRole("article", { name: "통복시장 상세정보" });
+    expect(within(detail).getByRole("heading", { name: "통복시장" })).toBeInTheDocument();
+    expect(within(detail).queryByRole("link", { name: "통복시장" })).not.toBeInTheDocument();
     expect(screen.getByText("9월 5일 토요일")).toBeInTheDocument();
     await waitFor(() => expect(window.location.search).toContain("q=%ED%8F%89%ED%83%9D"));
     expect(window.location.search).toContain("market=tongbok");
+  });
+
+  it("links reviewed market titles to their canonical page in desktop and mobile details", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("matchMedia", vi.fn((query: string) => ({
+      matches: query === "(max-width: 700px)",
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })));
+    render(
+      <MarketExplorer
+        today={new Date(2026, 8, 3)}
+        mapClientId=""
+        reviewedMarketIds={["tongbok"]}
+      />,
+    );
+
+    await user.click((await screen.findAllByRole("link", { name: /통복시장/ }))[0]);
+
+    const details = await screen.findAllByRole("article", { name: "통복시장 상세정보" });
+    expect(details).toHaveLength(2);
+    for (const detail of details) {
+      expect(within(detail).getByRole("link", { name: "통복시장" })).toHaveAttribute(
+        "href",
+        "/markets/통복시장-tongbok",
+      );
+    }
   });
 
   it("shows seven days from today and marks every market day", async () => {
@@ -249,6 +283,11 @@ describe("MarketExplorer", () => {
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
     await user.click((await screen.findAllByRole("link", { name: /운천전통시장/ }))[0]);
+    const selectedDetails = await screen.findAllByRole("article", { name: "운천전통시장 상세정보" });
+    expect(selectedDetails).toHaveLength(2);
+    for (const detail of selectedDetails) {
+      expect(within(detail).queryByRole("link", { name: "운천전통시장" })).not.toBeInTheDocument();
+    }
     await user.type(screen.getByRole("searchbox", { name: "시장명 또는 지역 검색" }), "평택");
 
     await waitFor(() => expect(screen.queryByRole("article", { name: /운천전통시장/ })).not.toBeInTheDocument());

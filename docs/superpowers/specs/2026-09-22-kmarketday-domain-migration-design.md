@@ -10,7 +10,7 @@
 - 서비스는 `spamfam.kr` → NPMplus TLS → Traefik → Next.js 컨테이너 경로로 운영된다.
 - `apps/web/src/lib/market-seo.ts`의 `SITE_URL`, `apps/web/src/app/layout.tsx`의 `metadataBase`와 Umami 대상 도메인, sitemap·robots·JSON-LD가 현재 도메인에 의존한다.
 - `apps/web/next.config.ts`에는 `jangnal-map.vercel.app`과 `jangnal.spamfam.kr`을 `spamfam.kr`으로 보내는 레거시 호스트 규칙이 있다.
-- 제보 API는 `REPORT_ALLOWED_ORIGIN`으로 공개 Origin을 검증하며, K3s 런타임에 `https://spamfam.kr`이 주입되어 있다.
+- 제보 API는 공개 Origin allowlist로 검증하며, 현재 K3s 런타임에는 `REPORT_ALLOWED_ORIGIN=https://spamfam.kr`이 주입되어 있다.
 - 운영 문서·릴리스 메시지·테스트 픽스처에도 여러 공개 주소가 남아 있다.
 - 저장소에는 DNS, NPMplus, Traefik, Argo CD, Search Console, AdSense의 실제 계정 설정이 없으므로 해당 변경은 운영 체크리스트로 수행하고 인증정보는 저장소에 기록하지 않는다.
 
@@ -25,7 +25,7 @@
 | 기존 레거시 호스트 | `https://jangnal.spamfam.kr`, `https://jangnal-map.vercel.app` | 경로·쿼리를 보존해 새 도메인으로 영구 리디렉션 |
 | 분석 스크립트 서버 | `https://analytics.spamfam.kr/script.js` | 이번 전환에서는 유지 |
 | 분석 허용 대상 | `kmarketday.com` | Umami `data-domains` 값만 변경 |
-| 제보 허용 Origin | `https://kmarketday.com` | 새 canonical 페이지에서만 허용 |
+| 제보 허용 Origin | 전환 중 `https://spamfam.kr`, `https://kmarketday.com`; 안정화 후 새 주소만 | 단계별 Secret rollout으로 허용 |
 
 `www.kmarketday.com`은 현재 저장소에서 확인된 서비스 주소가 아니므로 canonical 계약에 포함하지 않는다. 운영 DNS에 이미 존재하는 경우에만 NPMplus에서 `https://kmarketday.com`으로 별도 영구 리디렉션하고, 존재하지 않으면 새 레코드를 임의로 만들지 않는다.
 
@@ -42,6 +42,12 @@ Next.js `redirects()`의 `permanent: true`는 301이 아닌 308을 생성한다.
 현재 코드의 네이버 지도 SDK endpoint와 `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`는 사이트 도메인과 분리되어 있으므로 값을 변경하지 않는다. 네이버 클라우드 플랫폼의 Maps 애플리케이션에 등록된 웹 서비스 URL/허용 도메인 목록에 `https://kmarketday.com`을 추가하고, 전환 기간 동안 `https://spamfam.kr`을 유지한다. `www.kmarketday.com`을 실제 서비스 주소로 사용하지 않으면 등록하지 않는다.
 
 새 도메인의 실제 브라우저에서 지도 SDK가 정상 로드되고 지도·마커·현재 위치·지도 실패 fallback이 동작하는지 확인한다. 도메인 제한 오류가 발생하면 Client ID를 새로 발급하거나 코드를 바꾸지 말고, 먼저 네이버 Maps 애플리케이션의 허용 도메인과 HTTPS origin 등록을 확인한다.
+
+### 제보 Origin의 단계적 전환
+
+현재 제보 handler는 단일 `REPORT_ALLOWED_ORIGIN` 문자열을 비교한다. 전환 중 기존 도메인에서 열린 제보 화면이 403이 되지 않도록 handler는 새 `REPORT_ALLOWED_ORIGINS`의 쉼표 구분 allowlist를 우선 읽고, 로컬·preview 호환을 위해 기존 단일 변수도 fallback으로 지원한다. Production 첫 배포에서는 정확히 `https://spamfam.kr,https://kmarketday.com` 두 값만 허용하고, NPMplus 301과 새 도메인 제보 검증이 안정화된 뒤 `https://kmarketday.com` 하나로 Secret을 다시 배포한다.
+
+allowlist가 비어 있거나 URL origin으로 파싱되지 않으면 요청을 허용하지 않고 500과 설정 오류 로그를 반환한다. 정상적인 비허용 Origin은 403으로 처리하며, 설정 원문·SMTP 자격증명은 로그에 남기지 않는다.
 
 ## 제안 아키텍처
 
@@ -67,13 +73,14 @@ TLS가 NPMplus에서만 종료되면 Ingress의 TLS secret은 새로 만들지 �
 
 ### 2. 애플리케이션 기준 URL 교체
 
-애플리케이션은 새 canonical 값을 단일 상수와 루트 metadata 기준으로 사용한다.
+애플리케이션은 새 canonical 값을 가벼운 공통 설정 모듈에서 읽어 SEO와 루트 metadata가 같은 값을 사용하게 한다.
 
 - `SITE_URL = "https://kmarketday.com"`
-- `metadataBase = new URL("https://kmarketday.com")`
+- `SITE_HOST = new URL(SITE_URL).hostname`
+- `metadataBase = new URL(SITE_URL)`
 - JSON-LD WebSite URL, Open Graph absolute URL, market detail canonical, sitemap, robots의 host·sitemap URL은 `SITE_URL`을 통해 생성
 - Umami script URL은 `https://analytics.spamfam.kr/script.js`로 유지하고 `data-domains`만 `kmarketday.com`으로 변경
-- `REPORT_ALLOWED_ORIGIN=https://kmarketday.com`을 K3s Secret에 주입
+- 전환 중 `REPORT_ALLOWED_ORIGINS=https://spamfam.kr,https://kmarketday.com`을 K3s Secret에 주입하고, 안정화 후 `https://kmarketday.com` 하나로 축소
 
 모든 내부 상대 링크는 그대로 둔다. 사용자가 직접 공유하는 absolute URL과 메일 본문에 포함되는 제출 페이지 URL은 새 `SITE_URL` 또는 새 테스트 픽스처를 사용한다.
 
@@ -85,8 +92,10 @@ TLS가 NPMplus에서만 종료되면 Ingress의 TLS secret은 새로 만들지 �
 
 ### 애플리케이션 및 테스트
 
-- `apps/web/src/lib/market-seo.ts`: 공식 `SITE_URL` 변경
-- `apps/web/src/app/layout.tsx`: `metadataBase`, 분석 허용 도메인, absolute metadata 기준 변경
+- `apps/web/src/lib/site-config.ts`: `SITE_URL`과 `SITE_HOST`의 단일 소스
+- `apps/web/src/lib/site-config.test.ts`: URL과 hostname 계약
+- `apps/web/src/lib/market-seo.ts`: 공통 `SITE_URL` re-export 및 SEO URL 생성
+- `apps/web/src/app/layout.tsx`: 공통 설정을 사용한 `metadataBase`, 분석 허용 도메인
 - `apps/web/next.config.ts`: `spamfam.kr`과 확인된 레거시 호스트의 fallback 목적지 변경
 - `apps/web/src/lib/report-handler.test.ts`: 허용 Origin 기대값을 새 도메인으로 변경하고 forwarding header 위조 거부를 유지
 - `apps/web/src/app/layout.test.tsx`: Umami script URL은 유지되고 `data-domains`는 새 도메인인지 검증
@@ -119,7 +128,7 @@ TLS가 NPMplus에서만 종료되면 Ingress의 TLS secret은 새로 만들지 �
        └─ NPMplus 301(경로·쿼리 보존) → https://kmarketday.com/*
 ```
 
-제보 요청은 새 도메인에서 렌더링된 화면이 `Origin: https://kmarketday.com`으로 전송하고, 서버는 Secret의 `REPORT_ALLOWED_ORIGIN`과 정확히 일치할 때만 처리한다. 클라이언트가 제공한 forwarding header는 허용 Origin 결정에 사용하지 않는 기존 보안 동작을 유지한다.
+제보 요청은 새 도메인에서 렌더링된 화면이 `Origin: https://kmarketday.com`으로 전송하고, 전환 중에는 기존 도메인의 `Origin: https://spamfam.kr`도 제한적으로 허용한다. 서버는 Secret의 allowlist와 정확히 일치할 때만 처리하며, 클라이언트가 제공한 forwarding header는 허용 Origin 결정에 사용하지 않는 기존 보안 동작을 유지한다. old host 301과 새 도메인 제보 검증이 안정화되면 old Origin을 allowlist에서 제거한다.
 
 ## 실패 처리와 롤백
 
@@ -136,7 +145,7 @@ TLS가 NPMplus에서만 종료되면 Ingress의 TLS secret은 새로 만들지 �
 1. `https://kmarketday.com`의 홈, 주요 보조 페이지, 대표 시장 상세, 제보, 개인정보, 404가 HTTPS로 정상 응답한다.
 2. 새 도메인의 모든 canonical, Open Graph absolute URL, JSON-LD WebSite URL, sitemap URL, robots host가 `kmarketday.com`이다.
 3. `spamfam.kr` 및 실제 연결된 레거시 호스트의 대표 경로·쿼리가 301로 새 도메인에 도달하고, 레거시 호스트가 콘텐츠를 200으로 중복 제공하지 않는다.
-4. 새 도메인의 `/api/report`는 허용 Origin을 처리하고 공격자 Origin과 forwarding header 위조를 거부한다.
+4. 전환 중 새·기존 Origin은 허용되고 공격자 Origin과 forwarding header 위조는 거부되며, 안정화 후 기존 Origin 제거가 확인된다.
 5. Umami 스크립트는 로드되며 수집 대상은 `kmarketday.com`이고, 분석 서버 주소는 의도대로 유지된다.
 6. 새 도메인에서 네이버 지도 SDK, 지도·마커·현재 위치가 로드되고 지도 실패 fallback도 유지된다.
 7. `ads.txt`, `robots.txt`, `sitemap.xml`의 HTTP 응답과 본문이 새 canonical 기준에 맞는다.

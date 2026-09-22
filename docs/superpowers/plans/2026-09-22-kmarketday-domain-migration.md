@@ -16,7 +16,7 @@
 - NPMplus에 연결된 `spamfam.kr`과 레거시 호스트는 경로와 쿼리 문자열을 보존해 새 주소로 HTTP 301 이동한다. `jangnal-map.vercel.app`처럼 NPMplus 밖에 있는 호스트는 Next.js fallback의 HTTP 308을 사용하며, 실제 연결 여부를 운영 검증에서 확인한다.
 - Next.js `permanent: true`는 308 fallback으로만 사용한다. NPMplus가 연결된 운영 호스트의 정확한 301을 책임진다.
 - Umami script URL `https://analytics.spamfam.kr/script.js`와 website ID는 유지하고 `data-domains`만 `kmarketday.com`으로 바꾼다.
-- K3s 런타임 `REPORT_ALLOWED_ORIGIN`은 `https://kmarketday.com` 하나로 설정한다. forwarding header는 신뢰하지 않는다.
+- 전환 중 K3s 런타임 `REPORT_ALLOWED_ORIGINS`는 `https://spamfam.kr,https://kmarketday.com` 두 값만 허용하고, 안정화 후 `https://kmarketday.com` 하나로 축소한다. forwarding header는 신뢰하지 않는다.
 - 네이버 지도 SDK endpoint와 `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`는 유지하고, 네이버 Maps 애플리케이션의 허용 웹 서비스 URL에 `https://kmarketday.com`을 추가한다. 기존 `https://spamfam.kr`은 전환 기간 동안 유지한다.
 - 기존 `spamfam.kr` DNS와 라우팅은 새 도메인이 안정화될 때까지 삭제하지 않는다.
 - SMTP 자격증명, GitOps 토큰, DNS 계정정보는 저장소·로그·채팅에 기록하지 않는다.
@@ -26,7 +26,7 @@
 
 - **Canonical leakage:** 모든 metadata, JSON-LD, sitemap, robots가 `kmarketday.com`을 사용하고 `spamfam.kr`이 남지 않아야 한다. Task 2의 Vitest·Task 5의 Playwright가 고정한다.
 - **Redirect integrity:** 기존 호스트의 대표 경로와 쿼리가 HTTP 301로 새 호스트에 그대로 도착하고 레거시 호스트가 콘텐츠를 200으로 내놓지 않아야 한다. Task 1의 proxy preflight와 Task 6의 curl 검증이 고정한다.
-- **Origin enforcement:** 새 canonical Origin은 제보 API를 통과하고 공격자 Origin 및 위조된 forwarding header는 거부되어야 한다. Task 3의 handler/route 테스트와 Task 6의 운영 API 검증이 고정한다.
+- **Origin enforcement:** 전환 중 새·기존 Origin은 제보 API를 통과하고 공격자 Origin 및 위조된 forwarding header는 거부되며, 안정화 후 기존 Origin은 제거되어야 한다. Task 3과 Task 6·7이 고정한다.
 - **Analytics split:** 분석 script 서버는 `analytics.spamfam.kr`로 유지되지만 수집 대상은 `kmarketday.com`이어야 한다. Task 2의 layout 테스트와 Task 6의 HTML/네트워크 확인이 고정한다.
 - **Infrastructure consistency:** DNS, TLS SAN, NPMplus Host rule, GitOps Ingress/IngressRoute, Traefik 전달, 런타임 Secret, Argo CD rollout, 네이버 Maps 허용 도메인이 같은 canonical 기준을 가져야 한다. Task 1·1A와 Task 5·6의 운영 체크리스트가 고정한다.
 
@@ -35,6 +35,7 @@
 - `apps/web/src/lib/market-seo.ts`: canonical `SITE_URL`의 단일 소스
 - `apps/web/src/app/layout.tsx`: `metadataBase`와 Umami 대상 도메인
 - `apps/web/next.config.ts`: `spamfam.kr` 및 레거시 호스트의 Next.js fallback redirect
+- `apps/web/src/lib/report-handler.ts`: 쉼표 구분 Origin allowlist와 기존 단일 변수 fallback
 - `apps/web/src/app/seo-routes.test.ts`: sitemap, robots, metadata, redirect 계약
 - `apps/web/src/app/layout.test.tsx`: Umami script 서버/대상 도메인 분리 계약
 - `apps/web/src/app/page.test.tsx`: WebSite JSON-LD URL 계약
@@ -164,8 +165,10 @@ GitOps 저장소의 협업 절차가 PR인 경우 직접 main push 대신 PR을 
 ### Task 2: canonical URL·SEO·legacy fallback을 TDD로 전환
 
 **Files:**
-- Modify: `apps/web/src/lib/market-seo.ts:9`
-- Modify: `apps/web/src/app/layout.tsx:7,49`
+- Create: `apps/web/src/lib/site-config.ts`
+- Create: `apps/web/src/lib/site-config.test.ts`
+- Modify: `apps/web/src/lib/market-seo.ts:1-9`
+- Modify: `apps/web/src/app/layout.tsx:1-7,49`
 - Modify: `apps/web/next.config.ts:7-21`
 - Modify: `apps/web/src/app/seo-routes.test.ts`
 - Modify: `apps/web/src/app/layout.test.tsx`
@@ -175,7 +178,14 @@ GitOps 저장소의 협업 절차가 PR인 경우 직접 main push 대신 PR을 
 - Consumes: 기존 `SITE_URL`, Next.js metadata routes, Next.js host redirect config
 - Produces: 모든 앱 생성 absolute URL과 fallback redirect의 기준 `https://kmarketday.com`
 
-- [ ] **Step 1: 새 canonical을 요구하는 실패 테스트를 먼저 작성한다**
+- [ ] **Step 1: 공통 site config와 새 canonical을 요구하는 실패 테스트를 먼저 작성한다**
+
+`apps/web/src/lib/site-config.test.ts`를 만들고 다음 계약을 고정한다.
+
+```ts
+expect(SITE_URL).toBe("https://kmarketday.com");
+expect(SITE_HOST).toBe("kmarketday.com");
+```
 
 `apps/web/src/app/seo-routes.test.ts`에서 robots와 root metadata의 기대값을 다음처럼 바꾼다. 같은 파일의 redirect 테스트에는 `spamfam.kr` 규칙을 추가하고 기존 두 레거시 목적지를 새 URL로 바꾼다.
 
@@ -214,22 +224,31 @@ expect(metadata.metadataBase).toEqual(new URL("https://kmarketday.com"));
 
 - [ ] **Step 2: 관련 테스트가 old canonical 값 때문에 실패하는지 확인한다**
 
-Run: `pnpm --filter @jangnal-map/web test -- src/app/seo-routes.test.ts src/app/layout.test.tsx src/app/page.test.tsx`
+Run: `pnpm --filter @jangnal-map/web test -- src/lib/site-config.test.ts src/app/seo-routes.test.ts src/app/layout.test.tsx src/app/page.test.tsx`
 
 Expected: 기존 `spamfam.kr` 구현과 새 테스트 기대값의 불일치로 FAIL한다. 이 단계에서 source를 먼저 바꾸지 않는다.
 
 - [ ] **Step 3: 최소 source 변경을 적용한다**
 
 ```ts
-// apps/web/src/lib/market-seo.ts
+// apps/web/src/lib/site-config.ts
 export const SITE_URL = "https://kmarketday.com";
+export const SITE_HOST = new URL(SITE_URL).hostname;
+```
+
+```ts
+// apps/web/src/lib/market-seo.ts
+import { SITE_URL } from "./site-config";
+export { SITE_URL } from "./site-config";
 ```
 
 ```ts
 // apps/web/src/app/layout.tsx
-metadataBase: new URL("https://kmarketday.com"),
+import { SITE_HOST, SITE_URL } from "../lib/site-config";
 // ...
-data-domains="kmarketday.com"
+metadataBase: new URL(SITE_URL),
+// ...
+data-domains={SITE_HOST}
 ```
 
 ```ts
@@ -258,15 +277,16 @@ data-domains="kmarketday.com"
 
 - [ ] **Step 4: canonical·redirect 테스트를 통과시킨다**
 
-Run: `pnpm --filter @jangnal-map/web test -- src/app/seo-routes.test.ts src/app/layout.test.tsx src/app/page.test.tsx src/app/markets/'[slug]'/page.test.tsx`
+Run: `pnpm --filter @jangnal-map/web test -- src/lib/site-config.test.ts src/app/seo-routes.test.ts src/app/layout.test.tsx src/app/page.test.tsx src/app/markets/'[slug]'/page.test.tsx`
 
 Expected: PASS. sitemap 항목 수 33개, `SITE_URL` 기반 market URL, metadataBase, JSON-LD, Umami 대상 도메인, 세 host fallback이 모두 새 기준을 사용한다.
 
 - [ ] **Step 5: 커밋한다**
 
 ```bash
-git add apps/web/src/lib/market-seo.ts apps/web/src/app/layout.tsx apps/web/next.config.ts \
-  apps/web/src/app/seo-routes.test.ts apps/web/src/app/layout.test.tsx apps/web/src/app/page.test.tsx
+git add apps/web/src/lib/site-config.ts apps/web/src/lib/site-config.test.ts apps/web/src/lib/market-seo.ts \
+  apps/web/src/app/layout.tsx apps/web/next.config.ts apps/web/src/app/seo-routes.test.ts \
+  apps/web/src/app/layout.test.tsx apps/web/src/app/page.test.tsx
 git commit -m "fix: switch canonical site to kmarketday.com"
 ```
 
@@ -275,18 +295,19 @@ git commit -m "fix: switch canonical site to kmarketday.com"
 ### Task 3: 제보 API와 메일 URL 기준을 전환
 
 **Files:**
+- Modify: `apps/web/src/lib/report-handler.ts`
 - Modify: `apps/web/src/lib/report-handler.test.ts`
 - Modify: `apps/web/src/app/api/report/route.test.ts`
 - Modify: `apps/web/src/lib/report-email.test.ts`
-- External runtime: K3s `jangnal-web-env` Secret의 `REPORT_ALLOWED_ORIGIN`
+- External runtime: K3s `jangnal-web-env` Secret의 `REPORT_ALLOWED_ORIGINS`
 
 **Interfaces:**
-- Consumes: `createReportHandler`, `REPORT_ALLOWED_ORIGIN`, report email page URL
-- Produces: `https://kmarketday.com`에서만 허용되는 제보 흐름과 새 주소가 담긴 운영 메일
+- Consumes: `createReportHandler`, `REPORT_ALLOWED_ORIGINS`, legacy `REPORT_ALLOWED_ORIGIN` fallback, report email page URL
+- Produces: 전환 중 두 canonical Origin을 제한적으로 허용하고 안정화 후 새 Origin만 남기는 제보 흐름과 새 주소가 담긴 운영 메일
 
-- [ ] **Step 1: 테스트 픽스처의 public URL과 허용 Origin을 먼저 바꾼다**
+- [ ] **Step 1: dual-origin allowlist 실패 테스트를 먼저 작성한다**
 
-`apps/web/src/lib/report-handler.test.ts`의 두 `vi.stubEnv` 값을 `https://kmarketday.com`으로 바꾸고, forwarding header는 `x-forwarded-host: kmarketday.com`으로 바꾼다. `apps/web/src/app/api/report/route.test.ts`의 `request()` 기본 URL과 모든 `jangnal-map.vercel.app` page URL·Origin을 `https://kmarketday.com`으로 바꾼다. `apps/web/src/lib/report-email.test.ts`의 `report.pageUrl`와 예상 메일 본문도 다음 값을 사용한다.
+`apps/web/src/lib/report-handler.test.ts`는 `REPORT_ALLOWED_ORIGINS="https://spamfam.kr,https://kmarketday.com"`에서 두 Origin을 각각 허용하고, 공격자 Origin과 forwarding header 위조를 계속 거부하는 테스트를 추가한다. 기존 `REPORT_ALLOWED_ORIGIN` 단일 변수 fallback이 preview에서 계속 동작하는 테스트도 유지한다. 빈 목록·잘못된 URL·허용되지 않은 protocol이 들어오면 500과 설정 오류 로그가 나오고 mail transport를 호출하지 않는 테스트를 추가한다. `apps/web/src/app/api/report/route.test.ts`의 `request()` 기본 URL과 새 도메인 page URL·Origin을 `https://kmarketday.com`으로 바꾸고, 기존 Origin을 보낸 제보가 전환 중 통과하는 테스트를 추가한다. `apps/web/src/lib/report-email.test.ts`의 `report.pageUrl`와 예상 메일 본문은 새 주소를 사용한다.
 
 ```ts
 pageUrl: "https://kmarketday.com/report?kind=market",
@@ -294,34 +315,83 @@ pageUrl: "https://kmarketday.com/report?kind=market",
 "제출 화면: https://kmarketday.com/report?kind=market",
 ```
 
-공격자 Origin `https://example.com`, preview fallback 동작, malformed body, honeypot, SMTP 오류 테스트의 의미는 바꾸지 않는다.
+공격자 Origin `https://example.com`, forwarding header만 신뢰 도메인을 주장하는 요청, preview fallback 동작, malformed body, honeypot, SMTP 오류 테스트의 의미는 바꾸지 않는다. 새 테스트는 `https://spamfam.kr`과 `https://kmarketday.com`을 각각 허용하고, `https://spamfam.kr, https://kmarketday.com`처럼 공백이 섞인 설정도 trim 후 처리되는지 고정한다.
 
-- [ ] **Step 2: 제보 관련 fixture 변경이 기존 보안 계약을 유지하는지 확인한다**
+- [ ] **Step 2: 새 allowlist 동작이 구현 전 실패하는지 확인한다**
 
 Run: `pnpm --filter @jangnal-map/web test -- src/lib/report-handler.test.ts src/app/api/report/route.test.ts src/lib/report-email.test.ts`
 
-Expected: PASS. 이 작업은 런타임 환경변수와 메일 URL의 테스트 fixture를 새 public domain에 맞추는 작업이므로 구현 파일 `report-handler.ts`와 `report-email.ts`는 수정하지 않는다. 공격자 Origin, forwarding header 위조, malformed body, honeypot, SMTP 오류의 기존 계약은 그대로 통과해야 한다.
+Expected: FAIL because `report-handler.ts` only reads the single-origin configuration and does not yet recognize `REPORT_ALLOWED_ORIGINS`.
 
-- [ ] **Step 3: 런타임 Secret 변경 절차를 준비한다**
+- [ ] **Step 3: 최소 allowlist 파싱을 구현한다**
+
+`apps/web/src/lib/report-handler.ts`의 Origin guard를 다음 동작으로 바꾼다.
+
+```ts
+const configuredOrigins = process.env.REPORT_ALLOWED_ORIGINS?.trim()
+  || process.env.REPORT_ALLOWED_ORIGIN?.trim();
+let allowedOrigins: string[];
+try {
+  allowedOrigins = configuredOrigins
+    ? parseReportOrigins(configuredOrigins)
+    : [new URL(request.url).origin];
+} catch {
+  console.error("Invalid report origin configuration");
+  return json(500, "제보 설정을 확인해 주세요.");
+}
+if (!origin || !allowedOrigins.includes(origin)) {
+  return json(403, "허용되지 않은 요청입니다.");
+}
+```
+
+`parseReportOrigins`는 같은 파일의 순수 helper로 두고 다음 계약을 구현한다.
+
+```ts
+function parseReportOrigins(value: string): string[] {
+  const entries = value.split(",").map((entry) => entry.trim()).filter(Boolean);
+  if (entries.length === 0) throw new Error("empty report origins");
+
+  const origins = entries.map((entry) => {
+    const url = new URL(entry);
+    if (
+      !["http:", "https:"].includes(url.protocol)
+      || url.pathname !== "/"
+      || url.search
+      || url.hash
+      || url.username
+      || url.password
+    ) throw new Error("invalid report origin");
+    return url.origin;
+  });
+
+  const uniqueOrigins = [...new Set(origins)];
+  if (uniqueOrigins.length === 0) throw new Error("empty report origins");
+  return uniqueOrigins;
+}
+```
+
+빈 결과, path/query/hash가 붙은 값, 지원하지 않는 protocol, credential이 있는 값은 예외로 처리한다. Forwarding header는 계속 읽지 않고 wildcard matching도 추가하지 않는다. 설정 원문은 로그에 남기지 않는다.
+
+- [ ] **Step 4: 구현 후 제보 테스트를 통과시킨다**
+
+Run: `pnpm --filter @jangnal-map/web test -- src/lib/report-handler.test.ts src/app/api/report/route.test.ts src/lib/report-email.test.ts`
+
+Expected: PASS. 새·기존 Origin은 200 또는 검증된 입력 오류를 받고, 공격자 Origin과 forwarding header 위조는 403이며, 잘못된 설정은 500과 설정 오류 로그를 내고 mail transport를 호출하지 않으며, 메일 본문에는 새 제출 주소가 포함된다.
+
+- [ ] **Step 5: 런타임 Secret 변경 절차를 준비한다**
 
 K3s의 `jangnal-web-env` Secret에서 값만 다음과 같이 변경한다. Secret 원문은 출력하거나 커밋하지 않는다.
 
 ```text
-REPORT_ALLOWED_ORIGIN=https://kmarketday.com
+REPORT_ALLOWED_ORIGINS=https://spamfam.kr,https://kmarketday.com
 ```
 
 기존 `SMTP_USER`, `SMTP_PASS`, `REPORT_TO_EMAIL`은 값을 변경하지 않는다. 배포 후 새 도메인의 browser request Origin이 `https://kmarketday.com`인지 확인한다.
 
-- [ ] **Step 4: 제보 테스트를 통과시킨다**
-
-Run: `pnpm --filter @jangnal-map/web test -- src/lib/report-handler.test.ts src/app/api/report/route.test.ts src/lib/report-email.test.ts`
-
-Expected: PASS. 새 Origin은 200 또는 검증된 입력 오류를 받고, 공격자 Origin과 forwarding header 위조는 403이며, 메일 본문에는 새 제출 주소가 포함된다.
-
-- [ ] **Step 5: 커밋한다**
+- [ ] **Step 6: 커밋한다**
 
 ```bash
-git add apps/web/src/lib/report-handler.test.ts apps/web/src/app/api/report/route.test.ts apps/web/src/lib/report-email.test.ts
+git add apps/web/src/lib/report-handler.ts apps/web/src/lib/report-handler.test.ts apps/web/src/app/api/report/route.test.ts apps/web/src/lib/report-email.test.ts
 git commit -m "test: align report origin with canonical domain"
 ```
 
@@ -363,7 +433,7 @@ Expected: 새 assertion이 old `jangnal.spamfam.kr` body 때문에 FAIL한다.
 'Site: https://kmarketday.com/',
 ```
 
-`README.md`와 `apps/web/README.md`에서는 공식 서비스 경로와 `REPORT_ALLOWED_ORIGIN`을 `kmarketday.com`으로 갱신하고, `analytics.spamfam.kr`은 분석 script 서버로 유지한다. 다음 운영 사실을 명시한다.
+`README.md`와 `apps/web/README.md`에서는 공식 서비스 경로와 `REPORT_ALLOWED_ORIGINS`의 전환·안정화 값을 갱신하고, 기존 단일 `REPORT_ALLOWED_ORIGIN`은 preview fallback으로 설명한다. `analytics.spamfam.kr`은 분석 script 서버로 유지한다. 다음 운영 사실을 명시한다.
 
 - NPMplus에서 `spamfam.kr` 및 연결된 레거시 호스트를 `kmarketday.com`으로 301한다.
 - Next.js의 host redirect는 fallback이며 `permanent: true`로 308을 반환할 수 있다.
@@ -374,7 +444,7 @@ Expected: 새 assertion이 old `jangnal.spamfam.kr` body 때문에 FAIL한다.
 
 - [ ] **Step 4: 문서·Release 테스트를 통과시킨다**
 
-Run: `node --test scripts/create-release.test.mjs && rg -n "Site: https://kmarketday.com/|REPORT_ALLOWED_ORIGIN=https://kmarketday.com|서비스 경로.*kmarketday.com" README.md apps/web/README.md scripts/create-release.mjs`
+Run: `node --test scripts/create-release.test.mjs && rg -n "Site: https://kmarketday.com/|REPORT_ALLOWED_ORIGINS=https://spamfam\.kr,https://kmarketday\.com|서비스 경로.*kmarketday.com" README.md apps/web/README.md scripts/create-release.mjs`
 
 Expected: PASS와 함께 새 운영 주소가 문서·Release에 보이고 registry 주소와 과거 검증 기록은 보존된다.
 
@@ -480,7 +550,7 @@ PR을 병합하거나 승인된 main push를 진행한다. CI가 `pnpm test`, `p
 
 - [ ] **Step 2: K3s runtime Secret을 새 Origin으로 반영한다**
 
-`jangnal-web-env`에 `REPORT_ALLOWED_ORIGIN=https://kmarketday.com`을 반영하고, 기존 SMTP 값은 건드리지 않는다. Argo CD의 `jangnal-map` Application이 새 image와 Secret 변경을 Sync했는지 확인한다.
+`jangnal-web-env`에 전환 중 값인 `REPORT_ALLOWED_ORIGINS=https://spamfam.kr,https://kmarketday.com`을 반영하고, 기존 SMTP 값은 건드리지 않는다. Argo CD의 `jangnal-map` Application이 새 image와 Secret 변경을 Sync했는지 확인한다.
 
 `kmarketday.com` Host가 같은 web Service로 전달되는지 Ingress/IngressRoute status와 Argo CD diff에서 확인한다. 새 host용 TLS secret 또는 resolver가 필요한 구조라면 인증서 Ready 상태도 확인한다.
 
@@ -507,6 +577,8 @@ done
 ```
 
 Expected for every connected old host: status is exactly `301`, `Location` is `https://kmarketday.com/report?kind=service&from=legacy`, and the old host does not return the app HTML with status 200. A host that has no DNS/route is recorded as “not connected” rather than invented or silently marked passed.
+
+이 검사는 별도 production smoke script를 추가하지 않고 전환 당일 curl 결과를 검증 문서에 보관한다. CI는 로컬 `127.0.0.1:3100`만 검사하며, 실제 DNS/NPMplus 응답은 이 수동 운영 체크의 책임으로 둔다.
 
 - [ ] **Step 6: 커밋·배포 상태를 증적에 남긴다**
 
@@ -546,21 +618,31 @@ Expected: public pages and connection files are 200, the intentional missing rou
 
 브라우저 개발자 도구 또는 동일한 HTTPS 환경에서 `Origin: https://kmarketday.com` 제보 요청을 honeypot payload로 보내 200을 확인한다. `Origin: https://attacker.invalid`와 `Origin: https://localhost:3000` 요청은 403이어야 하며 메일은 발송되지 않는다. forwarding header만 새 도메인을 주장하는 요청도 403이어야 한다. 실제 운영 메일을 보내는 테스트는 별도 명시적 승인 없이는 수행하지 않는다.
 
-- [ ] **Step 4: Umami와 Google 콘솔을 갱신한다**
+- [ ] **Step 4: old Origin을 제거한다**
+
+NPMplus의 `spamfam.kr` 301, 새 도메인 제보, Search Console·Umami·네이버 지도 검증이 안정화된 뒤 K3s Secret을 다음 값으로 축소하고 Argo CD rollout을 확인한다.
+
+```text
+REPORT_ALLOWED_ORIGINS=https://kmarketday.com
+```
+
+그 다음 `Origin: https://spamfam.kr` 요청은 403, `Origin: https://kmarketday.com` 요청은 통과해야 한다. 이 단계 전에는 기존 Origin을 제거하지 않는다.
+
+- [ ] **Step 5: Umami와 Google 콘솔을 갱신한다**
 
 Umami에서 새 호스트 수집 대상이 `kmarketday.com`으로 인식되는지 확인한다. Google Search Console에 `https://kmarketday.com` 속성을 추가·검증하고 `https://kmarketday.com/sitemap.xml`을 제출한다. AdSense 사이트 목록·연결 상태와 `https://kmarketday.com/ads.txt`를 확인한다. 기존 `spamfam.kr` 속성·sitemap은 새 주소 색인 상태가 확인될 때까지 삭제하지 않는다.
 
-- [ ] **Step 5: 검증 문서를 실제 결과로 작성한다**
+- [ ] **Step 6: 검증 문서를 실제 결과로 작성한다**
 
 `docs/verification/2026-09-22-kmarketday-domain-migration.md`를 만들고 제목을 `kmarketday.com 도메인 전환 검증`으로 작성한다. 문서에는 `git rev-parse HEAD`의 실제 commit, `Asia/Seoul` 기준 실제 검증 시각, 공식 URL `https://kmarketday.com`, 기존 주소의 301 정책을 기록한다. 다음 각 항목은 실제 결과와 실행 증거를 함께 기록하고, 확인하지 못한 항목은 PASS로 표시하지 않는다: DNS/TLS/NPMplus, 새 도메인 주요 경로, canonical/OG/JSON-LD, robots/sitemap/ads.txt, 제보 Origin 허용·거부, Umami 대상 도메인, Argo CD rollout, Search Console, AdSense.
 
-- [ ] **Step 6: 최종 운영 회귀를 완료한다**
+- [ ] **Step 7: 최종 운영 회귀를 완료한다**
 
 Run: `pnpm test && pnpm typecheck && pnpm build && pnpm --filter @jangnal-map/web exec playwright test`
 
 Expected: 코드 검증이 재현 가능하게 PASS하고, Task 6·7의 외부 검증 문서와 실제 배포 SHA가 일치한다.
 
-- [ ] **Step 7: 검증 문서를 커밋한다**
+- [ ] **Step 8: 검증 문서를 커밋한다**
 
 ```bash
 git add docs/verification/2026-09-22-kmarketday-domain-migration.md
@@ -594,7 +676,7 @@ git commit -m "docs: record kmarketday.com domain migration"
    - manifest를 GitOps 저장소의 협업 절차에 맞춰 commit/PR/merge하고 Argo CD `jangnal-map`의 Sync/Health를 확인한다.
 
 4. **K3s Secret과 rollout**
-   - `jangnal-web-env`의 `REPORT_ALLOWED_ORIGIN`을 정확히 `https://kmarketday.com`으로 바꾼다.
+   - 전환 중 `jangnal-web-env`의 `REPORT_ALLOWED_ORIGINS`를 `https://spamfam.kr,https://kmarketday.com`으로 설정하고, 안정화 후 `https://kmarketday.com` 하나로 축소한다.
    - `SMTP_USER`, `SMTP_PASS`, `REPORT_TO_EMAIL`은 변경하지 않는다.
    - Argo CD Sync 뒤 새 Pod rollout과 Ingress route status를 확인한다.
 
@@ -645,3 +727,87 @@ git commit -m "docs: record kmarketday.com domain migration"
 - 새 image 또는 Secret 반영 후 앱 기능이 깨지면 GitOps image SHA를 검증된 이전 SHA로 되돌리고 Argo CD health를 확인한다.
 - `spamfam.kr` 301을 켠 뒤 새 도메인이 정상 동작하지 않으면 NPMplus redirect rule을 일시 중지하고 기존 서비스 route를 복구한다. DNS 레코드와 기존 TLS는 삭제하지 않는다.
 - Search Console·AdSense의 색인/검증 지연은 애플리케이션 rollback 조건이 아니다. 실제 HTTP·canonical·제보 기능이 실패할 때만 배포 rollback을 검토한다.
+
+## What already exists
+
+- `apps/web/src/lib/market-seo.ts`의 `SITE_URL`은 sitemap, robots, market detail metadata, WebSite JSON-LD가 재사용하는 기존 canonical 소스다. 이번 계획은 이를 `site-config.ts`로 옮기고 기존 consumers를 유지한다.
+- `apps/web/next.config.ts`에는 Vercel·subdomain 레거시 host fallback이 이미 있다. 새 계획은 같은 Next.js redirect mechanism의 목적지만 바꾼다.
+- `apps/web/src/lib/report-handler.ts`는 이미 deployment configuration을 읽고 client-supplied forwarding header를 무시한다. dual-origin parser는 이 guard 앞단만 확장한다.
+- `apps/web/src/lib/naver-maps.ts`는 Client ID를 받아 SDK를 로드하고 실패 시 promise를 reject한다. `naver-maps.test.ts`와 UI fallback을 재사용하며 SDK loader를 새로 만들지 않는다.
+- `.github/workflows/ci.yml`은 테스트·typecheck·AMD64 image·smoke test·Harbor·GitOps image update를 이미 수행한다. domain migration은 새 artifact나 별도 publish pipeline을 만들지 않는다.
+- 별도 GitOps 저장소가 실제 Ingress/IngressRoute와 Argo CD 배포 상태를 소유한다. 앱 저장소에 없는 manifest를 복제하지 않는다.
+
+## NOT in scope
+
+- Umami 서버를 `analytics.kmarketday.com`으로 이전하지 않는다. 이번 변경은 수집 대상 domain만 바꾼다.
+- Harbor registry, GitHub repository, K3s namespace, Argo CD Application 이름은 바꾸지 않는다. domain migration과 무관하고 rollback 범위를 넓힌다.
+- `www.kmarketday.com` DNS record를 새로 만들지 않는다. 실제 운영 주소로 채택할 때 별도 결정한다.
+- Search Console·AdSense의 기존 `spamfam.kr` property를 즉시 삭제하지 않는다. 새 주소 색인 안정화 후 별도 운영 작업이다.
+- production smoke script를 새로 만들지 않는다. 사용자가 선택한 B안에 따라 기존 curl·브라우저 체크를 전환 당일 수행한다.
+- 시장 데이터, URL path 체계, UI 문구, SMTP 구조, 지도 SDK loader 자체는 변경하지 않는다.
+
+## Failure modes
+
+| Failure mode | Test coverage | Error handling / user outcome |
+| --- | --- | --- |
+| `REPORT_ALLOWED_ORIGINS`가 빈 목록·잘못된 URL·지원하지 않는 protocol | `report-handler.test.ts` 설정 오류 cases | 500과 설정 오류 로그, mail transport 호출 없음 |
+| 공격자 Origin 또는 forwarding header 위조 | handler/route tests | 403, 메일 미발송 |
+| DNS/TLS가 새 endpoint를 가리키지 않음 | Task 1 curl·TLS preflight | 새 도메인 검증이 중단되고 기존 도메인은 유지 |
+| Ingress Host가 잘못된 Service/포트를 가리킴 | GitOps diff·Argo CD status·새 도메인 200 확인 | 새 도메인 route 실패, old redirect는 활성화하지 않음 |
+| old host redirect가 누락되거나 200으로 중복 제공 | 전환 당일 manual curl | 301·Location·query 보존을 확인한 뒤에만 완료 처리 |
+| canonical metadata가 일부 old host를 계속 생성 | Vitest·Playwright·HTML 검사 | 배포 완료로 표시하지 않고 app image를 수정 |
+| Naver Maps allowlist 누락 | existing loader/fallback tests + production browser check | 지도 실패 시 기존 목록 fallback을 보여 서비스 탐색은 유지 |
+
+이 범위에서 테스트와 운영 확인이 없는 silent failure는 남기지 않는다. 실제 DNS·NPMplus·Ingress는 로컬 CI에서 재현할 수 없으므로 수동 운영 증적을 필수 완료 조건으로 둔다.
+
+## Worktree parallelization strategy
+
+| Step | Modules touched | Depends on |
+| --- | --- | --- |
+| App canonical + report changes | `apps/web/src/lib/`, `apps/web/src/app/`, `apps/web/e2e/` | — |
+| GitOps ingress + DNS/TLS/NPMplus preflight | external DNS, NPMplus, `denadedev/gitops/apps/jangnal-map/` | — |
+| Docs + release metadata | root docs, `apps/web/README.md`, `scripts/` | — |
+| Production cutover + consoles | K3s Secret, Argo CD, NPMplus, Naver Maps, Umami, Search Console, AdSense | App tests/build + ingress preflight |
+
+Lane A: App canonical + report changes → local verification.
+
+Lane B: GitOps ingress + DNS/TLS/NPMplus preflight (independent of source edits).
+
+Lane C: Docs + release metadata (independent of source edits, but merge with Lane A before release).
+
+Lane D: Production cutover + external consoles, after Lanes A/B/C complete.
+
+Launch Lanes A, B, and C in parallel where the operator has the required external access. Wait for all three before Lane D. Lane A and Lane C both touch release-facing documentation/tests only where explicitly listed; keep their commits separate to avoid accidental merge conflicts.
+
+## Implementation Tasks
+
+Synthesized from this review's findings. Each task derives from a specific finding above. Run with Codex; checkbox as you ship.
+
+- [ ] **T1 (P1, human: ~2h / CC: ~20min)** — Report Origin cutover — Add exact dual-origin allowlist, invalid-config 500, and final old-Origin removal.
+  - Surfaced by: Architecture Review D2 and Code Quality Review D3; `report-handler.ts` currently compares one configured Origin.
+  - Files: `apps/web/src/lib/report-handler.ts`, `apps/web/src/lib/report-handler.test.ts`, `apps/web/src/app/api/report/route.test.ts`, K3s `jangnal-web-env` Secret.
+  - Verify: targeted Vitest suite; old/new Origin during cutover; old Origin 403 after final Secret rollout.
+- [ ] **T2 (P2, human: ~1h / CC: ~10min)** — Shared site config — Centralize `SITE_URL` and `SITE_HOST` without importing market catalog into layout.
+  - Surfaced by: Code Quality Review D4; canonical values are duplicated across SEO and layout.
+  - Files: `apps/web/src/lib/site-config.ts`, `apps/web/src/lib/site-config.test.ts`, `apps/web/src/lib/market-seo.ts`, `apps/web/src/app/layout.tsx`, related tests.
+  - Verify: site-config, SEO, layout, page, and market detail tests.
+- [ ] **T3 (P1, human: ~1h / CC: ~10min)** — Edge cutover — Apply the verified GitOps Ingress/DNS/NPMplus sequence and preserve the manual 301 evidence.
+  - Surfaced by: Architecture Review data-flow check and Test Review D5; actual public routing cannot be covered by local Playwright.
+  - Files: external `denadedev/gitops` Ingress/IngressRoute, DNS/NPMplus, Task 6 verification record.
+  - Verify: new-domain 200, exact old-host 301, Location path/query preservation, TLS and Argo CD health.
+
+_No new implementation task from Performance Review._
+
+## GSTACK REVIEW REPORT
+
+| Review | Trigger | Why | Runs | Status | Findings |
+|--------|---------|-----|------|--------|----------|
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | — | — |
+| Codex Review | `/codex review` | Independent 2nd opinion | 0 | — | — |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | CLEAR | 4 issues resolved; 0 critical gaps |
+| Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | — |
+| DX Review | `/plan-devex-review` | Developer experience gaps | 0 | — | — |
+
+**VERDICT:** ENG CLEARED — ready to implement after applying T1–T3.
+
+NO UNRESOLVED DECISIONS

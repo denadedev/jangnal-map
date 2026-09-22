@@ -13,16 +13,9 @@ export const metadata: Metadata = {
   title: { default: "오늘 장날 | 전국 5일장·전통시장 일정 지도", template: "%s" },
   description: "오늘·이번 주·주말에 열리는 전국 5일장과 전통시장을 지도에서 확인하세요. 시장별 장날, 주소, 주차, 전화 정보를 제공합니다.",
   verification: {
-    google: [
-      "qLxSxOof1dITMeFrrNHReAC51FFUDTPDpCqKSpqJFgY",
-      "ETYT-jUzdfgO29SuYzFjB8xuh52yLKhHF6bSi1hrjm0",
-    ],
+    google: "iTnI4yy_bzEL-eOrfqhBfEo6VusJEs7MgkVCrZpgV_U",
     other: {
-      "naver-site-verification": [
-        "d7bf1253f88fe2410c22eb065f4af604dfccac18",
-        "d98fd747905c7cae55b86be4beb8dd7584935cc8",
-        "b00a4ff86fb6e0c4c07cd46de8c1d7f3c35f1087",
-      ],
+      "naver-site-verification": "474ca7369654e9ba939c810a7988fdd9ae455a95",
     },
   },
   appleWebApp: {

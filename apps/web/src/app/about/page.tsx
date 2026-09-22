@@ -37,7 +37,7 @@ export default function AboutPage() {
           <section id="data-policy" className={styles.section} aria-labelledby="data-policy-heading">
             <h2 id="data-policy-heading">데이터 출처와 편집 기준</h2>
             <p>장날 일정과 주소·전화·주차 정보는 공공데이터포털 전국전통시장표준데이터를 기준으로 정리합니다. 온누리상품권 수치는 별도 공공데이터 집계를 사용하며, 각 시장 페이지에 출처와 기준일을 표시합니다.</p>
-            <p>검수된 시장 안내는 한국관광공사, 지방자치단체, 시장 공식 채널 등 확인 가능한 자료를 대조해 작성합니다. 확인되지 않은 운영시간이나 현장 상태는 사실처럼 작성하지 않습니다.</p>
+            <p>시장별 상세 안내는 한국관광공사, 지방자치단체, 시장 공식 채널 등 확인 가능한 자료를 대조해 작성합니다. 확인되지 않은 운영시간이나 현장 상태는 사실처럼 작성하지 않습니다.</p>
           </section>
 
           <section className={styles.section} aria-labelledby="update-heading">

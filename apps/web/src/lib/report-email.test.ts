@@ -8,7 +8,7 @@ const report = {
   message: "실제 장날은 5일과 10일입니다.",
   evidenceUrl: "https://example.com/notice",
   contact: "010-1234-5678",
-  pageUrl: "https://jangnal-map.vercel.app/report?kind=market",
+  pageUrl: "https://kmarketday.com/report?kind=market",
   market: { id: "market-45b640ccbe294100", name: "운천전통시장" },
 };
 
@@ -45,7 +45,7 @@ describe("report email", () => {
         "내용: 실제 장날은 5일과 10일입니다.",
         "근거 URL: https://example.com/notice",
         "연락처: 010-1234-5678",
-        "제출 화면: https://jangnal-map.vercel.app/report?kind=market",
+        "제출 화면: https://kmarketday.com/report?kind=market",
       ].join("\n"),
     });
   });

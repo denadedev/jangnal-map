@@ -3,10 +3,10 @@ import { formatScheduleDates, formatSchedulePattern } from "./market-view";
 import { publicMarkets } from "./market-catalog";
 import { reviewedMarketIds } from "./market-editorial";
 import { createMarketSlug } from "./market-path";
+import { SITE_URL } from "./site-config";
 
 export { createMarketSlug, getMarketPagePath } from "./market-path";
-
-export const SITE_URL = "https://spamfam.kr";
+export { SITE_URL } from "./site-config";
 
 const marketsBySlug = new Map(publicMarkets.map((market) => [createMarketSlug(market), market] as const));
 

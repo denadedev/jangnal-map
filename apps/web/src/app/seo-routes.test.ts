@@ -57,33 +57,40 @@ describe("SEO metadata routes", () => {
   it("allows crawling and declares the canonical sitemap", () => {
     expect(robots()).toEqual({
       rules: { userAgent: "*", allow: "/" },
-      sitemap: "https://spamfam.kr/sitemap.xml",
-      host: "https://spamfam.kr",
+      sitemap: "https://kmarketday.com/sitemap.xml",
+      host: "https://kmarketday.com",
     });
   });
 
-  it("permanently redirects the legacy Vercel host to the canonical domain", async () => {
+  it("permanently redirects legacy hosts to the canonical domain", async () => {
     const redirects = await (nextConfig as {
       redirects?: () => Promise<unknown[]>;
     }).redirects?.();
 
     expect(redirects).toContainEqual({
       source: "/:path*",
+      has: [{ type: "host", value: "spamfam.kr" }],
+      destination: "https://kmarketday.com/:path*",
+      permanent: true,
+    });
+
+    expect(redirects).toContainEqual({
+      source: "/:path*",
       has: [{ type: "host", value: "jangnal-map.vercel.app" }],
-      destination: "https://spamfam.kr/:path*",
+      destination: "https://kmarketday.com/:path*",
       permanent: true,
     });
 
     expect(redirects).toContainEqual({
       source: "/:path*",
       has: [{ type: "host", value: "jangnal.spamfam.kr" }],
-      destination: "https://spamfam.kr/:path*",
+      destination: "https://kmarketday.com/:path*",
       permanent: true,
     });
   });
 
   it("defines production root metadata defaults", () => {
-    expect(metadata.metadataBase).toEqual(new URL("https://spamfam.kr"));
+    expect(metadata.metadataBase).toEqual(new URL("https://kmarketday.com"));
     expect(metadata.verification?.google).toEqual([
       "qLxSxOof1dITMeFrrNHReAC51FFUDTPDpCqKSpqJFgY",
       "ETYT-jUzdfgO29SuYzFjB8xuh52yLKhHF6bSi1hrjm0",

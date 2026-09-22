@@ -14,7 +14,7 @@ describe("Umami Analytics", () => {
     expect(tracker?.getAttribute("data-website-id")).toBe(
       "17d5f5df-067f-4606-82ba-a8471bf84d28",
     );
-    expect(tracker?.getAttribute("data-domains")).toBe("spamfam.kr");
+    expect(tracker?.getAttribute("data-domains")).toBe("kmarketday.com");
     expect(tracker?.getAttribute("data-exclude-search")).toBe("true");
   });
 });

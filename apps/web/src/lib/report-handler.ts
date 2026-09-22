@@ -14,6 +14,26 @@ const value = (input: unknown): string => typeof input === "string" ? input : ""
 
 const json = (status: number, message: string) => Response.json({ message }, { status });
 
+function parseReportOrigins(value: string): string[] {
+  const entries = value.split(",").map((entry) => entry.trim()).filter(Boolean);
+  if (entries.length === 0) throw new Error("empty report origins");
+
+  const origins = entries.map((entry) => {
+    const url = new URL(entry);
+    if (
+      !["http:", "https:"].includes(url.protocol)
+      || url.pathname !== "/"
+      || url.search
+      || url.hash
+      || url.username
+      || url.password
+    ) throw new Error("invalid report origin");
+    return url.origin;
+  });
+
+  return [...new Set(origins)];
+}
+
 const emailErrorCode = (error: unknown): string => {
   if (!error || typeof error !== "object") return "UNKNOWN";
   const code = (error as { code?: unknown }).code;
@@ -24,8 +44,23 @@ export function createReportHandler(sendReport: SendReport = sendReportEmail) {
   return async function POST(request: Request): Promise<Response> {
     const origin = request.headers.get("origin");
     // Use deployment configuration, never client-supplied forwarding headers.
-    const allowedOrigin = process.env.REPORT_ALLOWED_ORIGIN?.trim() || new URL(request.url).origin;
-    if (!origin || origin !== allowedOrigin) {
+    const hasConfiguredOrigins = Object.prototype.hasOwnProperty.call(process.env, "REPORT_ALLOWED_ORIGINS");
+    const configuredOrigins = process.env.REPORT_ALLOWED_ORIGINS?.trim();
+    const legacyOrigin = process.env.REPORT_ALLOWED_ORIGIN?.trim();
+    let allowedOrigins: string[];
+    try {
+      allowedOrigins = configuredOrigins
+        ? parseReportOrigins(configuredOrigins)
+        : legacyOrigin
+          ? parseReportOrigins(legacyOrigin)
+          : hasConfiguredOrigins
+            ? parseReportOrigins(configuredOrigins ?? "")
+            : [new URL(request.url).origin];
+    } catch {
+      console.error("Invalid report origin configuration");
+      return json(500, "제보 설정을 확인해 주세요.");
+    }
+    if (!origin || !allowedOrigins.includes(origin)) {
       return json(403, "허용되지 않은 요청입니다.");
     }
 

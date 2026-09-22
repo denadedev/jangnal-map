@@ -37,6 +37,12 @@ Next.js `redirects()`의 `permanent: true`는 301이 아닌 308을 생성한다.
 
 분석 수집 서버 `analytics.spamfam.kr`까지 함께 이전하지 않는다. 새 사이트에서 해당 스크립트를 계속 로드하되 `data-domains="kmarketday.com"`으로 제한한다. Search Console과 AdSense는 새 사이트 주소를 별도 속성으로 등록·검증하고, 기존 속성과 sitemap은 즉시 삭제하지 않고 새 주소의 색인 상태가 확인될 때까지 유지한다.
 
+### 네이버 지도 Client ID와 허용 도메인
+
+현재 코드의 네이버 지도 SDK endpoint와 `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`는 사이트 도메인과 분리되어 있으므로 값을 변경하지 않는다. 네이버 클라우드 플랫폼의 Maps 애플리케이션에 등록된 웹 서비스 URL/허용 도메인 목록에 `https://kmarketday.com`을 추가하고, 전환 기간 동안 `https://spamfam.kr`을 유지한다. `www.kmarketday.com`을 실제 서비스 주소로 사용하지 않으면 등록하지 않는다.
+
+새 도메인의 실제 브라우저에서 지도 SDK가 정상 로드되고 지도·마커·현재 위치·지도 실패 fallback이 동작하는지 확인한다. 도메인 제한 오류가 발생하면 Client ID를 새로 발급하거나 코드를 바꾸지 말고, 먼저 네이버 Maps 애플리케이션의 허용 도메인과 HTTPS origin 등록을 확인한다.
+
 ## 제안 아키텍처
 
 ### 1. 인프라 선행 준비
@@ -93,6 +99,7 @@ TLS가 NPMplus에서만 종료되면 Ingress의 TLS secret은 새로 만들지 �
 - `README.md`: 분석 대상, 공식 서비스 경로, 도메인 전환 후 운영 주소 갱신
 - `apps/web/README.md`: `REPORT_ALLOWED_ORIGIN`, K3s 도메인 경로, DNS/TLS와 rollout 검증 문구 갱신
 - 별도 `denadedev/gitops` 저장소의 실제 Ingress/IngressRoute manifest: `kmarketday.com` Host와 TLS 대상 추가, old host 유지
+- 네이버 클라우드 플랫폼 Maps 애플리케이션: `https://kmarketday.com` 웹 서비스 URL 추가, 기존 `https://spamfam.kr` 유지
 - `scripts/create-release.mjs`: Release 본문의 Site 링크를 `https://kmarketday.com/`으로 변경. Harbor registry 주소는 서비스 도메인이 아니므로 유지
 - `scripts/create-release.test.mjs`: 새 Site 링크 기대값 추가. 이미지 registry 기대값은 유지
 - `docs/verification/2026-09-22-kmarketday-domain-migration.md`: 실제 전환 commit, 확인 시각, HTTP 응답, TLS·rollout·SEO·제보 검증 결과를 기록
@@ -131,9 +138,10 @@ TLS가 NPMplus에서만 종료되면 Ingress의 TLS secret은 새로 만들지 �
 3. `spamfam.kr` 및 실제 연결된 레거시 호스트의 대표 경로·쿼리가 301로 새 도메인에 도달하고, 레거시 호스트가 콘텐츠를 200으로 중복 제공하지 않는다.
 4. 새 도메인의 `/api/report`는 허용 Origin을 처리하고 공격자 Origin과 forwarding header 위조를 거부한다.
 5. Umami 스크립트는 로드되며 수집 대상은 `kmarketday.com`이고, 분석 서버 주소는 의도대로 유지된다.
-6. `ads.txt`, `robots.txt`, `sitemap.xml`의 HTTP 응답과 본문이 새 canonical 기준에 맞는다.
-7. `pnpm test`, `pnpm typecheck`, `pnpm build`, Playwright, 컨테이너 smoke test가 통과한다.
-8. NPMplus TLS, Traefik 전달, Argo CD rollout, Search Console sitemap, AdSense 사이트 상태를 실제 운영 환경에서 확인하고 검증 문서에 결과를 기록한다.
+6. 새 도메인에서 네이버 지도 SDK, 지도·마커·현재 위치가 로드되고 지도 실패 fallback도 유지된다.
+7. `ads.txt`, `robots.txt`, `sitemap.xml`의 HTTP 응답과 본문이 새 canonical 기준에 맞는다.
+8. `pnpm test`, `pnpm typecheck`, `pnpm build`, Playwright, 컨테이너 smoke test가 통과한다.
+9. NPMplus TLS, Traefik 전달, Argo CD rollout, Search Console sitemap, AdSense 사이트, 네이버 Maps 허용 도메인 상태를 실제 운영 환경에서 확인하고 검증 문서에 결과를 기록한다.
 
 ## 범위 밖
 

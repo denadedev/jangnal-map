@@ -17,6 +17,7 @@
 - Next.js `permanent: true`는 308 fallback으로만 사용한다. NPMplus가 연결된 운영 호스트의 정확한 301을 책임진다.
 - Umami script URL `https://analytics.spamfam.kr/script.js`와 website ID는 유지하고 `data-domains`만 `kmarketday.com`으로 바꾼다.
 - K3s 런타임 `REPORT_ALLOWED_ORIGIN`은 `https://kmarketday.com` 하나로 설정한다. forwarding header는 신뢰하지 않는다.
+- 네이버 지도 SDK endpoint와 `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`는 유지하고, 네이버 Maps 애플리케이션의 허용 웹 서비스 URL에 `https://kmarketday.com`을 추가한다. 기존 `https://spamfam.kr`은 전환 기간 동안 유지한다.
 - 기존 `spamfam.kr` DNS와 라우팅은 새 도메인이 안정화될 때까지 삭제하지 않는다.
 - SMTP 자격증명, GitOps 토큰, DNS 계정정보는 저장소·로그·채팅에 기록하지 않는다.
 - 기존 `CHANGELOG.md`와 과거 검증 문서는 과거 사실을 보존하며, 새 전환 결과는 별도 검증 문서에 기록한다.
@@ -27,7 +28,7 @@
 - **Redirect integrity:** 기존 호스트의 대표 경로와 쿼리가 HTTP 301로 새 호스트에 그대로 도착하고 레거시 호스트가 콘텐츠를 200으로 내놓지 않아야 한다. Task 1의 proxy preflight와 Task 6의 curl 검증이 고정한다.
 - **Origin enforcement:** 새 canonical Origin은 제보 API를 통과하고 공격자 Origin 및 위조된 forwarding header는 거부되어야 한다. Task 3의 handler/route 테스트와 Task 6의 운영 API 검증이 고정한다.
 - **Analytics split:** 분석 script 서버는 `analytics.spamfam.kr`로 유지되지만 수집 대상은 `kmarketday.com`이어야 한다. Task 2의 layout 테스트와 Task 6의 HTML/네트워크 확인이 고정한다.
-- **Infrastructure consistency:** DNS, TLS SAN, NPMplus Host rule, GitOps Ingress/IngressRoute, Traefik 전달, 런타임 Secret, Argo CD rollout이 같은 canonical 기준을 가져야 한다. Task 1·1A와 Task 5·6의 운영 체크리스트가 고정한다.
+- **Infrastructure consistency:** DNS, TLS SAN, NPMplus Host rule, GitOps Ingress/IngressRoute, Traefik 전달, 런타임 Secret, Argo CD rollout, 네이버 Maps 허용 도메인이 같은 canonical 기준을 가져야 한다. Task 1·1A와 Task 5·6의 운영 체크리스트가 고정한다.
 
 ## 변경 파일 지도
 
@@ -45,6 +46,7 @@
 - `scripts/create-release.test.mjs`: Release 본문 Site URL 기대값
 - `README.md`, `apps/web/README.md`: 운영 주소·환경변수·검증 안내
 - 별도 `denadedev/gitops` 저장소의 실제 `Ingress` 또는 `IngressRoute` manifest: 새 Host/TLS 대상과 기존 Host 유지
+- 네이버 클라우드 플랫폼 Maps 애플리케이션: 새 웹 서비스 URL 허용, 기존 도메인 유지
 - `docs/verification/2026-09-22-kmarketday-domain-migration.md`: 실제 배포 후 증적
 
 ---
@@ -538,6 +540,8 @@ Expected: public pages and connection files are 200, the intentional missing rou
 
 대표 페이지의 rendered HTML에서 `canonical`, `og:url`, JSON-LD WebSite URL을 확인하고, `spamfam.kr`이 남지 않았는지 검색한다. `analytics.spamfam.kr/script.js`가 로드되고 `data-domains="kmarketday.com"`인지 확인한다. `pagead2.googlesyndication.com`, `ins.adsbygoogle`, Google ad iframe이 없어야 한다.
 
+유효한 `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`가 포함된 운영 build에서 네이버 지도 SDK가 `https://kmarketday.com`에서 로드되는지 확인한다. 지도·마커·현재 위치 버튼이 동작하고, SDK 오류 시 기존 목록 fallback이 표시되어야 한다. SDK의 도메인 제한 오류가 있으면 코드나 Client ID를 바꾸기 전에 네이버 Maps 애플리케이션의 웹 서비스 URL 허용 목록을 확인한다.
+
 - [ ] **Step 3: 제보 API의 허용·거부 동작을 확인한다**
 
 브라우저 개발자 도구 또는 동일한 HTTPS 환경에서 `Origin: https://kmarketday.com` 제보 요청을 honeypot payload로 보내 200을 확인한다. `Origin: https://attacker.invalid`와 `Origin: https://localhost:3000` 요청은 403이어야 하며 메일은 발송되지 않는다. forwarding header만 새 도메인을 주장하는 요청도 403이어야 한다. 실제 운영 메일을 보내는 테스트는 별도 명시적 승인 없이는 수행하지 않는다.
@@ -596,23 +600,29 @@ git commit -m "docs: record kmarketday.com domain migration"
 
 ### 외부 서비스 작업
 
-5. **Umami**
+5. **네이버 지도 Client ID 허용 도메인**
+   - 네이버 클라우드 플랫폼의 Maps 애플리케이션에서 웹 서비스 URL/허용 도메인 목록을 확인한다.
+   - `https://kmarketday.com`을 추가하고 기존 `https://spamfam.kr`은 유지한다.
+   - `www.kmarketday.com`을 실제 서비스 주소로 사용하지 않으면 추가하지 않는다.
+   - 새 도메인에서 지도 SDK·지도 핀·현재 위치 기능을 확인한다. 오류가 발생하면 먼저 허용 도메인과 HTTPS origin을 점검한다.
+
+6. **Umami**
    - 앱이 로드하는 script URL `https://analytics.spamfam.kr/script.js`는 유지한다.
    - Umami 관리 화면에 별도 허용 도메인 목록이 있다면 `kmarketday.com`을 추가하고, 기존 `spamfam.kr`은 바로 삭제하지 않는다.
    - 실제 페이지에서 `data-domains="kmarketday.com"`과 수집 여부를 확인한다.
 
-6. **검색·광고 소유권**
+7. **검색·광고 소유권**
    - Google Search Console에 `https://kmarketday.com` 속성을 추가·검증하고 `https://kmarketday.com/sitemap.xml`을 제출한다.
    - 기존 `spamfam.kr` 속성과 sitemap은 새 주소의 색인 상태가 안정화될 때까지 유지한다.
    - AdSense 사이트 목록에 새 주소를 추가하고 `https://kmarketday.com/ads.txt` 및 사이트 연결 상태를 확인한다.
    - Naver Search Advisor를 운영 중이면 새 도메인을 별도 등록·소유 확인하고, 기존 verification token으로 확인되지 않을 때 새 token을 앱 metadata에 반영한다.
 
-7. **배포 승인과 모니터링**
+8. **배포 승인과 모니터링**
    - 앱 저장소 변경의 PR/main 반영을 승인하고 GitHub Actions, Harbor image, GitOps commit, Argo CD rollout을 확인한다.
    - 새 도메인 200·제보·SEO 검증이 끝난 뒤에만 NPMplus의 기존 host 301을 활성화한다.
    - 전환 직후 주요 경로, TLS, redirect, 제보 API, Umami 수집, Search Console/AdSense 상태를 확인한다.
 
-8. **운영 데이터·보존 정책**
+9. **운영 데이터·보존 정책**
    - 실제 운영 제보 메일을 보내는 검증은 별도 명시적 승인 후 한 건만 수행하고, 테스트 데이터 삭제 여부를 확인한다.
    - `spamfam.kr` DNS, TLS, NPMplus redirect, Search Console 속성은 새 주소가 안정화될 때까지 삭제하지 않는다.
 

@@ -120,6 +120,18 @@ describe("MarketExplorer", () => {
     vi.unstubAllGlobals();
   });
 
+  it("starts the mobile result sheet collapsed while the map is available", () => {
+    vi.stubGlobal("matchMedia", vi.fn((query: string) => ({
+      matches: query === "(max-width: 700px)",
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })));
+    const { container } = render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="test" />);
+
+    expect(container.querySelector(".mobile-market-sheet")).toHaveAttribute("data-snap", "collapsed");
+  });
+
   it("loads static markets and keeps the list usable when the map key is missing", async () => {
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 

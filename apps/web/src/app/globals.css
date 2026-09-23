@@ -160,6 +160,8 @@ a { color: inherit; text-decoration: none; }
 .reviewed-market-guides-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .reviewed-market-guides-heading h2 { margin: 0; font-size: 13px; }
 .reviewed-market-guides-heading span { color: var(--muted); font-size: 10px; }
+.reviewed-market-guides-actions { display: flex; align-items: center; gap: 8px; }
+.reviewed-market-guides-toggle { display: none; }
 .reviewed-market-guides-list { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
 .reviewed-market-guide-link { display: flex; min-width: 155px; min-height: 44px; flex-direction: column; justify-content: center; border: 1px solid var(--line); border-radius: 5px; padding: 6px 10px; background: var(--paper); }
 .reviewed-market-guide-link strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
@@ -492,8 +494,12 @@ a { color: inherit; text-decoration: none; }
   .feedback-link { min-height: 36px; padding: 0 9px; }
 
   .market-filters { position: relative; top: auto; grid-template-columns: 1fr; gap: 9px; flex: 0 0 auto; min-height: auto; padding: 10px 12px 11px; }
-  .reviewed-market-guides { padding: 10px 12px; }
+  .reviewed-market-guides { padding: 4px 12px; }
+  .reviewed-market-guides-heading { min-height: 44px; margin-bottom: 0; }
   .reviewed-market-guides-heading h2 { font-size: 12px; }
+  .reviewed-market-guides-toggle { display: block; min-height: 44px; border: 0; padding: 0 8px; background: transparent; color: var(--persimmon-dark); font-size: 12px; font-weight: 800; }
+  .reviewed-market-guides[data-expanded="false"] .reviewed-market-guides-content { display: none; }
+  .reviewed-market-guides-content { padding-bottom: 8px; }
   .search-field { height: 48px; }
   .search-field input { font-size: 16px; }
   .date-filter-row { min-width: 0; flex-wrap: wrap; gap: 7px; overflow: visible; }
@@ -513,7 +519,8 @@ a { color: inherit; text-decoration: none; }
   .list-pane, .detail-pane { display: none !important; }
   .list-heading { position: static; }
   .mobile-market-sheet { position: absolute; z-index: 70; right: 0; bottom: 0; left: 0; display: flex; max-height: calc(100% - 12px); flex-direction: column; overflow: hidden; border-radius: 18px 18px 0 0; background: var(--panel); box-shadow: 0 -10px 40px rgb(49 39 29 / 22%); transition: height 180ms ease-out; }
-  .mobile-market-sheet[data-snap="collapsed"] { height: 164px; }
+  .mobile-market-sheet[data-snap="collapsed"] { height: 100px; }
+  .mobile-market-sheet[data-snap="collapsed"] .mobile-market-sheet-content { display: none; }
   .mobile-market-sheet[data-snap="half"] { height: 49%; }
   .mobile-market-sheet[data-snap="full"] { height: 88%; }
   .mobile-market-sheet-handle { display: grid; width: 100%; min-height: 44px; flex: 0 0 44px; place-items: center; border: 0; background: transparent; touch-action: none; }

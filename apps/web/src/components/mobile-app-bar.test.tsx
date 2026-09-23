@@ -23,6 +23,14 @@ describe("MobileAppBar", () => {
     await user.click(screen.getByRole("button", { name: "메뉴 열기" }));
     expect(screen.getByRole("link", { name: "온누리상품권" })).toHaveAttribute("href", "/onnuri");
     expect(screen.getByRole("link", { name: "불편 신고" })).toHaveAttribute("href", "/report?kind=service");
+    expect(screen.getByRole("link", { name: "개인정보 처리방침" })).toHaveAttribute(
+      "href",
+      "https://legal-hub.denadedev.workers.dev/kmarketday/privacy/",
+    );
+    expect(screen.getByRole("link", { name: "이용약관" })).toHaveAttribute(
+      "href",
+      "https://legal-hub.denadedev.workers.dev/kmarketday/terms/",
+    );
 
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog", { name: "보조 메뉴" })).not.toBeInTheDocument();

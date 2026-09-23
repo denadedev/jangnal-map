@@ -8,7 +8,14 @@ describe("SiteFooter", () => {
     render(<SiteFooter />);
 
     expect(screen.getByRole("link", { name: "서비스 소개" })).toHaveAttribute("href", "/about");
-    expect(screen.getByRole("link", { name: "개인정보 처리방침" })).toHaveAttribute("href", "/privacy");
+    expect(screen.getByRole("link", { name: "개인정보 처리방침" })).toHaveAttribute(
+      "href",
+      "https://legal-hub.denadedev.workers.dev/kmarketday/privacy/",
+    );
+    expect(screen.getByRole("link", { name: "이용약관" })).toHaveAttribute(
+      "href",
+      "https://legal-hub.denadedev.workers.dev/kmarketday/terms/",
+    );
     expect(screen.getByRole("link", { name: "데이터 출처와 편집 기준" })).toHaveAttribute("href", "/about#data-policy");
     expect(screen.getByRole("link", { name: "정보 수정 제보" })).toHaveAttribute("href", "/report?kind=service");
   });

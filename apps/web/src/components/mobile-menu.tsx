@@ -93,7 +93,8 @@ export function MobileMenu({
         <nav aria-label="보조 메뉴">
           <a className="mobile-menu-link" href="/onnuri">온누리상품권</a>
           <a className="mobile-menu-link" href="/report?kind=service">불편 신고</a>
-          <a className="mobile-menu-link" href="/privacy">개인정보 안내</a>
+          <a className="mobile-menu-link" href="https://legal-hub.denadedev.workers.dev/kmarketday/privacy/">개인정보 처리방침</a>
+          <a className="mobile-menu-link" href="https://legal-hub.denadedev.workers.dev/kmarketday/terms/">이용약관</a>
           <a className="mobile-menu-link" href="/about">서비스 소개</a>
         </nav>
         {installPlatform ? (

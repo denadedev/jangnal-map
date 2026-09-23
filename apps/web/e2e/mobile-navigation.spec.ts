@@ -1,17 +1,29 @@
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
+
+async function openMobileResults(page: Page) {
+  const sheet = page.locator(".mobile-market-sheet");
+  if (await sheet.getAttribute("data-snap") === "collapsed") {
+    await sheet.getByRole("button", { name: "목록 열기" }).click();
+  }
+}
 
 test("finds a market through search and opens the mobile detail sheet", async ({ page }) => {
   await page.goto("/?when=all");
   await page.getByRole("searchbox", { name: "시장명 또는 지역 검색" }).fill("평택");
+  await openMobileResults(page);
   await page.getByRole("link", { name: /통복시장/ }).first().click();
   await expect(page.getByRole("article", { name: /통복시장/ })).toContainText("다음 장날");
   await page.getByRole("button", { name: "닫기" }).click();
+  await expect(page.locator(".mobile-market-sheet")).toHaveAttribute("data-snap", "collapsed");
+  await page.getByRole("button", { name: "목록 열기" }).click();
   await expect(page.getByRole("link", { name: /통복시장/ }).first()).toBeVisible();
 });
 
 test("opens a reviewed market's standalone page from the detail title", async ({ page }) => {
   await page.goto("/?when=all");
   await page.getByRole("searchbox", { name: "시장명 또는 지역 검색" }).fill("북평민속시장");
+  await openMobileResults(page);
   await page.locator(".mobile-market-sheet").getByRole("link", { name: /북평민속시장/ }).click();
 
   const detail = page.getByRole("article", { name: "북평민속시장 상세정보" });
@@ -50,6 +62,7 @@ test("restores the result sheet and filters with browser Back", async ({ page })
   await page.goto("/?when=all");
   const search = page.getByRole("searchbox", { name: "시장명 또는 지역 검색" });
   await search.fill("평택");
+  await openMobileResults(page);
   await page.getByRole("link", { name: /통복시장/ }).first().click();
   await expect(page.getByRole("article", { name: /통복시장/ })).toBeVisible();
 
@@ -62,15 +75,53 @@ test("restores the result sheet and filters with browser Back", async ({ page })
 test("returns focus to the selected result after closing detail", async ({ page }) => {
   await page.goto("/?when=all");
   await page.getByRole("searchbox", { name: "시장명 또는 지역 검색" }).fill("평택");
+  await openMobileResults(page);
   const marketLink = page.getByRole("link", { name: /통복시장/ }).first();
   await marketLink.focus();
   await marketLink.click();
-  await page.getByRole("button", { name: "닫기" }).click();
+  await page.getByRole("button", { name: "목록으로" }).click();
   await expect(marketLink).toBeFocused();
+});
+
+test("returns focus to the list control after closing detail to the map", async ({ page }) => {
+  await page.goto("/?when=all");
+  await openMobileResults(page);
+  await page.getByRole("link", { name: /통복시장/ }).first().click();
+
+  await page.getByRole("button", { name: "닫기" }).click();
+
+  const openListButton = page.getByRole("button", { name: "목록 열기" });
+  await expect(openListButton).toBeVisible();
+  await expect(openListButton).toBeFocused();
+});
+
+test("returns focus to the list control when browser Back closes a collapsed detail", async ({ page }) => {
+  await page.goto("/?when=all");
+  const sheet = page.locator(".mobile-market-sheet");
+  if (await sheet.getAttribute("data-snap") !== "collapsed") {
+    await sheet.getByRole("button", { name: "지도 보기" }).click();
+  }
+  await expect(sheet).toHaveAttribute("data-snap", "collapsed");
+
+  const marketId = await page.locator("[data-market-id]").first().getAttribute("data-market-id");
+  expect(marketId).toBeTruthy();
+  await page.evaluate((id) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("market", id!);
+    window.history.pushState({ mobileMarket: id }, "", `/?${params.toString()}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }, marketId);
+  await expect(sheet).toHaveAttribute("data-snap", "full");
+
+  await page.goBack();
+
+  await expect(sheet).toHaveAttribute("data-snap", "collapsed");
+  await expect(page.getByRole("button", { name: "목록 열기" })).toBeFocused();
 });
 
 test("Escape closes an expanded detail sheet", async ({ page }) => {
   await page.goto("/?when=all");
+  await openMobileResults(page);
   await page.getByRole("link", { name: /통복시장/ }).first().click();
   await page.getByRole("button", { name: "시트 손잡이" }).press("ArrowUp");
   await page.keyboard.press("Escape");
@@ -80,11 +131,16 @@ test("Escape closes an expanded detail sheet", async ({ page }) => {
 test("restores a scrolled result sheet after closing detail", async ({ page }) => {
   await page.goto("/?when=all");
   const content = page.locator(".mobile-market-sheet-content");
+  const sheet = page.locator(".mobile-market-sheet");
+  if (await sheet.getAttribute("data-snap") === "collapsed") {
+    await sheet.getByRole("button", { name: "목록 열기" }).click();
+    await sheet.getByRole("button", { name: "목록 크게 보기" }).click();
+  }
   await expect(content).toBeVisible();
   await content.evaluate((element) => { element.scrollTop = element.scrollHeight; });
   const before = await content.evaluate((element) => element.scrollTop);
   await page.getByRole("link", { name: /통복시장/ }).first().click();
-  await page.getByRole("button", { name: "닫기" }).click();
+  await page.getByRole("button", { name: "목록으로" }).click();
   await expect.poll(() => content.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
   expect(before).toBeGreaterThanOrEqual(0);
 });

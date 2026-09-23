@@ -68,10 +68,11 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   const [mode, setMode] = useState<DateFilterMode>(resolvedInitial.mode ?? "week");
   const [directDate, setDirectDate] = useState(resolvedInitial.directDate ?? toIsoDate(today));
   const [selectedId, setSelectedId] = useState<string | null>(resolvedInitial.selectedId ?? null);
-  const [sheetSnap, setSheetSnap] = useState<SheetSnap>("half");
+  const [sheetSnap, setSheetSnap] = useState<SheetSnap>("collapsed");
   const [sheetMode, setSheetMode] = useState<SheetMode>(resolvedInitial.selectedId ? "detail" : "results");
-  const previousSheetSnap = useRef<SheetSnap>("half");
+  const previousSheetSnap = useRef<SheetSnap>("collapsed");
   const selectedOriginId = useRef<string | null>(null);
+  const focusMapViewAfterClose = useRef(false);
   const resultScrollTop = useRef(0);
   const mobileSheetContentRef = useRef<HTMLDivElement | null>(null);
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
@@ -104,7 +105,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
     if (!isPending && selectedId && !filteredMarkets.some((market) => market.id === selectedId)) {
       setSelectedId(null);
       setSheetMode("results");
-      setSheetSnap("half");
+      setSheetSnap("collapsed");
       selectedOriginId.current = null;
     }
   }, [filteredMarkets, isPending, selectedId]);
@@ -138,7 +139,10 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
     const originId = selectedOriginId.current;
     window.requestAnimationFrame(() => {
       if (mobileSheetContentRef.current) mobileSheetContentRef.current.scrollTop = resultScrollTop.current;
-      if (originId) {
+      if (focusMapViewAfterClose.current) {
+        document.querySelector<HTMLButtonElement>(".mobile-market-sheet-expand-button")?.focus();
+        focusMapViewAfterClose.current = false;
+      } else if (originId) {
         const origin = Array.from(document.querySelectorAll<HTMLElement>(".mobile-market-sheet [data-market-id]"))
           .find(
           (element) => element.dataset.marketId === originId,
@@ -173,6 +177,11 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   }, [restoreResultContext]);
   const closeMarketToMap = useCallback(() => {
     previousSheetSnap.current = "collapsed";
+    focusMapViewAfterClose.current = true;
+    closeMarket();
+  }, [closeMarket]);
+  const closeMarketToList = useCallback(() => {
+    previousSheetSnap.current = "full";
     closeMarket();
   }, [closeMarket]);
   const resetFilters = () => {
@@ -208,6 +217,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
       }
       setSelectedId(null);
       setSheetMode("results");
+      focusMapViewAfterClose.current = previousSheetSnap.current === "collapsed";
       setSheetSnap(previousSheetSnap.current);
       restoreResultContext();
     };
@@ -329,6 +339,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
             contentRef={mobileSheetContentRef}
             onHeightChange={setMobileSheetHeight}
             onClose={closeMarketToMap}
+            onListView={closeMarketToList}
           >
             {sheetMode === "detail" ? (
               <MarketDetail

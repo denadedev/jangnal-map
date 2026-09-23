@@ -16,6 +16,7 @@ export interface MobileMarketSheetProps {
   contentRef?: RefObject<HTMLDivElement | null>;
   onHeightChange?: (height: number) => void;
   onClose?: () => void;
+  onListView?: () => void;
 }
 
 const snaps: SheetSnap[] = ["collapsed", "half", "full"];
@@ -37,6 +38,7 @@ export function MobileMarketSheet({
   contentRef,
   onHeightChange,
   onClose,
+  onListView,
 }: MobileMarketSheetProps) {
   const dragStartY = useRef<number | null>(null);
   const sheetRef = useRef<HTMLElement>(null);
@@ -112,6 +114,10 @@ export function MobileMarketSheet({
   };
 
   const handleListView = () => {
+    if (onListView) {
+      onListView();
+      return;
+    }
     onModeChange("results");
     onSnapChange("full");
   };

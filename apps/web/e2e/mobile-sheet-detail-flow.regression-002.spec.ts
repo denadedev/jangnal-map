@@ -4,6 +4,10 @@ async function selectMarket(page: Page) {
   await page.setViewportSize({ width: 375, height: 844 });
   await page.goto("/?when=all");
   await page.getByRole("searchbox", { name: "시장명 또는 지역 검색" }).fill("평택");
+  const sheet = page.locator(".mobile-market-sheet");
+  if (await sheet.getAttribute("data-snap") === "collapsed") {
+    await sheet.getByRole("button", { name: "목록 열기" }).click();
+  }
   await page.locator('.mobile-market-sheet a[data-market-id]').first().click();
 }
 
@@ -18,6 +22,7 @@ test("opens selected market detail at full height and returns to the list", asyn
   await page.getByRole("button", { name: "목록으로" }).click();
   await expect(sheet).toHaveAttribute("data-snap", "full");
   await expect(sheet).toHaveAttribute("aria-label", /시장 결과/);
+  await expect(page).not.toHaveURL(/market=/);
 });
 
 test("closes selected market detail to the map-only state", async ({ page }) => {

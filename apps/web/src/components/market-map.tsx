@@ -5,22 +5,29 @@ import { useEffect, useRef, useState } from "react";
 import { buildMapItems, type CoordinateBounds } from "../lib/market-clusters";
 import type { PublicMarket } from "../lib/market";
 import { formatMarketTiming, type Coordinates } from "../lib/market-view";
-import { loadNaverMaps, type NaverMapInstance, type NaverMarker } from "../lib/naver-maps";
+import { loadNaverMaps, type NaverLatLng, type NaverMapInstance, type NaverMarker } from "../lib/naver-maps";
 
 interface MarketMapProps {
   markets: PublicMarket[];
   referenceDate: Date;
   selectedId: string | null;
   clientId: string;
+  mobileOcclusion?: { top: number; bottom: number } | null;
   mobileSheetHeight?: number;
   onSelect: (market: PublicMarket) => void;
   onLocationChange: (location: Coordinates) => void;
+  onCameraRestoreComplete?: (focusSelectedMarker: boolean) => void;
   onStatusChange?: (status: MapStatus) => void;
   onLocationError?: (message: string, permissionDenied: boolean) => void;
 }
 
 type MapStatus = "idle" | "loading" | "ready" | "error";
 type LocationStatus = "idle" | "loading" | "success" | "error";
+interface CameraSnapshot {
+  center: NaverLatLng;
+  zoom: number;
+  shouldRestore: boolean;
+}
 
 const coordinateBounds = (map: NaverMapInstance): CoordinateBounds => {
   const bounds = map.getBounds();
@@ -42,7 +49,7 @@ const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, (charact
   '"': "&quot;",
 })[character] ?? character);
 
-export function MarketMap({ markets, referenceDate, selectedId, clientId, mobileSheetHeight = 0, onSelect, onLocationChange, onStatusChange, onLocationError }: MarketMapProps) {
+export function MarketMap({ markets, referenceDate, selectedId, clientId, mobileOcclusion, mobileSheetHeight = 0, onSelect, onLocationChange, onCameraRestoreComplete, onStatusChange, onLocationError }: MarketMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<NaverMapInstance | null>(null);
   const markersRef = useRef<Array<{ marker: NaverMarker; listener: unknown }>>([]);
@@ -50,6 +57,9 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
   const [status, setStatus] = useState<MapStatus>(clientId ? "idle" : "error");
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
   const [locationMessage, setLocationMessage] = useState("");
+  const lastSelectedIdRef = useRef<string | null>(null);
+  const cameraSnapshotRef = useRef<CameraSnapshot | null>(null);
+  const suppressZoomSnapshotRef = useRef(false);
 
   useEffect(() => {
     onStatusChange?.(status);
@@ -89,6 +99,7 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
 
   const moveToCurrentLocation = () => {
     if (status !== "ready" || !mapRef.current || !window.naver?.maps) return;
+    if (cameraSnapshotRef.current) cameraSnapshotRef.current.shouldRestore = false;
     if (!navigator.geolocation) {
       setLocationStatus("error");
       setLocationMessage("이 브라우저에서는 현재 위치를 사용할 수 없어요.");
@@ -162,6 +173,7 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
             },
           });
           const listener = naver.maps.Event.addListener(marker, "click", () => {
+            if (cameraSnapshotRef.current) cameraSnapshotRef.current.shouldRestore = false;
             map.panTo(new naver.maps.LatLng(item.latitude, item.longitude));
             map.setZoom(Math.min(map.getZoom() + 2, 13));
           });
@@ -171,13 +183,16 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
         const market = item.market;
         const selected = market.id === selectedId;
         const timing = formatMarketTiming(market, referenceDate);
+        const actionLabel = typeof window.matchMedia === "function" && window.matchMedia("(max-width: 700px)").matches
+          ? "미리보기"
+          : "상세 보기";
         const marker = new naver.maps.Marker({
           map,
           position: new naver.maps.LatLng(market.latitude, market.longitude),
           title: `${market.name} · ${timing}`,
           zIndex: selected ? 20 : 10,
           icon: {
-            content: `<button class="map-marker${selected ? " is-selected" : ""}" type="button" aria-label="${escapeHtml(market.name)} 상세 보기, 운영 일정 ${timing}"><span>${escapeHtml(market.name)}</span><strong>${timing}</strong></button>`,
+            content: `<button class="map-marker${selected ? " is-selected" : ""}" data-market-id="${escapeHtml(market.id)}" type="button" aria-label="${escapeHtml(market.name)} ${actionLabel}, 운영 일정 ${timing}"><span>${escapeHtml(market.name)}</span><strong>${timing}</strong></button>`,
             anchor: new naver.maps.Point(0, 38),
           },
         });
@@ -196,18 +211,160 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
   }, [markets, onSelect, referenceDate, selectedId, status]);
 
   useEffect(() => {
+    if (status !== "ready" || !mapRef.current || !window.naver?.maps || mobileOcclusion === undefined || mobileOcclusion === null) return;
+    const map = mapRef.current;
+    map.setOptions({
+      padding: {
+        top: mobileOcclusion.top + 12,
+        right: 12,
+        bottom: mobileOcclusion.bottom + 12,
+        left: 12,
+      },
+    });
+  }, [mobileOcclusion, status]);
+
+  useEffect(() => {
     if (status !== "ready" || !mapRef.current || !window.naver?.maps) return;
     const naver = window.naver;
     const map = mapRef.current;
     const selected = markets.find((market) => market.id === selectedId);
-    if (selected && selected.latitude !== null && selected.longitude !== null) {
-      if (map.getZoom() < 11) map.setZoom(11);
-      map.panTo(new naver.maps.LatLng(selected.latitude, selected.longitude));
-      if (mobileSheetHeight > 0) {
-        map.panBy(new naver.maps.Point(0, -mobileSheetHeight / 2));
+    if (!selectedId || !selected) {
+      const snapshot = cameraSnapshotRef.current;
+      cameraSnapshotRef.current = null;
+      if (!snapshot?.shouldRestore) {
+        onCameraRestoreComplete?.(false);
+        return;
       }
+      const currentCenter = map.getCenter?.();
+      if (currentCenter
+        && map.getZoom() === snapshot.zoom
+        && Math.abs(currentCenter.lat() - snapshot.center.lat()) < 0.0000001
+        && Math.abs(currentCenter.lng() - snapshot.center.lng()) < 0.0000001) {
+        onCameraRestoreComplete?.(true);
+        return;
+      }
+      let finished = false;
+      let idleListener: unknown;
+      let fallbackTimer: number | null = null;
+      let panRequested = false;
+      const completeRestore = () => {
+        if (finished) return;
+        finished = true;
+        if (idleListener !== undefined) naver.maps.Event.removeListener(idleListener);
+        if (fallbackTimer !== null) window.clearTimeout(fallbackTimer);
+        window.requestAnimationFrame(() => onCameraRestoreComplete?.(true));
+      };
+      map.setZoom(snapshot.zoom);
+      idleListener = naver.maps.Event.addListener(map, "idle", () => {
+        if (panRequested) completeRestore();
+      });
+      panRequested = true;
+      map.panTo(snapshot.center);
+      fallbackTimer = window.setTimeout(completeRestore, 800);
+      return () => {
+        finished = true;
+        if (idleListener !== undefined) naver.maps.Event.removeListener(idleListener);
+        if (fallbackTimer !== null) window.clearTimeout(fallbackTimer);
+      };
     }
-  }, [markets, mobileSheetHeight, selectedId, status]);
+    if (selected.latitude === null || selected.longitude === null) return;
+    if (typeof map.getCenter !== "function") return;
+    if (!cameraSnapshotRef.current) {
+      cameraSnapshotRef.current = { center: map.getCenter(), zoom: map.getZoom(), shouldRestore: true };
+    }
+    const markMapAsUserMoved = () => {
+      if (cameraSnapshotRef.current) cameraSnapshotRef.current.shouldRestore = false;
+    };
+    const markZoomAsUserChanged = () => {
+      if (suppressZoomSnapshotRef.current) {
+        suppressZoomSnapshotRef.current = false;
+        return;
+      }
+      markMapAsUserMoved();
+    };
+    const dragListener = naver.maps.Event.addListener(map, "dragstart", markMapAsUserMoved);
+    const zoomListener = naver.maps.Event.addListener(map, "zoom_changed", markZoomAsUserChanged);
+    return () => {
+      naver.maps.Event.removeListener(dragListener);
+      naver.maps.Event.removeListener(zoomListener);
+    };
+  }, [markets, onCameraRestoreComplete, selectedId, status]);
+
+  useEffect(() => {
+    if (status !== "ready" || !mapRef.current || !window.naver?.maps) return;
+    const naver = window.naver;
+    const map = mapRef.current;
+    const selected = markets.find((market) => market.id === selectedId);
+    if (!selected || selected.latitude === null || selected.longitude === null) {
+      lastSelectedIdRef.current = null;
+      return;
+    }
+    const selectionChanged = lastSelectedIdRef.current !== selectedId;
+    lastSelectedIdRef.current = selectedId;
+    if (mobileOcclusion === null) return;
+
+    const position = new naver.maps.LatLng(selected.latitude, selected.longitude);
+    if (mobileOcclusion === undefined && mobileSheetHeight > 0) {
+      if (selectionChanged) {
+        if (map.getZoom() < 11) {
+          suppressZoomSnapshotRef.current = true;
+          map.setZoom(11);
+          window.setTimeout(() => { suppressZoomSnapshotRef.current = false; }, 500);
+        }
+        map.panTo(position);
+      }
+      map.panBy(new naver.maps.Point(0, -mobileSheetHeight / 2));
+      return;
+    }
+    if (mobileOcclusion === undefined) {
+      if (selectionChanged) {
+        if (map.getZoom() < 11) {
+          suppressZoomSnapshotRef.current = true;
+          map.setZoom(11);
+          window.setTimeout(() => { suppressZoomSnapshotRef.current = false; }, 500);
+        }
+        map.panTo(position);
+      }
+      return;
+    }
+    if (selectionChanged && map.getZoom() < 11) {
+      suppressZoomSnapshotRef.current = true;
+      map.setZoom(11);
+      window.setTimeout(() => { suppressZoomSnapshotRef.current = false; }, 500);
+    }
+    const container = containerRef.current;
+    if (!container) return;
+
+    let finished = false;
+    let idleListener: unknown;
+    const adjustSelectedMarker = () => {
+      if (finished) return;
+      const projection = map.getProjection();
+      if (!projection) return;
+      const point = projection.fromCoordToOffset(position);
+      finished = true;
+      if (idleListener !== undefined) naver.maps.Event.removeListener(idleListener);
+      const { x, y } = point;
+      const bounds = container.getBoundingClientRect();
+      const top = mobileOcclusion.top + 24;
+      const bottom = bounds.height - mobileOcclusion.bottom - 24;
+      const left = 28;
+      const right = bounds.width - 28;
+      const visible = x >= left && x <= right && y >= top && y <= bottom;
+      if (visible) return;
+      const targetX = (left + right) / 2;
+      const targetY = (top + bottom) / 2;
+      map.panBy(new naver.maps.Point(targetX - x, targetY - y));
+    };
+
+    idleListener = naver.maps.Event.addListener(map, "idle", adjustSelectedMarker);
+    if (selectionChanged) map.panTo(position);
+    else adjustSelectedMarker();
+    return () => {
+      finished = true;
+      if (idleListener !== undefined) naver.maps.Event.removeListener(idleListener);
+    };
+  }, [markets, mobileOcclusion, mobileSheetHeight, selectedId, status]);
 
   const showFallback = status === "error";
 
@@ -234,7 +391,12 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
           </div>
         </div>
       ) : null}
-      <div className="location-control">
+      <div
+        className="location-control"
+        style={mobileOcclusion === null ? { display: "none" } : mobileOcclusion
+          ? { top: `${mobileOcclusion.top + 10}px` }
+          : undefined}
+      >
         <button
           type="button"
           className="location-button"

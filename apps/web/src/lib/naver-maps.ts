@@ -3,16 +3,25 @@ export interface NaverPoint {
   readonly y: number;
 }
 
+export interface NaverProjection {
+  fromCoordToOffset: (coord: NaverLatLng) => NaverPoint;
+}
+
 export interface NaverMapInstance {
   morph: (position: NaverLatLng, zoom: number) => void;
   panTo: (position: NaverLatLng) => void;
   panBy: (offset: NaverPoint) => void;
+  setOptions: (options: { padding: { top: number; right: number; bottom: number; left: number } }) => void;
+  getCenter: () => NaverLatLng;
+  getProjection: () => NaverProjection | null;
   setZoom: (zoom: number) => void;
   getZoom: () => number;
   getBounds: () => NaverBounds;
 }
 
 export interface NaverLatLng {
+  lat: () => number;
+  lng: () => number;
   readonly __naverLatLng?: never;
 }
 

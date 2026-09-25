@@ -20,7 +20,7 @@ export default defineConfig({
     use: { viewport: { width, height: 844 }, isMobile: true, hasTouch: true },
   })),
   webServer: {
-    command: "pnpm --filter @jangnal-map/web exec next start -p 3100",
+    command: "mkdir -p .next/standalone/apps/web/.next/static && cp -R .next/static/. .next/standalone/apps/web/.next/static/ && cd .next/standalone/apps/web && HOSTNAME=127.0.0.1 PORT=3100 node server.js",
     url: "http://127.0.0.1:3100",
     reuseExistingServer: true,
     timeout: 120_000,

@@ -1,10 +1,11 @@
 "use client";
 
 import { useRef } from "react";
+import type { ReactNode } from "react";
 
 export type DateFilterMode = "all" | "today" | "week" | "weekend" | "date";
 
-interface MarketFiltersProps {
+export interface MarketFiltersProps {
   mode: DateFilterMode;
   query: string;
   directDate: string;
@@ -12,10 +13,13 @@ interface MarketFiltersProps {
   onModeChange: (mode: DateFilterMode) => void;
   onQueryChange: (query: string) => void;
   onDirectDateChange: (date: string) => void;
+  onSearchFocus?: () => void;
+  onSearchBlur?: () => void;
+  mobileMenuControl?: ReactNode;
 }
 
 export function MarketFilters(_props: MarketFiltersProps) {
-  const { mode, query, directDate, minDate, onModeChange, onQueryChange, onDirectDateChange } = _props;
+  const { mode, query, directDate, minDate, onModeChange, onQueryChange, onDirectDateChange, onSearchFocus, onSearchBlur, mobileMenuControl } = _props;
   const dateInputRef = useRef<HTMLInputElement>(null);
   const modes: Array<{ value: DateFilterMode; label: string }> = [
     { value: "all", label: "전체" },
@@ -39,25 +43,33 @@ export function MarketFilters(_props: MarketFiltersProps) {
 
   return (
     <section className="market-filters" aria-label="시장 검색 및 날짜 필터">
-      <label className="search-field">
-        <span className="sr-only">시장명 또는 지역 검색</span>
-        <svg aria-hidden="true" viewBox="0 0 24 24">
-          <path d="m21 21-4.35-4.35m2.35-5.15a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" />
-        </svg>
-        <input
-          type="search"
-          value={query}
-          placeholder="시장명 또는 지역을 검색하세요"
-          onChange={(event) => onQueryChange(event.target.value)}
-        />
-        {query ? (
-          <button type="button" className="search-clear" aria-label="검색어 지우기" onClick={() => onQueryChange("")}>
-            <svg aria-hidden="true" viewBox="0 0 24 24">
-              <path d="m7 7 10 10M17 7 7 17" />
-            </svg>
-          </button>
-        ) : null}
-      </label>
+      <div className="market-filter-search-row">
+        <a className="mobile-home-brand" href="/" aria-label="오늘 장날 홈">
+          <span className="mobile-app-bar-mark" aria-hidden="true">장</span>
+        </a>
+        <label className="search-field">
+          <span className="sr-only">시장명 또는 지역 검색</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m21 21-4.35-4.35m2.35-5.15a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" />
+          </svg>
+          <input
+            type="search"
+            value={query}
+            placeholder="시장명 또는 지역을 검색하세요"
+            onChange={(event) => onQueryChange(event.target.value)}
+            onFocus={onSearchFocus}
+            onBlur={onSearchBlur}
+          />
+          {query ? (
+            <button type="button" className="search-clear" aria-label="검색어 지우기" onClick={() => onQueryChange("")}>
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="m7 7 10 10M17 7 7 17" />
+              </svg>
+            </button>
+          ) : null}
+        </label>
+        {mobileMenuControl}
+      </div>
 
       <div className="date-filter-row" aria-label="날짜 범위">
         <div className="filter-pills">

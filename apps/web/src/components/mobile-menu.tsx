@@ -97,6 +97,7 @@ export function MobileMenu({
           <a className="mobile-menu-link" href="https://legal-hub.denadedev.workers.dev/kmarketday/terms/">이용약관</a>
           <a className="mobile-menu-link" href="/about">서비스 소개</a>
           <a className="mobile-menu-link" href="/about#data-policy">데이터 출처와 편집 기준</a>
+          <a className="mobile-menu-link" href="/en">English guide</a>
         </nav>
         {installPlatform ? (
           <div className="mobile-menu-install">

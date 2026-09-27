@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import type { PublicMarket } from "../lib/market";
 import { getMarketBrowsePath, getMarketPagePath } from "../lib/market-path";
 import { filterMarkets, getDateRange, normalizeDirectDate, sortMarketsByDistance, toIsoDate, type Coordinates } from "../lib/market-view";
+import { parseThreadsCampaign, startThreadsEntryTracking } from "../lib/threads-campaign";
 import { MobileHomeControls } from "./mobile-home-controls";
 import { MobileMarketSheet, type SheetMode, type SheetSnap } from "./mobile-market-sheet";
 import { MarketDetail } from "./market-detail";
@@ -86,6 +87,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   const sheetSnapBeforeKeyboardRef = useRef<SheetSnap>("collapsed");
   const sheetModeBeforeKeyboardRef = useRef<SheetMode>("results");
   const selectedIdBeforeKeyboardRef = useRef<string | null>(null);
+  const trackedCampaignRef = useRef<string | null>(null);
   const viewportHeightAtSearchFocusRef = useRef(0);
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
   const [hasRestoredUrl, setHasRestoredUrl] = useState(false);
@@ -185,6 +187,10 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   useEffect(() => {
     const clientToday = providedToday ?? new Date();
     if (!providedToday) setToday(clientToday);
+    const campaign = parseThreadsCampaign(window.location.search);
+    const stopTracking = campaign && trackedCampaignRef.current !== campaign
+      ? startThreadsEntryTracking(campaign, () => { trackedCampaignRef.current = campaign; })
+      : undefined;
     const urlState = readUrlState(clientToday);
     setQuery(urlState.query ?? "");
     setMode(urlState.mode ?? "week");
@@ -193,6 +199,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
     setSheetMode(urlState.selectedId ? "detail" : "results");
     setSheetSnap(urlState.selectedId ? "full" : "collapsed");
     setHasRestoredUrl(true);
+    return stopTracking;
   }, [providedToday]);
 
   useEffect(() => {

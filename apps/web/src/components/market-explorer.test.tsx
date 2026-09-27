@@ -118,6 +118,7 @@ describe("MarketExplorer", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    delete (window as typeof window & { umami?: unknown }).umami;
   });
 
   it("starts the mobile result sheet collapsed while the map is available", () => {
@@ -156,6 +157,46 @@ describe("MarketExplorer", () => {
     expect(screen.getAllByText("위치 확인 필요")).toHaveLength(2);
     expect(screen.queryByRole("link", { name: "NAVER 지도에서 길찾기" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "공유하기" }).closest(".detail-actions")).toHaveClass("share-only");
+  });
+
+  it("records the Threads campaign before cleaning it from the browse URL", async () => {
+    const track = vi.fn();
+    Object.assign(window, { umami: { track } });
+    window.history.replaceState(null, "", "/?when=date&date=2026-09-03&utm_source=threads&utm_campaign=202609030830");
+
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    await waitFor(() => expect(track).toHaveBeenCalledExactlyOnceWith("threads_entry", { campaign: "202609030830" }));
+    expect(await screen.findByText("제천중앙시장")).toBeInTheDocument();
+    expect(window.location.search).toContain("when=date");
+    expect(window.location.search).not.toContain("utm_");
+    delete (window as typeof window & { umami?: unknown }).umami;
+  });
+
+  it("ignores an invalid Threads campaign while keeping its date results usable", async () => {
+    const track = vi.fn();
+    Object.assign(window, { umami: { track } });
+    window.history.replaceState(null, "", "/?when=date&date=2026-09-03&utm_source=threads&utm_campaign=bad-code");
+
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    expect(await screen.findByText("제천중앙시장")).toBeInTheDocument();
+    expect(window.location.search).toContain("date=2026-09-03");
+    expect(window.location.search).not.toContain("utm_");
+    expect(track).not.toHaveBeenCalled();
+  });
+
+  it("keeps date results usable when the analytics call fails", async () => {
+    const track = vi.fn(() => { throw new Error("analytics blocked"); });
+    Object.assign(window, { umami: { track } });
+    window.history.replaceState(null, "", "/?when=date&date=2026-09-03&utm_source=threads&utm_campaign=202609030830");
+
+    render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+
+    expect(await screen.findByText("제천중앙시장")).toBeInTheDocument();
+    expect(window.location.search).toContain("date=2026-09-03");
+    expect(window.location.search).not.toContain("utm_");
+    expect(track).toHaveBeenCalledWith("threads_entry", { campaign: "202609030830" });
   });
 
   it("shows daily markets only in all and direct-date modes", async () => {

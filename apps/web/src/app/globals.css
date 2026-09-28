@@ -474,6 +474,12 @@ a { color: inherit; text-decoration: none; }
   .direct-date span { display: none; }
 }
 
+@media (max-width: 1080px) and (min-width: 981px) {
+  [lang="en"] .date-filter-row { flex-wrap: wrap; gap: 7px; }
+  [lang="en"] .filter-pills { flex: 0 0 100%; flex-wrap: wrap; }
+  [lang="en"] .direct-date { border-left: 0; padding-left: 0; }
+}
+
 @media (max-width: 980px) and (min-width: 701px) {
   .explorer-grid { grid-template-columns: 300px minmax(380px, 1fr); grid-template-areas: "list map"; }
   .detail-pane { position: fixed; z-index: 40; top: 181px; right: 0; bottom: 0; display: none; width: 350px; box-shadow: var(--shadow); }

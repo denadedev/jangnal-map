@@ -58,4 +58,16 @@ describe("MarketDirectionsMenu", () => {
     const { container } = render(<MarketDirectionsMenu market={{ ...market, latitude: null }} />);
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("restores focus to the single trigger after a provider is chosen", async () => {
+    const user = userEvent.setup();
+    render(<MarketDirectionsMenu market={market} locale="en" />);
+    const trigger = screen.getByRole("button", { name: "Maps & directions" });
+    await user.click(trigger);
+
+    await user.click(screen.getByRole("link", { name: "Google Maps — View location" }));
+
+    expect(document.activeElement).toBe(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
 });

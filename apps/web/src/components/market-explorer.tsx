@@ -230,6 +230,17 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
 
   useEffect(() => {
     if (!hasRestoredUrl) return;
+    const normalizedDate = toIsoDate(normalizeDirectDate(directDate, today));
+    if (normalizedDate === directDate) return;
+    setDirectDate(normalizedDate);
+    if (locale === "en" && mode === "date") {
+      const message = "The selected date has passed or is invalid, so the date was changed to today in Korea.";
+      setUrlNotice((current) => current.includes(message) ? current : [current, message].filter(Boolean).join(" "));
+    }
+  }, [directDate, hasRestoredUrl, locale, mode, today]);
+
+  useEffect(() => {
+    if (!hasRestoredUrl) return;
     const nextState = { ...(window.history.state ?? {}) } as Record<string, unknown>;
     if (selectedId) nextState.mobileMarket = selectedId;
     else {
@@ -397,7 +408,17 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
 
   useEffect(() => {
     const handlePopState = () => {
-      const marketId = new URLSearchParams(window.location.search).get("market");
+      const urlState = readUrlState(today);
+      setQuery(urlState.query ?? "");
+      setMode(urlState.mode ?? "week");
+      const requestedDate = urlState.directDate ?? toIsoDate(today);
+      const normalizedDate = toIsoDate(normalizeDirectDate(requestedDate, today));
+      setDirectDate(normalizedDate);
+      if (locale === "en" && urlState.mode === "date" && requestedDate !== normalizedDate) {
+        const message = "The selected date has passed or is invalid, so the date was changed to today in Korea.";
+        setUrlNotice((current) => current.includes(message) ? current : [current, message].filter(Boolean).join(" "));
+      }
+      const marketId = urlState.selectedId;
       if (marketId) {
         setSelectedId(marketId);
         const state = window.history.state as Record<string, unknown> | null;
@@ -422,7 +443,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [restoreResultContext]);
+  }, [locale, restoreResultContext, today]);
 
   const listHeading = (
     <div className="list-heading">
@@ -559,6 +580,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         {isMobile ? (
           <MobileMarketSheet
             locale={locale}
+            hasSelectedDate={locale === "en" && mode === "date"}
             snap={sheetSnap}
             onSnapChange={setSheetSnap}
             mode={sheetMode}

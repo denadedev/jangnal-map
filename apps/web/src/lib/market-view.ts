@@ -126,6 +126,16 @@ export function formatSchedulePattern(market: PublicMarket, locale: Locale = "ko
   return `${first}·${second === 0 ? 10 : second}일장`;
 }
 
+export function formatMarketType(marketType: string, locale: Locale = "ko"): string {
+  if (locale === "ko") return marketType;
+  const permanent = marketType.startsWith("상설장");
+  const periodic = /([345])일장/.exec(marketType);
+  if (permanent && periodic) return `Permanent market + ${periodic[1]}-day market`;
+  if (permanent) return "Permanent market";
+  if (periodic) return `${periodic[1]}-day market`;
+  return marketType;
+}
+
 export function formatScheduleDates(market: Pick<PublicMarket, "schedule">): string {
   if (market.schedule.kind === "daily") return "매일";
   if (market.schedule.kind === "unknown") return "일정 확인 필요";

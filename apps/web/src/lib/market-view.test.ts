@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { PublicMarket } from "./market";
-import { filterMarkets, formatDistance, formatMarketTiming, formatScheduleDates, formatSchedulePattern, getDateRange, normalizeDirectDate, sortMarketsByDistance } from "./market-view";
+import { filterMarkets, formatDistance, formatMarketTiming, formatMarketType, formatScheduleDates, formatSchedulePattern, getDateRange, normalizeDirectDate, sortMarketsByDistance } from "./market-view";
 
 const market: PublicMarket = {
   id: "market",
@@ -43,6 +43,13 @@ describe("market explorer date semantics", () => {
     expect(formatSchedulePattern({ ...market, scheduleRaw: "5일+10일", schedule: { kind: "digit-pair", days: [5, 0] } })).toBe("5·10일장");
     expect(formatSchedulePattern({ ...market, scheduleRaw: "매일", schedule: { kind: "daily" } })).toBe("매일");
     expect(formatSchedulePattern({ ...market, scheduleRaw: "확인 중", schedule: { kind: "unknown", raw: "확인 중" } })).toBe("일정 확인");
+  });
+
+  it("explains permanent and periodic market categories in English", () => {
+    expect(formatMarketType("상설장", "en")).toBe("Permanent market");
+    expect(formatMarketType("상설장+5일장", "en")).toBe("Permanent market + 5-day market");
+    expect(formatMarketType("5일장", "en")).toBe("5-day market");
+    expect(formatMarketType("상설장+5일장", "ko")).toBe("상설장+5일장");
   });
 
   it("formats recurring market days as explicit calendar dates", () => {

@@ -63,6 +63,19 @@ describe("MarketShareButton", () => {
     });
   });
 
+  it("uses the chosen travel date in an English invitation", async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { share });
+    render(<MarketShareButton locale="en" market={market} selectedDate={new Date(2026, 8, 9)} sharePath="/en/map?when=date&date=2026-09-09&market=uncheon" today={new Date(2026, 8, 3)} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Share" }));
+
+    expect(share).toHaveBeenCalledWith(expect.objectContaining({
+      text: "Sep 9, 2026: 운천전통시장. Want to visit?",
+      url: "http://localhost:3000/en/map?when=date&date=2026-09-09&market=uncheon",
+    }));
+  });
+
   it("uses the current date when no reference date is provided", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 8, 3, 12));

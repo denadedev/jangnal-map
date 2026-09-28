@@ -23,6 +23,10 @@ export function MarketDirectionsMenu({ market, locale = "ko", className, mobileP
 
   const naverUrl = `https://map.naver.com/p/directions/-/${market.longitude},${market.latitude},${encodeURIComponent(market.name)}/-/car`;
   const googleUrl = `https://www.google.com/maps/search/?${new URLSearchParams({ api: "1", query: `${market.latitude},${market.longitude}` })}`;
+  const closeAfterSelection = () => {
+    triggerRef.current?.focus();
+    setOpen(false);
+  };
 
   return (
     <div
@@ -48,10 +52,10 @@ export function MarketDirectionsMenu({ market, locale = "ko", className, mobileP
       </button>
       {open ? (
         <nav id={menuId} className="directions-menu-options" aria-label={locale === "en" ? "Choose a map service" : "지도 서비스 선택"}>
-          <a href={naverUrl} target="_blank" rel="noreferrer" onClick={() => setOpen(false)}>
+          <a href={naverUrl} target="_blank" rel="noreferrer" onClick={closeAfterSelection}>
             {locale === "en" ? "NAVER Maps — Directions" : "NAVER 지도 — 길찾기"}
           </a>
-          <a href={googleUrl} target="_blank" rel="noreferrer" onClick={() => setOpen(false)}>
+          <a href={googleUrl} target="_blank" rel="noreferrer" onClick={closeAfterSelection}>
             {locale === "en" ? "Google Maps — View location" : "Google 지도 — 위치 보기"}
           </a>
         </nav>

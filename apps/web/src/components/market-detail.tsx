@@ -1,6 +1,6 @@
 import type { PublicMarket } from "../lib/market";
 import type { Locale } from "../lib/locale";
-import { getDday, formatKoreanDate, formatSchedulePattern } from "../lib/market-view";
+import { getDday, formatKoreanDate, formatMarketType, formatSchedulePattern } from "../lib/market-view";
 import { getMarketDates, getNextMarketDate } from "../lib/schedule";
 import { getUiCopy } from "../lib/ui-copy";
 import { MarketDirectionsMenu } from "./market-directions-menu";
@@ -51,6 +51,7 @@ export function MarketDetail({ locale = "ko", market, detailPath, sharePath, tod
   const timelineDates = market.schedule.kind === "digit-pair" ? datesThrough(today, timelineEnd) : [];
   const marketDayTimes = new Set(getMarketDates(market, { start: today, end: timelineEnd }).map((date) => date.getTime()));
   const address = market.roadAddress ?? market.lotAddress ?? ui.addressMissing;
+  const marketTypeLabel = formatMarketType(market.marketType, locale);
   const hasCoordinates = market.latitude !== null && market.longitude !== null;
   const timingTitle = market.schedule.kind === "digit-pair" ? ui.nextMarketDay : ui.scheduleLabel;
   const timingText = market.schedule.kind === "daily"
@@ -76,7 +77,7 @@ export function MarketDetail({ locale = "ko", market, detailPath, sharePath, tod
       </button>
 
       <header className="detail-header">
-        <p lang="ko">{market.marketType}</p>
+        <p lang={locale === "en" && marketTypeLabel === market.marketType ? "ko" : undefined}>{marketTypeLabel}</p>
         <h2>{detailPath ? <a href={detailPath}><span lang="ko">{market.name}</span>{locale === "en" ? " (Korean)" : ""}</a> : <span lang="ko">{market.name}</span>}</h2>
         <span lang={market.roadAddress || market.lotAddress ? "ko" : undefined}>{address}</span>
       </header>
@@ -130,7 +131,7 @@ export function MarketDetail({ locale = "ko", market, detailPath, sharePath, tod
         </dl>
         <div className={`detail-actions ${hasCoordinates ? "" : "share-only"}`.trim()}>
           {hasCoordinates ? <MarketDirectionsMenu market={market} locale={locale} className="primary-button" /> : null}
-          <MarketShareButton locale={locale} market={market} sharePath={sharePath} today={today} className="market-action-secondary" />
+          <MarketShareButton locale={locale} market={market} sharePath={sharePath} today={today} selectedDate={selectedDate} className="market-action-secondary" />
         </div>
       </section>
 

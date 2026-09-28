@@ -1,5 +1,5 @@
 import type { PublicMarket } from "../lib/market";
-import { formatKoreanDate, getDday } from "../lib/market-view";
+import { formatKoreanDate, formatMarketType, getDday } from "../lib/market-view";
 import { getNextMarketDate } from "../lib/schedule";
 import type { Locale } from "../lib/locale";
 import { getUiCopy } from "../lib/ui-copy";
@@ -30,7 +30,7 @@ export function MarketPreview({ locale = "ko", market, today, selectedDate, onOp
 
   return (
     <article className="market-preview" aria-label={locale === "en" ? `${market.name} preview` : `${market.name} 미리보기`}>
-      <p className="sr-only">{market.marketType}</p>
+      <p className="sr-only">{formatMarketType(market.marketType, locale)}</p>
       {locale === "en" && selectedDate ? (
         <p className="market-preview-selected-date">{market.schedule.kind === "digit-pair" ? "Market day on your selected date" : "Regular schedule on your selected date"}: {formatKoreanDate(selectedDate, "en")}</p>
       ) : null}

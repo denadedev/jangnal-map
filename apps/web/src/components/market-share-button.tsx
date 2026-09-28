@@ -13,10 +13,11 @@ interface MarketShareButtonProps {
   market: PublicMarket;
   sharePath?: string;
   today?: Date;
+  selectedDate?: Date;
   className?: string;
 }
 
-export function MarketShareButton({ locale = "ko", market, sharePath, today, className }: MarketShareButtonProps) {
+export function MarketShareButton({ locale = "ko", market, sharePath, today, selectedDate, className }: MarketShareButtonProps) {
   const ui = getUiCopy(locale);
   const [feedback, setFeedback] = useState<{ marketId: string; message: string; isError: boolean } | null>(null);
   const [isSharing, setIsSharing] = useState(false);
@@ -37,9 +38,10 @@ export function MarketShareButton({ locale = "ko", market, sharePath, today, cla
       const nextDate = market.schedule.kind === "digit-pair"
         ? getNextMarketDate(market, referenceDate)
         : null;
-      const datePrefix = nextDate ? locale === "en"
-        ? `${new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric" }).format(nextDate)}: `
-        : `${nextDate.getMonth() + 1}월 ${nextDate.getDate()}일 ` : "";
+      const messageDate = locale === "en" ? selectedDate ?? nextDate : nextDate;
+      const datePrefix = messageDate ? locale === "en"
+        ? `${new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric" }).format(messageDate)}: `
+        : `${messageDate.getMonth() + 1}월 ${messageDate.getDate()}일 ` : "";
       const url = `${window.location.origin}${sharePath ?? getMarketPagePath(market)}`;
 
       if (typeof navigator.share === "function") {

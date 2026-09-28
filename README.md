@@ -63,8 +63,7 @@ NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=your_naver_maps_client_id
 
 방문자와 페이지뷰는 `https://analytics.spamfam.kr`의 셀프호스트 Umami로 집계합니다.
 추적 대상 서비스 주소는 `https://kmarketday.com`이며 로컬 개발 접속은 집계하지 않습니다.
-검색어와 필터가 포함된 전체 URL 쿼리 문자열은 수집하지 않습니다. Threads 링크로 방문한 경우
-검증된 게시 코드만 Umami의 `threads_entry` 익명 이벤트로 집계합니다. 분석용 쿠키는 사용하지 않으며
+검색어와 필터가 포함된 URL 쿼리 문자열은 수집하지 않습니다. 분석용 쿠키는 사용하지 않으며
 수집 내용은 `/privacy`에서 안내합니다.
 
 ## AdSense 승인 준비

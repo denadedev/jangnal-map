@@ -194,3 +194,17 @@ test("English market detail distinguishes unconfirmed schedules and missing coor
   await expect(page.locator(".mobile-market-sheet")).toContainText("Location needs confirmation");
   await expect(page.locator(".mobile-market-sheet").getByRole("button", { name: "Maps & directions" })).toHaveCount(0);
 });
+
+test("English date controls do not overlap at narrow desktop width", async ({ page }) => {
+  await page.goto("/en/map");
+
+  for (const width of [981, 993, 1080, 1081, 1100, 1180, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    const chooseDate = await page.getByRole("button", { name: "Choose date" }).boundingBox();
+    const date = await page.locator(".direct-date input").boundingBox();
+    expect(chooseDate, `Choose date at ${width}px`).not.toBeNull();
+    expect(date, `Date input at ${width}px`).not.toBeNull();
+    expect(date!.x + date!.width, `Date input within ${width}px`).toBeLessThanOrEqual(width);
+    expect(chooseDate!.x + chooseDate!.width <= date!.x || chooseDate!.y + chooseDate!.height <= date!.y, `No overlap at ${width}px`).toBe(true);
+  }
+});

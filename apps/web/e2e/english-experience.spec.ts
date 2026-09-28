@@ -165,3 +165,32 @@ test("English guide and map fit the mobile viewport", async ({ page }) => {
     expect(overflow, path).toBeLessThanOrEqual(0);
   }
 });
+
+test("English empty results can be cleared", async ({ page }) => {
+  await page.goto("/en/map?q=NoSuchProvince&when=all");
+  await page.getByRole("button", { name: /Open list/ }).click();
+  const sheet = page.locator(".mobile-market-sheet");
+  await expect(sheet.getByRole("heading", { name: "No markets match these filters" })).toBeVisible();
+  await sheet.getByRole("button", { name: "Reset filters" }).click();
+  await expect(page.locator('.search-field input[type="search"]')).toHaveValue("");
+});
+
+test("English data loading error offers a working retry", async ({ page }) => {
+  await page.route("**/data/markets.json", (route) => route.fulfill({ status: 500, body: "unavailable" }));
+  await page.goto("/en/map");
+  await page.getByRole("button", { name: /Open list/ }).click();
+  const sheet = page.locator(".mobile-market-sheet");
+  await expect(sheet.getByRole("heading", { name: "Could not load market information" })).toBeVisible();
+  await page.unroute("**/data/markets.json");
+  await sheet.getByRole("button", { name: "Try again" }).click();
+  await expect(sheet.getByRole("heading", { name: "Could not load market information" })).toHaveCount(0);
+});
+
+test("English market detail distinguishes unconfirmed schedules and missing coordinates", async ({ page }) => {
+  await page.goto("/en/map?when=all&market=market-09e8d20c0a7d61f8");
+  await expect(page.locator(".mobile-market-sheet")).toContainText("Schedule not confirmed");
+
+  await page.goto("/en/map?when=all&market=market-58b918874207f50d");
+  await expect(page.locator(".mobile-market-sheet")).toContainText("Location needs confirmation");
+  await expect(page.locator(".mobile-market-sheet").getByRole("button", { name: "Maps & directions" })).toHaveCount(0);
+});

@@ -72,6 +72,8 @@ NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=your_naver_maps_client_id
 
 장날과 `Today`는 한국 날짜(Asia/Seoul) 기준입니다. 상세 화면의 `Maps & directions`에서 NAVER 경로 또는 Google 지도 위치 보기를 선택합니다. Google 지도의 한국 내 경로 제공 여부는 보장하지 않습니다. 영어 안내 페이지만 sitemap에 등록하며 영어 지도는 검색 색인에서 제외합니다.
 
+기능 범위와 남은 실기기·사용자 검증 항목은 [영어 방문자 기획](docs/product/2026-09-28-english-traveler-plan.md)에 정리했습니다. 배포 후에는 Search Console에서 `/en` 색인·검색 노출을, Umami에서 `/en`과 `/en/map` 방문을 확인합니다. 유입 경로가 `Direct`인 방문은 영어 검색 유입으로 계산하지 않습니다.
+
 ## AdSense 승인 준비
 
 승인 전에는 광고 요청을 만들지 않습니다. 사이트 연결은 루트 `ads.txt`와

@@ -5,13 +5,16 @@ import { useState, type RefObject } from "react";
 import { MarketFilters, type MarketFiltersProps } from "./market-filters";
 import { MobileMenu } from "./mobile-menu";
 import { useInstallPrompt } from "./install-prompt";
+import { getUiCopy } from "../lib/ui-copy";
 
 type MobileHomeControlsProps = Omit<MarketFiltersProps, "mobileMenuControl"> & {
   containerRef?: RefObject<HTMLDivElement | null>;
+  languageSwitchHref?: string;
 };
 
-export function MobileHomeControls({ containerRef, ...props }: MobileHomeControlsProps) {
+export function MobileHomeControls({ containerRef, languageSwitchHref, ...props }: MobileHomeControlsProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const ui = getUiCopy(props.locale ?? "ko");
   const installPrompt = useInstallPrompt();
   const installMenuProps = {
     installPlatform: installPrompt.platform,
@@ -30,7 +33,7 @@ export function MobileHomeControls({ containerRef, ...props }: MobileHomeControl
             <button
               type="button"
               className="mobile-app-bar-menu"
-              aria-label="메뉴 열기"
+              aria-label={ui.openMenu}
               aria-expanded={menuOpen}
               aria-controls="mobile-menu-dialog"
               onClick={() => setMenuOpen(true)}
@@ -40,7 +43,7 @@ export function MobileHomeControls({ containerRef, ...props }: MobileHomeControl
           )}
         />
       </div>
-      <MobileMenu {...installMenuProps} open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <MobileMenu {...installMenuProps} locale={props.locale} languageSwitchHref={languageSwitchHref} open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );
 }

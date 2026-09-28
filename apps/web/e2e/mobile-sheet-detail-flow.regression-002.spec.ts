@@ -25,10 +25,10 @@ test("opens selected market detail at full height and returns to the list", asyn
   await expect(page).not.toHaveURL(/market=/);
 });
 
-test("closes selected market detail to the map-only state", async ({ page }) => {
+test("returns to the full result list when the map is unavailable", async ({ page }) => {
   await selectMarket(page);
 
   await page.getByRole("button", { name: "닫기" }).click();
-  await expect(page.locator(".mobile-market-sheet")).toHaveAttribute("data-snap", "collapsed");
-  await expect(page.getByRole("button", { name: "목록 열기" })).toBeVisible();
+  await expect(page.locator(".mobile-market-sheet")).toHaveAttribute("data-snap", "full");
+  await expect(page.getByRole("button", { name: "지도 보기" })).toBeVisible();
 });

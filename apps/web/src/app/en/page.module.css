@@ -1,0 +1,27 @@
+.page { min-height: 100dvh; background: var(--paper); color: var(--ink); }
+.header { display: flex; min-height: 70px; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); padding: 0 24px; background: var(--panel); }
+.brand { font-family: Georgia, "Noto Serif KR", serif; font-size: 20px; font-weight: 800; }
+.header nav, .footer { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
+.header nav a, .footer a { min-height: 44px; align-content: center; font-size: 13px; }
+.main { width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 54px 0 72px; }
+.eyebrow { color: var(--persimmon-dark); font-size: 12px; font-weight: 800; }
+.main h1 { margin: 8px 0 0; font-family: Georgia, "Noto Serif KR", serif; font-size: clamp(30px, 5vw, 44px); line-height: 1.18; }
+.lead { margin: 20px 0 18px; font-size: 17px; line-height: 1.7; }
+.note { margin: 14px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.primary { display: inline-flex; min-height: 44px; align-items: center; border-radius: 5px; padding: 10px 16px; background: var(--ink); color: white; font-size: 14px; font-weight: 700; text-align: center; }
+.primary:focus-visible, .page a:focus-visible { outline: 3px solid var(--persimmon); outline-offset: 3px; }
+.section { margin-top: 36px; border-top: 1px solid var(--line); padding-top: 28px; }
+.section h2 { margin: 0 0 12px; font-size: 21px; }
+.section p, .section li { font-size: 15px; line-height: 1.8; }
+.section p { margin: 0 0 12px; }
+.section ol { padding-left: 22px; }
+.section li + li { margin-top: 8px; }
+.section a:not(.primary) { color: var(--persimmon-dark); text-decoration: underline; }
+.footer { justify-content: center; border-top: 1px solid var(--line); padding: 18px 24px; background: var(--panel); }
+
+@media (max-width: 700px) {
+  .header { min-height: 59px; padding: 0 16px; }
+  .header nav { gap: 10px; }
+  .main { padding: 32px 0 48px; }
+  .section { margin-top: 30px; padding-top: 22px; }
+}

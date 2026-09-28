@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { PublicMarket } from "./market";
-import { filterMarkets, formatDistance, formatMarketTiming, formatScheduleDates, formatSchedulePattern, getDateRange, normalizeDirectDate, sortMarketsByDistance } from "./market-view";
+import { filterMarkets, formatDistance, formatMarketTiming, formatMarketType, formatScheduleDates, formatSchedulePattern, getDateRange, normalizeDirectDate, sortMarketsByDistance } from "./market-view";
 
 const market: PublicMarket = {
   id: "market",
@@ -45,6 +45,13 @@ describe("market explorer date semantics", () => {
     expect(formatSchedulePattern({ ...market, scheduleRaw: "확인 중", schedule: { kind: "unknown", raw: "확인 중" } })).toBe("일정 확인");
   });
 
+  it("explains permanent and periodic market categories in English", () => {
+    expect(formatMarketType("상설장", "en")).toBe("Permanent market");
+    expect(formatMarketType("상설장+5일장", "en")).toBe("Permanent market + 5-day market");
+    expect(formatMarketType("5일장", "en")).toBe("5-day market");
+    expect(formatMarketType("상설장+5일장", "ko")).toBe("상설장+5일장");
+  });
+
   it("formats recurring market days as explicit calendar dates", () => {
     expect(formatScheduleDates(market)).toBe("2일·7일·12일·17일·22일·27일");
     expect(formatScheduleDates({ ...market, schedule: { kind: "digit-pair", days: [5, 0] } })).toBe("5일·10일·15일·20일·25일·30일");
@@ -84,6 +91,14 @@ describe("market explorer date semantics", () => {
     expect(filterMarkets([market, daily], "", range, { includeDaily: false })).toEqual([market]);
   });
 
+  it("matches an English province alias by address prefix while retaining Korean search", () => {
+    const seoul = { ...market, id: "seoul", roadAddress: "서울특별시 중구 시장길 1" };
+    const busan = { ...market, id: "busan", roadAddress: "부산광역시 중구 시장길 1" };
+
+    expect(filterMarkets([seoul, busan], "Seoul", null, { regionPrefixes: ["서울특별시"] })).toEqual([seoul]);
+    expect(filterMarkets([seoul, busan], "서울", null)).toEqual([seoul]);
+  });
+
   it("shows an upcoming market day during the next seven days", () => {
     const today = new Date(2026, 8, 8);
     const range = getDateRange("week", today, "2026-09-08");
@@ -92,6 +107,10 @@ describe("market explorer date semantics", () => {
     expect(range).toEqual({ start: new Date(2026, 8, 8), end: new Date(2026, 8, 14) });
     expect(results).toEqual([market]);
     expect(formatMarketTiming(results[0], range!.start)).toBe("9/12");
+  });
+
+  it("spells out the month for English travelers", () => {
+    expect(formatMarketTiming(market, new Date(2026, 8, 8), "en")).toBe("Sep 12");
   });
 
   it("clamps empty, malformed, and past direct dates to today", () => {

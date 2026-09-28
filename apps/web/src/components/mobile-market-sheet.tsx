@@ -1,11 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
+import type { Locale } from "../lib/locale";
+import { getUiCopy } from "../lib/ui-copy";
 
 export type SheetSnap = "collapsed" | "half" | "full";
 export type SheetMode = "results" | "preview" | "detail";
 
 export interface MobileMarketSheetProps {
+  locale?: Locale;
+  hasSelectedDate?: boolean;
   snap: SheetSnap;
   onSnapChange: (snap: SheetSnap) => void;
   mode: SheetMode;
@@ -28,6 +32,8 @@ const nextSnap = (snap: SheetSnap, direction: "up" | "down"): SheetSnap => {
 };
 
 export function MobileMarketSheet({
+  locale = "ko",
+  hasSelectedDate = false,
   snap,
   onSnapChange,
   mode,
@@ -40,6 +46,7 @@ export function MobileMarketSheet({
   onListView,
   onPreviewOpenDetail,
 }: MobileMarketSheetProps) {
+  const ui = getUiCopy(locale);
   const dragStartY = useRef<number | null>(null);
   const sheetRef = useRef<HTMLElement>(null);
   const handleClose = useCallback(() => {
@@ -80,6 +87,9 @@ export function MobileMarketSheet({
     ));
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        const openDirectionsMenu = event.target instanceof Element
+          && event.target.closest(".directions-menu")?.querySelector('button[aria-expanded="true"]');
+        if (event.defaultPrevented || openDirectionsMenu) return;
         event.preventDefault();
         handleClose();
         return;
@@ -142,7 +152,7 @@ export function MobileMarketSheet({
   return (
     <section
       ref={sheetRef}
-      className={`mobile-market-sheet is-${mode}`}
+      className={`mobile-market-sheet is-${mode}${hasSelectedDate && mode === "preview" ? " has-selected-date" : ""}`}
       data-snap={snap}
       role={mode === "detail" && snap === "full" ? "dialog" : "region"}
       aria-modal={mode === "detail" && snap === "full" ? "true" : undefined}
@@ -153,7 +163,7 @@ export function MobileMarketSheet({
       <button
         type="button"
         className="mobile-market-sheet-handle"
-        aria-label={mode === "preview" ? "미리보기 펼치기" : "시트 손잡이"}
+        aria-label={mode === "preview" ? ui.expandPreview : ui.sheetHandle}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onKeyDown={(event) => {
@@ -174,32 +184,32 @@ export function MobileMarketSheet({
         <button
           type="button"
           className="mobile-market-sheet-collapsed-button"
-          aria-label="목록 열기"
+          aria-label={ui.openList}
           aria-describedby={describedBy}
           onClick={() => onSnapChange("half")}
         >
           <strong>{title}</strong>
-          <span>목록 열기 <span aria-hidden="true">↑</span></span>
+          <span>{ui.openList} <span aria-hidden="true">↑</span></span>
         </button>
       ) : (
         <div className="mobile-market-sheet-heading">
           <h2>{title}</h2>
           {mode === "detail" ? (
             <div className="mobile-market-sheet-heading-actions">
-              <button type="button" className="mobile-market-sheet-close-button" onClick={handleClose}>닫기</button>
-              <button type="button" className="mobile-market-sheet-list-button" onClick={handleListView}>목록으로</button>
+              <button type="button" className="mobile-market-sheet-close-button" onClick={handleClose}>{ui.close}</button>
+              <button type="button" className="mobile-market-sheet-list-button" onClick={handleListView}>{ui.backToList}</button>
             </div>
           ) : mode === "preview" ? (
-            <button type="button" className="mobile-market-sheet-close-button" onClick={handleClose}>닫기</button>
+            <button type="button" className="mobile-market-sheet-close-button" onClick={handleClose}>{ui.close}</button>
           ) : snap === "half" ? (
-            <button type="button" className="mobile-market-sheet-expand-button" onClick={() => onSnapChange("full")}>목록 크게 보기</button>
+            <button type="button" className="mobile-market-sheet-expand-button" onClick={() => onSnapChange("full")}>{ui.enlargeList}</button>
           ) : (
-            <button type="button" className="mobile-market-sheet-map-button" onClick={() => onSnapChange("collapsed")}>지도 보기</button>
+            <button type="button" className="mobile-market-sheet-map-button" onClick={() => onSnapChange("collapsed")}>{ui.viewMap}</button>
           )}
         </div>
       )}
       <div id="mobile-market-sheet-status" className="mobile-market-sheet-status" aria-live="polite">
-        {mode === "detail" ? `${title}를 열었습니다` : mode === "preview" ? `${title} 미리보기를 열었습니다` : snap === "full" ? "전체 시장 결과" : title}
+        {mode === "detail" ? locale === "en" ? `Opened ${title}` : `${title}를 열었습니다` : mode === "preview" ? locale === "en" ? `Opened ${title}` : `${title} 미리보기를 열었습니다` : snap === "full" ? ui.allResults : title}
       </div>
       <div ref={contentRef} className="mobile-market-sheet-content">{children}</div>
     </section>

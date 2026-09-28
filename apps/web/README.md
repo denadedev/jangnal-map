@@ -75,6 +75,12 @@ Actions 성공은 **이미지 게시·GitOps 갱신 성공**이지 Pod 배포 �
 rollout/응답 검증은 별도로 수행한다. 롤백할 때는 진행 중인 배포 실행을 먼저 멈추고
 GitOps의 이미지 SHA를 검증된 이전 값으로 변경한다.
 
+영어 화면을 배포한 뒤에는 공개 주소의 `/en`에서 영어 본문과 `/en/map` 링크가 보이는지,
+`/en/map`에서 지역 검색·날짜 선택·시장 상세가 동작하는지 확인한다. `/sitemap.xml`에는
+`/en`만 들어가며 `/en/map`은 `noindex`다. 실제 휴대전화에서 NAVER 경로와 Google 지도
+위치 링크가 의도한 시장을 여는지도 확인한다. Search Console 색인과 영어 검색 유입은
+검색엔진이 새 페이지를 처리한 뒤에만 판단할 수 있다.
+
 ## GitHub Release
 
 별도 Vercel 이벤트 대신 `CI`의 마지막 `release` job에서 생성한다.

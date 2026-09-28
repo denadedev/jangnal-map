@@ -39,4 +39,13 @@ describe("OnnuriSummary", () => {
     expect(screen.getByRole("link", { name: "공식 가맹점 찾기" })).not.toHaveAttribute("target");
     expect(screen.getByText(/방문 전 공식 가맹점 찾기에서 확인/)).toBeInTheDocument();
   });
+
+  it("explains Onnuri counts in English without implying all stores accept it", () => {
+    render(<OnnuriSummary locale="en" marketName="운천전통시장" summary={summary} headingLevel={3} />);
+
+    expect(screen.getByRole("heading", { name: "Onnuri gift certificates" })).toBeInTheDocument();
+    expect(screen.getByText("83 participating stores")).toBeInTheDocument();
+    expect(screen.getByText(/Acceptance can change by store/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Find participating stores (Korean)" })).toHaveAttribute("href", "https://www.onnuri.gift/place");
+  });
 });

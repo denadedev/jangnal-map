@@ -4,14 +4,16 @@ test("renders market detail actions in a mobile-safe order", async ({ page }) =>
   await page.goto("/markets/용인중앙시장-389b4a24");
   await expect(page.getByRole("heading", { name: /용인중앙시장 장날 날짜/ })).toBeVisible();
   await expect(page.getByRole("region", { name: "다음 장날" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "NAVER 지도에서 길찾기" })).toBeVisible();
+  await page.getByRole("button", { name: "지도·길찾기" }).click();
+  await expect(page.getByRole("link", { name: "NAVER 지도 — 길찾기" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Google 지도 — 위치 보기" })).toBeVisible();
 });
 
 test("shows the no-coordinate market without a directions action", async ({ page }) => {
   await page.goto("/?when=all&market=market-58b918874207f50d");
   const detail = page.getByRole("article", { name: /의정부청과야채시장/ });
   await expect(detail.getByText("위치 확인 필요")).toBeVisible();
-  await expect(detail.getByRole("link", { name: "NAVER 지도에서 길찾기" })).toHaveCount(0);
+  await expect(detail.getByRole("button", { name: "지도·길찾기" })).toHaveCount(0);
 });
 
 test("keeps auxiliary pages readable and actionable", async ({ page }) => {

@@ -1,8 +1,12 @@
 import type { PublicMarket } from "../lib/market";
 import { getMarketBrowsePath } from "../lib/market-path";
 import { formatDistance, formatMarketTiming, formatSchedulePattern, getDistanceKm, type Coordinates } from "../lib/market-view";
+import type { Locale } from "../lib/locale";
+import { getUiCopy } from "../lib/ui-copy";
 
 interface MarketListProps {
+  locale?: Locale;
+  getMarketHref?: (market: PublicMarket) => string;
   markets: PublicMarket[];
   reviewedMarketIds?: ReadonlySet<string>;
   referenceDate: Date;
@@ -12,22 +16,23 @@ interface MarketListProps {
   currentLocation: Coordinates | null;
 }
 
-export function MarketList({ markets, reviewedMarketIds = new Set(), referenceDate, selectedId, onSelect, onReset, currentLocation }: MarketListProps) {
+export function MarketList({ locale = "ko", getMarketHref, markets, reviewedMarketIds = new Set(), referenceDate, selectedId, onSelect, onReset, currentLocation }: MarketListProps) {
+  const ui = getUiCopy(locale);
   if (markets.length === 0) {
     return (
       <div className="empty-state">
         <span className="empty-mark" aria-hidden="true" />
-        <h2>조건에 맞는 시장이 없어요</h2>
-        <p>지역 이름을 줄이거나 다른 날짜를 골라보세요.</p>
+        <h2>{ui.noResults}</h2>
+        <p>{ui.noResultsHelp}</p>
         <button type="button" className="secondary-button" onClick={onReset}>
-          필터 초기화
+          {ui.resetFilters}
         </button>
       </div>
     );
   }
 
   return (
-    <ul className="market-list" aria-label="검색된 시장">
+    <ul className="market-list" aria-label={ui.resultsLabel}>
       {markets.map((market) => {
         const distance = currentLocation && market.latitude !== null && market.longitude !== null
           ? getDistanceKm(currentLocation, { latitude: market.latitude, longitude: market.longitude })
@@ -35,7 +40,7 @@ export function MarketList({ markets, reviewedMarketIds = new Set(), referenceDa
         return (
         <li key={market.id}>
           <a
-            href={getMarketBrowsePath(market, reviewedMarketIds.has(market.id))}
+            href={getMarketHref?.(market) ?? getMarketBrowsePath(market, reviewedMarketIds.has(market.id))}
             data-market-id={market.id}
             className="market-list-item"
             aria-current={market.id === selectedId ? "true" : undefined}
@@ -45,16 +50,16 @@ export function MarketList({ markets, reviewedMarketIds = new Set(), referenceDa
               onSelect(market);
             }}
           >
-            <span className="list-date" aria-label={`운영 일정 ${formatMarketTiming(market, referenceDate)}`}>
-              <strong>{formatMarketTiming(market, referenceDate)}</strong>
-              <small>{market.schedule.kind === "daily" ? "운영" : "장날"}</small>
+            <span className="list-date" aria-label={`${ui.scheduleLabel} ${formatMarketTiming(market, referenceDate, locale)}`}>
+              <strong>{formatMarketTiming(market, referenceDate, locale)}</strong>
+              <small>{market.schedule.kind === "daily" ? ui.operates : ui.marketDay}</small>
             </span>
             <span className="list-copy">
-              <strong>{market.name}</strong>
-              <span className={`schedule-tag is-${market.schedule.kind}`}>{formatSchedulePattern(market)}</span>
-              <span>{market.roadAddress ?? market.lotAddress ?? "주소 정보 없음"}</span>
-              {distance !== null ? <span className="distance-label">현재 위치에서 <b>{formatDistance(distance)}</b></span> : null}
-              {market.latitude === null || market.longitude === null ? <em>위치 확인 필요</em> : null}
+              <strong lang={locale === "en" ? "ko" : undefined}>{market.name}</strong>
+              {locale === "en" && market.schedule.kind === "daily" ? null : <span className={`schedule-tag is-${market.schedule.kind}`}>{formatSchedulePattern(market, locale)}</span>}
+              <span lang={market.roadAddress || market.lotAddress ? "ko" : undefined}>{market.roadAddress ?? market.lotAddress ?? ui.addressMissing}</span>
+              {distance !== null ? <span className="distance-label">{locale === "en" ? "From your location" : "현재 위치에서"} <b>{formatDistance(distance)}</b></span> : null}
+              {market.latitude === null || market.longitude === null ? <em>{ui.locationMissing}</em> : null}
             </span>
             <svg className="chevron" aria-hidden="true" viewBox="0 0 24 24">
               <path d="m9 6 6 6-6 6" />

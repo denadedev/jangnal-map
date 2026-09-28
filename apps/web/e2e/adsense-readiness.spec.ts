@@ -34,7 +34,7 @@ test("publishes the canonical connection files", async ({ page }) => {
   const sitemap = await page.request.get("/sitemap.xml");
   const sitemapText = await sitemap.text();
   expect(sitemap.status()).toBe(200);
-  expect((sitemapText.match(/<loc>/g) ?? []).length).toBe(33);
+  expect((sitemapText.match(/<loc>/g) ?? []).length).toBe(34);
   expect(sitemapText).not.toContain("spamfam.kr");
   expect(sitemapText).not.toContain("jangnal.spamfam.kr");
   expect(sitemapText).not.toContain("jangnal-map.vercel.app");

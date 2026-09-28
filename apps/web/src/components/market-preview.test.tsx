@@ -42,6 +42,11 @@ describe("MarketPreview", () => {
     expect(screen.getByText("9월 5일 토요일 · 오늘 장날")).toBeInTheDocument();
   });
 
+  it("confirms a chosen travel date in the English preview", () => {
+    render(<MarketPreview locale="en" market={market} today={new Date(2026, 8, 4)} selectedDate={new Date(2026, 8, 5)} onOpenDetail={() => undefined} />);
+    expect(screen.getByText(/Market day on your selected date: Sat, Sep 5, 2026/)).toBeInTheDocument();
+  });
+
   it.each([
     [{ ...market, schedule: { kind: "daily" as const }, roadAddress: null }, "운영 일정", "매일 운영", "서울특별시 중구 시장동 1"],
     [{ ...market, schedule: { kind: "unknown" as const, raw: "확인 중" }, roadAddress: null, lotAddress: null }, "운영 일정", "운영 일정 확인 필요", "주소 정보 없음"],

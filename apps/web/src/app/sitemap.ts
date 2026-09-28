@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
     { url: `${SITE_URL}/about`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE_URL}/onnuri`, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${SITE_URL}/en`, changeFrequency: "monthly", priority: 0.6 },
     ...publicMarkets.filter(isMarketIndexable).map((market) => ({
       url: `${SITE_URL}${getMarketPagePath(market)}`,
       ...(market.referenceDate ? { lastModified: market.referenceDate } : {}),

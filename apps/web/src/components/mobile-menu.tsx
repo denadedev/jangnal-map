@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { Locale } from "../lib/locale";
+import { getUiCopy } from "../lib/ui-copy";
 
 export interface MobileMenuProps {
+  locale?: Locale;
+  languageSwitchHref?: string;
   open: boolean;
   onClose: () => void;
   installAction?: (() => void | Promise<void>) | null;
@@ -19,6 +23,8 @@ const getFocusable = (container: HTMLElement): HTMLElement[] => Array.from(
 );
 
 export function MobileMenu({
+  locale = "ko",
+  languageSwitchHref,
   open,
   onClose,
   installAction,
@@ -27,6 +33,7 @@ export function MobileMenu({
   onShowIosGuide,
   onDismissInstall,
 }: MobileMenuProps) {
+  const ui = getUiCopy(locale);
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -83,32 +90,34 @@ export function MobileMenu({
         className="mobile-menu-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label="보조 메뉴"
+        aria-label={ui.menu}
         tabIndex={-1}
       >
         <div className="mobile-menu-heading">
-          <strong>오늘 장날</strong>
-          <button type="button" className="mobile-menu-close" aria-label="메뉴 닫기" onClick={onClose}>×</button>
+          <strong>{ui.brand}</strong>
+          <button type="button" className="mobile-menu-close" aria-label={ui.closeMenu} onClick={onClose}>×</button>
         </div>
-        <nav aria-label="보조 메뉴">
-          <a className="mobile-menu-link" href="/onnuri">온누리상품권</a>
-          <a className="mobile-menu-link" href="/report?kind=service">불편 신고</a>
-          <a className="mobile-menu-link" href="https://legal-hub.denadedev.workers.dev/kmarketday/privacy/">개인정보 처리방침</a>
-          <a className="mobile-menu-link" href="https://legal-hub.denadedev.workers.dev/kmarketday/terms/">이용약관</a>
-          <a className="mobile-menu-link" href="/about">서비스 소개</a>
-          <a className="mobile-menu-link" href="/about#data-policy">데이터 출처와 편집 기준</a>
+        <nav aria-label={ui.menu}>
+          <a className="mobile-menu-link" href="/en">{locale === "en" ? "Market-day guide" : "English guide"}</a>
+          <a className="mobile-menu-link" href="/onnuri">{ui.onnuri}</a>
+          <a className="mobile-menu-link" href="/report?kind=service">{ui.report}</a>
+          <a className="mobile-menu-link" href="https://legal-hub.denadedev.workers.dev/kmarketday/privacy/">{ui.privacy}</a>
+          <a className="mobile-menu-link" href="https://legal-hub.denadedev.workers.dev/kmarketday/terms/">{ui.terms}</a>
+          <a className="mobile-menu-link" href="/about">{ui.about}</a>
+          <a className="mobile-menu-link" href="/about#data-policy">{ui.dataPolicy}</a>
+          <a className="mobile-menu-link" href={languageSwitchHref ?? (locale === "en" ? "/" : "/en/map")}>{locale === "en" ? "한국어" : "English map"}</a>
         </nav>
         {installPlatform ? (
           <div className="mobile-menu-install">
-            <strong>홈 화면에 추가</strong>
-            <p>장날을 앱처럼 빠르게 확인할 수 있어요.</p>
-            {iosGuide ? <p className="mobile-menu-install-guide">Safari의 공유 버튼을 누른 뒤 ‘홈 화면에 추가’를 선택하세요.</p> : null}
+            <strong>{ui.installTitle}</strong>
+            <p>{ui.installDescription}</p>
+            {iosGuide ? <p className="mobile-menu-install-guide">{ui.installIosGuide}</p> : null}
             {installPlatform === "android" ? (
-              <button type="button" className="mobile-menu-install-action" onClick={() => void installAction?.()}>추가하기</button>
+              <button type="button" className="mobile-menu-install-action" onClick={() => void installAction?.()}>{ui.add}</button>
             ) : (
-              <button type="button" className="mobile-menu-install-action" onClick={onShowIosGuide}>추가 방법</button>
+              <button type="button" className="mobile-menu-install-action" onClick={onShowIosGuide}>{ui.addHow}</button>
             )}
-            <button type="button" className="mobile-menu-dismiss" onClick={onDismissInstall}>14일 동안 닫기</button>
+            <button type="button" className="mobile-menu-dismiss" onClick={onDismissInstall}>{ui.dismissInstall}</button>
           </div>
         ) : null}
       </div>

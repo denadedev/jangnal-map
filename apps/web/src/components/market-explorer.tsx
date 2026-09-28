@@ -4,8 +4,12 @@ import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-quer
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 
 import type { PublicMarket } from "../lib/market";
+import { buildExplorerPath, type Locale } from "../lib/locale";
 import { getMarketBrowsePath, getMarketPagePath } from "../lib/market-path";
 import { filterMarkets, getDateRange, normalizeDirectDate, sortMarketsByDistance, toIsoDate, type Coordinates } from "../lib/market-view";
+import { getKoreaCalendarDate, msUntilNextKoreaMidnight } from "../lib/korea-date";
+import { resolveRegionAlias } from "../lib/region-aliases";
+import { getUiCopy } from "../lib/ui-copy";
 import { MobileHomeControls } from "./mobile-home-controls";
 import { MobileMarketSheet, type SheetMode, type SheetSnap } from "./mobile-market-sheet";
 import { MarketDetail } from "./market-detail";
@@ -24,6 +28,7 @@ export interface ExplorerInitialState {
 }
 
 interface MarketExplorerProps {
+  locale?: Locale;
   today?: Date;
   mapClientId?: string;
   initialState?: ExplorerInitialState;
@@ -57,7 +62,8 @@ async function fetchMarkets(): Promise<PublicMarket[]> {
 const emptyReviewedMarketIds: string[] = [];
 type SelectionOrigin = { id: string; source: "map" | "list" };
 
-function MarketExplorerContent({ today: providedToday, mapClientId = "", initialState, reviewedMarketIds = emptyReviewedMarketIds, reviewedGuides = [] }: MarketExplorerProps) {
+function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientId = "", initialState, reviewedMarketIds = emptyReviewedMarketIds, reviewedGuides = [] }: MarketExplorerProps) {
+  const ui = getUiCopy(locale);
   const reviewedMarketIdSet = useMemo(() => new Set(reviewedMarketIds), [reviewedMarketIds]);
   const [today, setToday] = useState(() => providedToday ?? staticRenderDate);
   const resolvedInitial = useMemo(() => {
@@ -89,6 +95,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   const viewportHeightAtSearchFocusRef = useRef(0);
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
   const [hasRestoredUrl, setHasRestoredUrl] = useState(false);
+  const [urlNotice, setUrlNotice] = useState("");
   const [mapStatus, setMapStatus] = useState<"idle" | "loading" | "ready" | "error">(mapClientId ? "idle" : "error");
   const [isMobile, setIsMobile] = useState(false);
   const [mobileOcclusion, setMobileOcclusion] = useState({ top: 0, bottom: 0 });
@@ -108,9 +115,10 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   const range = useMemo(() => getDateRange(mode, today, directDate), [directDate, mode, today]);
   const referenceDate = range?.start ?? today;
   const includeDaily = mode === "all" || mode === "date";
+  const regionPrefixes = locale === "en" ? resolveRegionAlias(query) : null;
   const filteredMarkets = useMemo(
-    () => filterMarkets(markets, query, range, { includeDaily }),
-    [includeDaily, markets, query, range],
+    () => filterMarkets(markets, query, range, { includeDaily, regionPrefixes }),
+    [includeDaily, markets, query, range, regionPrefixes],
   );
   const listedMarkets = useMemo(
     () => currentLocation ? sortMarketsByDistance(filteredMarkets, currentLocation) : filteredMarkets,
@@ -175,34 +183,53 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
 
   useEffect(() => {
     if (!isPending && selectedId && !filteredMarkets.some((market) => market.id === selectedId)) {
+      if (locale === "en") {
+        const message = "That market is not available with the current filters. Showing the market list instead.";
+        setUrlNotice((current) => current.includes(message) ? current : [current, message].filter(Boolean).join(" "));
+      }
       setSelectedId(null);
       setSheetMode("results");
       setSheetSnap("collapsed");
       selectedOrigin.current = null;
     }
-  }, [filteredMarkets, isPending, selectedId]);
+  }, [filteredMarkets, hasRestoredUrl, isPending, locale, selectedId]);
 
   useEffect(() => {
-    const clientToday = providedToday ?? new Date();
+    const clientToday = providedToday ?? getKoreaCalendarDate(new Date());
     if (!providedToday) setToday(clientToday);
     const urlState = readUrlState(clientToday);
     setQuery(urlState.query ?? "");
     setMode(urlState.mode ?? "week");
-    setDirectDate(urlState.directDate ?? toIsoDate(clientToday));
+    const requestedDate = urlState.directDate ?? toIsoDate(clientToday);
+    const normalizedDate = toIsoDate(normalizeDirectDate(requestedDate, clientToday));
+    setDirectDate(normalizedDate);
+    if (locale === "en" && urlState.mode === "date" && requestedDate !== normalizedDate) {
+      const message = "The selected date has passed or is invalid, so the date was changed to today in Korea.";
+      setUrlNotice((current) => current.includes(message) ? current : [current, message].filter(Boolean).join(" "));
+    }
     setSelectedId(urlState.selectedId ?? null);
     setSheetMode(urlState.selectedId ? "detail" : "results");
     setSheetSnap(urlState.selectedId ? "full" : "collapsed");
     setHasRestoredUrl(true);
-  }, [providedToday]);
+  }, [locale, providedToday]);
+
+  useEffect(() => {
+    if (providedToday) return;
+    const refresh = () => setToday(getKoreaCalendarDate(new Date()));
+    const delay = msUntilNextKoreaMidnight(new Date());
+    const timer = window.setTimeout(refresh, delay);
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [providedToday, today]);
 
   useEffect(() => {
     if (!hasRestoredUrl) return;
-    const params = new URLSearchParams();
-    if (query.trim()) params.set("q", query.trim());
-    if (mode !== "week") params.set("when", mode);
-    if (mode === "date") params.set("date", directDate);
-    if (selectedId) params.set("market", selectedId);
-    const suffix = params.toString();
     const nextState = { ...(window.history.state ?? {}) } as Record<string, unknown>;
     if (selectedId) nextState.mobileMarket = selectedId;
     else {
@@ -210,8 +237,8 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
       delete nextState.mobileMarketView;
       delete nextState.mobileMarketSource;
     }
-    window.history.replaceState(nextState, "", suffix ? `/?${suffix}` : "/");
-  }, [directDate, hasRestoredUrl, mode, query, selectedId]);
+    window.history.replaceState(nextState, "", buildExplorerPath(locale, { query, mode, directDate, marketId: selectedId }));
+  }, [directDate, hasRestoredUrl, locale, mode, query, selectedId]);
 
   const restoreResultContext = useCallback(() => {
     const origin = selectedOrigin.current;
@@ -250,8 +277,6 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
     previousSheetSnap.current = returnSnap;
     selectedOrigin.current = { id: market.id, source };
     resultScrollTop.current = mobileSheetContentRef.current?.scrollTop ?? 0;
-    const params = new URLSearchParams(window.location.search);
-    params.set("market", market.id);
     const view = source === "map" && window.matchMedia?.("(max-width: 700px)").matches ? "preview" : "detail";
     window.history.pushState({
       ...(window.history.state ?? {}),
@@ -259,11 +284,11 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
       mobileMarketView: view,
       mobileMarketSource: source,
       mobileReturnSnap: returnSnap,
-    }, "", `/?${params.toString()}`);
+    }, "", buildExplorerPath(locale, { query, mode, directDate, marketId: market.id }));
     setSelectedId(market.id);
     setSheetMode(view);
     setSheetSnap(view === "preview" ? "collapsed" : "full");
-  }, [sheetMode, sheetSnap]);
+  }, [directDate, locale, mode, query, sheetMode, sheetSnap]);
   const selectMapMarket = useCallback((market: PublicMarket) => selectMarket(market, "map"), [selectMarket]);
   const selectListMarket = useCallback((market: PublicMarket) => selectMarket(market, "list"), [selectMarket]);
   const closeMarket = useCallback(() => {
@@ -294,6 +319,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
     setSheetSnap("full");
   }, [selectedId]);
   const resetFilters = () => {
+    setUrlNotice("");
     setQuery("");
     setMode("week");
     setDirectDate(toIsoDate(today));
@@ -401,21 +427,21 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   const listHeading = (
     <div className="list-heading">
       <div>
-        <p>{mode === "all" ? "전체 전통시장" : mode === "date" ? "선택한 날짜에 운영하는 시장" : "선택한 기간의 장날 시장"}</p>
-        <strong>{filteredMarkets.length}곳</strong>
-        {mapMissingCount > 0 ? <small>지도 미표시 {mapMissingCount}곳</small> : null}
+        <p>{mode === "all" ? ui.allMarketHeading : mode === "date" ? ui.selectedDateHeading : ui.marketDayHeading}</p>
+        <strong>{locale === "en" ? `${filteredMarkets.length} markets` : `${filteredMarkets.length}곳`}</strong>
+        {mapMissingCount > 0 ? <small>{locale === "en" ? `${mapMissingCount} not shown on map` : `지도 미표시 ${mapMissingCount}곳`}</small> : null}
       </div>
-      <span>{query ? `“${query}” 검색` : "전국"}</span>
+      <span>{query ? locale === "en" ? `Search: “${query}”` : `“${query}” 검색` : ui.nationwide}</span>
     </div>
   );
 
   const marketListContent = isPending ? (
-    <div className="list-loading" role="status"><span /><span /><span /><p>시장 정보를 불러오는 중입니다.</p></div>
+    <div className="list-loading" role="status"><span /><span /><span /><p>{ui.loadingMarkets}</p></div>
   ) : isError ? (
     <div className="empty-state">
-      <h2>시장 정보를 불러오지 못했어요</h2>
-      <p>잠시 후 다시 시도해 주세요.</p>
-      <button type="button" className="secondary-button" onClick={() => void refetch()}>다시 시도</button>
+      <h2>{ui.loadFailed}</h2>
+      <p>{ui.tryAgainLater}</p>
+      <button type="button" className="secondary-button" onClick={() => void refetch()}>{ui.retry}</button>
     </div>
   ) : (
     <MarketList
@@ -426,6 +452,10 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
       onSelect={selectListMarket}
       onReset={resetFilters}
       currentLocation={currentLocation}
+      locale={locale}
+      getMarketHref={(market) => locale === "en"
+        ? buildExplorerPath("en", { query, mode, directDate, marketId: market.id })
+        : getMarketBrowsePath(market, reviewedMarketIdSet.has(market.id))}
     />
   );
 
@@ -447,6 +477,8 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
   return (
     <main className="explorer-shell">
       <MobileHomeControls
+        locale={locale}
+        languageSwitchHref={buildExplorerPath(locale === "en" ? "ko" : "en", { query, mode, directDate, marketId: selectedId })}
         containerRef={mobileHomeControlsRef}
         mode={mode}
         query={query}
@@ -459,16 +491,21 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
         onDirectDateChange={handleDirectDateChange}
       />
       <header className="app-header">
-        <a className="brand" href="/" aria-label="오늘 장날 홈">
+        <a className="brand" href={locale === "en" ? "/en" : "/"} aria-label={ui.homeLabel}>
           <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
-          <span><h1>오늘 장날</h1><small>전국 5일장·전통시장 일정 지도</small></span>
+          <span><h1>{ui.brand}</h1><small>{ui.tagline}</small></span>
         </a>
         <div className="header-actions">
-          <div className="data-badge"><span aria-hidden="true" /> 전국 시장 {isPending ? "…" : `${markets.length.toLocaleString("ko-KR")}곳`}</div>
-          <a className="feedback-link" href="/onnuri">온누리상품권</a>
-          <a className="feedback-link" href="/report?kind=service">불편 신고</a>
+          <div className="data-badge"><span aria-hidden="true" /> {locale === "en" ? "Markets in Korea" : "전국 시장"} {isPending ? "…" : locale === "en" ? markets.length.toLocaleString("en-US") : `${markets.length.toLocaleString("ko-KR")}곳`}</div>
+          {locale === "en" ? <a className="feedback-link" href="/en">Guide</a> : null}
+          <a className="feedback-link" href="/onnuri">{ui.onnuri}</a>
+          <a className="feedback-link" href="/report?kind=service">{ui.report}</a>
+          <a className="feedback-link" href={buildExplorerPath(locale === "en" ? "ko" : "en", { query, mode, directDate, marketId: selectedId })}>{locale === "en" ? "한국어" : "English"}</a>
         </div>
       </header>
+
+      {locale === "en" ? <p className="english-map-note">Market names and addresses are in Korean. Dates use Korea time (KST). <a href="/en">How market days work</a></p> : null}
+      {urlNotice ? <p className="english-map-note" role="status">{urlNotice}</p> : null}
 
       {reviewedGuides.length > 0 ? (
         <div className="desktop-reviewed-market-guides">
@@ -484,12 +521,13 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
           "--mobile-keyboard-bottom": `${keyboardBottomInset}px`,
         } as CSSProperties}
       >
-        <aside className="list-pane" aria-label="시장 목록">
+        <aside className="list-pane" aria-label={ui.listLabel}>
           {listHeading}
           {marketListContent}
         </aside>
 
         <MarketMap
+          locale={locale}
           markets={filteredMarkets}
           referenceDate={referenceDate}
           selectedId={selectedId}
@@ -506,23 +544,28 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
 
         <aside className="detail-pane" aria-live="polite">
           <MarketDetail
+            locale={locale}
             market={selectedMarket}
             detailPath={selectedMarket && reviewedMarketIdSet.has(selectedMarket.id) ? getMarketPagePath(selectedMarket) : undefined}
-            sharePath={selectedMarket ? getMarketBrowsePath(selectedMarket, reviewedMarketIdSet.has(selectedMarket.id)) : undefined}
+            sharePath={selectedMarket ? locale === "en"
+              ? buildExplorerPath("en", { query, mode, directDate, marketId: selectedMarket.id })
+              : getMarketBrowsePath(selectedMarket, reviewedMarketIdSet.has(selectedMarket.id)) : undefined}
             today={today}
+            selectedDate={locale === "en" && mode === "date" ? range?.start : undefined}
             onClose={closeMarket}
           />
         </aside>
 
         {isMobile ? (
           <MobileMarketSheet
+            locale={locale}
             snap={sheetSnap}
             onSnapChange={setSheetSnap}
             mode={sheetMode}
             onModeChange={setSheetMode}
             title={sheetMode !== "results" && selectedMarket
-              ? sheetMode === "preview" ? `${selectedMarket.name} 미리보기` : `${selectedMarket.name} 상세`
-              : `${filteredMarkets.length}곳 시장 결과`}
+              ? sheetMode === "preview" ? locale === "en" ? `${selectedMarket.name} preview` : `${selectedMarket.name} 미리보기` : locale === "en" ? `${selectedMarket.name} details` : `${selectedMarket.name} 상세`
+              : locale === "en" ? `${filteredMarkets.length} market results` : `${filteredMarkets.length}곳 시장 결과`}
             describedBy="mobile-market-sheet-status"
             contentRef={mobileSheetContentRef}
             onClose={closeMarket}
@@ -534,16 +577,22 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
             ) : null}
             {sheetMode === "detail" ? (
               <MarketDetail
+                locale={locale}
                 market={selectedMarket}
                 detailPath={selectedMarket && reviewedMarketIdSet.has(selectedMarket.id) ? getMarketPagePath(selectedMarket) : undefined}
-                sharePath={selectedMarket ? getMarketBrowsePath(selectedMarket, reviewedMarketIdSet.has(selectedMarket.id)) : undefined}
+                sharePath={selectedMarket ? locale === "en"
+                  ? buildExplorerPath("en", { query, mode, directDate, marketId: selectedMarket.id })
+                  : getMarketBrowsePath(selectedMarket, reviewedMarketIdSet.has(selectedMarket.id)) : undefined}
                 today={today}
+                selectedDate={locale === "en" && mode === "date" ? range?.start : undefined}
                 onClose={closeMarket}
               />
             ) : sheetMode === "preview" && selectedMarket ? (
               <MarketPreview
+                locale={locale}
                 market={selectedMarket}
                 today={today}
+                selectedDate={locale === "en" && mode === "date" ? range?.start : undefined}
                 onOpenDetail={openSelectedMarketDetail}
               />
             ) : (
@@ -556,7 +605,7 @@ function MarketExplorerContent({ today: providedToday, mapClientId = "", initial
         ) : null}
       </div>
 
-      <div className="home-site-footer"><SiteFooter /></div>
+      <div className="home-site-footer"><SiteFooter locale={locale} /></div>
 
     </main>
   );

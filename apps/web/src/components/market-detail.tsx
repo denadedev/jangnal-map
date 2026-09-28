@@ -1,20 +1,25 @@
 import type { PublicMarket } from "../lib/market";
-import { getDday, formatKoreanDate } from "../lib/market-view";
+import type { Locale } from "../lib/locale";
+import { getDday, formatKoreanDate, formatSchedulePattern } from "../lib/market-view";
 import { getMarketDates, getNextMarketDate } from "../lib/schedule";
+import { getUiCopy } from "../lib/ui-copy";
+import { MarketDirectionsMenu } from "./market-directions-menu";
 import { MarketShareButton } from "./market-share-button";
 import { OnnuriSummary } from "./onnuri-summary";
 
 interface MarketDetailProps {
+  locale?: Locale;
   market: PublicMarket | null;
   detailPath?: string;
   sharePath?: string;
   today: Date;
+  selectedDate?: Date;
   onClose: () => void;
 }
 
-const formatSourceDate = (value: string | null): string => {
-  if (!value) return "확인일 정보 없음";
-  return value.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$1.$2.$3");
+const formatSourceDate = (value: string | null, locale: Locale): string => {
+  if (!value) return getUiCopy(locale).sourceDateMissing;
+  return locale === "en" ? value : value.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$1.$2.$3");
 };
 
 const datesThrough = (start: Date, end: Date): Date[] => {
@@ -28,13 +33,14 @@ const datesThrough = (start: Date, end: Date): Date[] => {
   return dates;
 };
 
-export function MarketDetail({ market, detailPath, sharePath, today, onClose }: MarketDetailProps) {
+export function MarketDetail({ locale = "ko", market, detailPath, sharePath, today, selectedDate, onClose }: MarketDetailProps) {
+  const ui = getUiCopy(locale);
   if (!market) {
     return (
       <div className="detail-placeholder">
         <span className="detail-placeholder-pin" aria-hidden="true" />
-        <p>지도 핀이나 시장 목록을 선택하면</p>
-        <strong>다음 장날을 자세히 보여드려요.</strong>
+        <p>{ui.selectedMarketPrompt}</p>
+        <strong>{ui.selectedMarketHelp}</strong>
       </div>
     );
   }
@@ -44,39 +50,45 @@ export function MarketDetail({ market, detailPath, sharePath, today, onClose }: 
   const timelineEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 6);
   const timelineDates = market.schedule.kind === "digit-pair" ? datesThrough(today, timelineEnd) : [];
   const marketDayTimes = new Set(getMarketDates(market, { start: today, end: timelineEnd }).map((date) => date.getTime()));
-  const address = market.roadAddress ?? market.lotAddress ?? "주소 정보 없음";
+  const address = market.roadAddress ?? market.lotAddress ?? ui.addressMissing;
   const hasCoordinates = market.latitude !== null && market.longitude !== null;
-  const directionsUrl = hasCoordinates
-    ? `https://map.naver.com/p/directions/-/${market.longitude},${market.latitude},${encodeURIComponent(market.name)}/-/car`
-    : null;
-  const timingTitle = market.schedule.kind === "digit-pair" ? "다음 장날" : "운영 일정";
+  const timingTitle = market.schedule.kind === "digit-pair" ? ui.nextMarketDay : ui.scheduleLabel;
   const timingText = market.schedule.kind === "daily"
-    ? "매일 운영"
+    ? ui.dailySchedule
     : market.schedule.kind === "unknown"
-      ? "운영 일정 확인 필요"
+      ? ui.scheduleUnconfirmed
       : nextDate
-        ? formatKoreanDate(nextDate)
-        : "운영 일정 확인 필요";
+        ? formatKoreanDate(nextDate, locale)
+        : ui.scheduleUnconfirmed;
   const timingBadge = market.schedule.kind === "daily"
-    ? "오늘 운영"
+    ? locale === "en" ? null : ui.operatingToday
     : dday === null
       ? null
       : dday === 0
-        ? "오늘 장날"
+        ? ui.marketDayToday
         : `D-${dday}`;
 
   return (
-    <article className="market-detail" aria-label={`${market.name} 상세정보`}>
+    <article className="market-detail" aria-label={locale === "en" ? `${market.name} details` : `${market.name} 상세정보`}>
       <div className="sheet-handle" aria-hidden="true" />
-      <button type="button" className="detail-close" aria-label="시장 상세 닫기" onClick={onClose}>
+      <button type="button" className="detail-close" aria-label={ui.closeDetail} onClick={onClose}>
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17" /></svg>
       </button>
 
       <header className="detail-header">
-        <p>{market.marketType}</p>
-        <h2>{detailPath ? <a href={detailPath}>{market.name}</a> : market.name}</h2>
-        <span>{address}</span>
+        <p lang="ko">{market.marketType}</p>
+        <h2>{detailPath ? <a href={detailPath}><span lang="ko">{market.name}</span>{locale === "en" ? " (Korean)" : ""}</a> : <span lang="ko">{market.name}</span>}</h2>
+        <span lang={market.roadAddress || market.lotAddress ? "ko" : undefined}>{address}</span>
       </header>
+
+      {locale === "en" && selectedDate ? (
+        <section className="next-date-card selected-date-card" aria-label="Your selected travel date">
+          <div>
+            <p>{market.schedule.kind === "digit-pair" ? "Market day on your selected date" : "Regular schedule on your selected date"}</p>
+            <strong>{formatKoreanDate(selectedDate, "en")}</strong>
+          </div>
+        </section>
+      ) : null}
 
       <section className="next-date-card" aria-labelledby="next-market-date">
         <div>
@@ -89,18 +101,18 @@ export function MarketDetail({ market, detailPath, sharePath, today, onClose }: 
       {market.schedule.kind === "digit-pair" ? (
         <section className="detail-section" aria-labelledby="upcoming-dates">
           <div className="section-heading">
-            <h3 id="upcoming-dates">오늘부터 7일</h3>
-            <span>{market.scheduleRaw}</span>
+            <h3 id="upcoming-dates">{ui.nextSevenDays}</h3>
+            <span>{locale === "en" ? formatSchedulePattern(market, locale) : market.scheduleRaw}</span>
           </div>
-          <ol className="date-timeline" aria-label="오늘부터 7일간 장날">
+          <ol className="date-timeline" aria-label={locale === "en" ? "Market days in the next 7 days" : "오늘부터 7일간 장날"}>
             {timelineDates.map((date, index) => {
               const isMarketDay = marketDayTimes.has(date.getTime());
               const isToday = index === 0;
               return (
                 <li key={date.toISOString()} className={`${isToday ? "is-today" : ""} ${isMarketDay ? "is-market-day" : ""}`.trim()}>
                   <strong>{date.getDate()}</strong>
-                  <small>{new Intl.DateTimeFormat("ko-KR", { weekday: "short" }).format(date)}</small>
-                  <em>{isToday && isMarketDay ? "오늘 장날" : isMarketDay ? "장날" : isToday ? "오늘" : ""}</em>
+                  <small>{new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ko-KR", { weekday: "short" }).format(date)}</small>
+                  <em>{isToday && isMarketDay ? ui.marketDayToday : isMarketDay ? ui.marketDay : isToday ? locale === "en" ? "Today" : ui.today : ""}</em>
                 </li>
               );
             })}
@@ -109,34 +121,29 @@ export function MarketDetail({ market, detailPath, sharePath, today, onClose }: 
       ) : null}
 
       <section className="detail-section" aria-labelledby="visit-info">
-        <h3 id="visit-info">방문 정보</h3>
+        <h3 id="visit-info">{ui.visitInfo}</h3>
         <dl className="info-list">
-          <div><dt>주소</dt><dd>{address}</dd></div>
-          <div><dt>전화</dt><dd>{market.phone ? <a href={`tel:${market.phone}`}>{market.phone}</a> : "정보 없음"}</dd></div>
-          <div><dt>주차</dt><dd>{market.hasParking === true ? "주차 가능" : market.hasParking === false ? "주차장 없음" : "확인 필요"}</dd></div>
-          {!hasCoordinates ? <div><dt>지도</dt><dd>위치 확인 필요</dd></div> : null}
+          <div><dt>{ui.address}</dt><dd lang={market.roadAddress || market.lotAddress ? "ko" : undefined}>{address}</dd></div>
+          <div><dt>{ui.phone}</dt><dd>{market.phone ? <a href={`tel:${market.phone}`}>{market.phone}</a> : ui.noInformation}</dd></div>
+          <div><dt>{ui.parking}</dt><dd>{market.hasParking === true ? ui.parkingAvailable : market.hasParking === false ? ui.noParking : ui.confirmNeeded}</dd></div>
+          {!hasCoordinates ? <div><dt>{ui.map}</dt><dd>{ui.locationMissing}</dd></div> : null}
         </dl>
-        <div className={`detail-actions ${directionsUrl ? "" : "share-only"}`.trim()}>
-          {directionsUrl ? (
-            <a className="primary-button" href={directionsUrl} target="_blank" rel="noreferrer">
-              NAVER 지도에서 길찾기
-              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5 10 14M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></svg>
-            </a>
-          ) : null}
-          <MarketShareButton market={market} sharePath={sharePath} today={today} className="market-action-secondary" />
+        <div className={`detail-actions ${hasCoordinates ? "" : "share-only"}`.trim()}>
+          {hasCoordinates ? <MarketDirectionsMenu market={market} locale={locale} className="primary-button" /> : null}
+          <MarketShareButton locale={locale} market={market} sharePath={sharePath} today={today} className="market-action-secondary" />
         </div>
       </section>
 
       <div className="detail-section">
-        <OnnuriSummary marketName={market.name} summary={market.onnuri} headingLevel={3} />
+        <OnnuriSummary locale={locale} marketName={market.name} summary={market.onnuri} headingLevel={3} />
       </div>
 
       <footer className="source-note">
-        <span>정보 출처</span>
-        <a href={market.source.url} target="_blank" rel="noreferrer">{market.source.name}</a>
-        <p>데이터 기준일 {formatSourceDate(market.referenceDate ?? market.source.referenceDate)}</p>
+        <span>{ui.source}</span>
+        <a href={market.source.url} target="_blank" rel="noreferrer" lang="ko">{market.source.name}</a>
+        <p>{ui.sourceDate} {formatSourceDate(market.referenceDate ?? market.source.referenceDate, locale)}</p>
         <a className="report-link" href={`/report?kind=market&market=${encodeURIComponent(market.id)}`}>
-          정보가 다른가요? 수정 제보
+          {ui.reportCorrection}
         </a>
       </footer>
     </article>

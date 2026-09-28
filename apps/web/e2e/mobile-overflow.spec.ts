@@ -29,13 +29,15 @@ for (const route of routes) {
 
 test("keeps mobile controls readable and tappable", async ({ page }) => {
   await page.goto("/?when=all");
+  await expect(page.locator(".mobile-market-sheet")).toBeVisible();
   const metrics = await page.evaluate(() => {
     const search = document.querySelector<HTMLInputElement>(".search-field input");
     const filters = document.querySelector<HTMLElement>(".filter-pills");
     const date = document.querySelector<HTMLInputElement>(".direct-date input");
     const filterRect = filters?.getBoundingClientRect();
     const dateFilterButtons = [...document.querySelectorAll<HTMLElement>(".filter-pill")];
-    const sheetButton = document.querySelector<HTMLElement>(".mobile-market-sheet-heading button");
+    const sheetButton = [...document.querySelectorAll<HTMLElement>(".mobile-market-sheet-collapsed-button, .mobile-market-sheet-heading button")]
+      .find((button) => button.getBoundingClientRect().height > 0);
     const status = document.querySelector<HTMLElement>(".mobile-market-sheet-status");
     const describedBy = document.querySelector<HTMLElement>(".mobile-market-sheet")?.getAttribute("aria-describedby");
     return {

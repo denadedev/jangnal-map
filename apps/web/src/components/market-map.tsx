@@ -6,8 +6,11 @@ import { buildMapItems, type CoordinateBounds } from "../lib/market-clusters";
 import type { PublicMarket } from "../lib/market";
 import { formatMarketTiming, type Coordinates } from "../lib/market-view";
 import { loadNaverMaps, type NaverLatLng, type NaverMapInstance, type NaverMarker } from "../lib/naver-maps";
+import type { Locale } from "../lib/locale";
+import { getUiCopy } from "../lib/ui-copy";
 
 interface MarketMapProps {
+  locale?: Locale;
   markets: PublicMarket[];
   referenceDate: Date;
   selectedId: string | null;
@@ -49,7 +52,8 @@ const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, (charact
   '"': "&quot;",
 })[character] ?? character);
 
-export function MarketMap({ markets, referenceDate, selectedId, clientId, mobileOcclusion, mobileSheetHeight = 0, onSelect, onLocationChange, onCameraRestoreComplete, onStatusChange, onLocationError }: MarketMapProps) {
+export function MarketMap({ locale = "ko", markets, referenceDate, selectedId, clientId, mobileOcclusion, mobileSheetHeight = 0, onSelect, onLocationChange, onCameraRestoreComplete, onStatusChange, onLocationError }: MarketMapProps) {
+  const ui = getUiCopy(locale);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<NaverMapInstance | null>(null);
   const markersRef = useRef<Array<{ marker: NaverMarker; listener: unknown }>>([]);
@@ -102,12 +106,12 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
     if (cameraSnapshotRef.current) cameraSnapshotRef.current.shouldRestore = false;
     if (!navigator.geolocation) {
       setLocationStatus("error");
-      setLocationMessage("이 브라우저에서는 현재 위치를 사용할 수 없어요.");
+      setLocationMessage(ui.locationUnavailable);
       return;
     }
 
     setLocationStatus("loading");
-    setLocationMessage("현재 위치를 확인하고 있어요.");
+    setLocationMessage(ui.locating);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         if (!mapRef.current || !window.naver?.maps) return;
@@ -118,23 +122,23 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
         locationMarkerRef.current = new naver.maps.Marker({
           map: mapRef.current,
           position,
-          title: "현재 위치",
+          title: ui.currentLocation,
           zIndex: 30,
           icon: {
-            content: '<span class="current-location-marker" aria-label="현재 위치"><i></i></span>',
+            content: `<span class="current-location-marker" aria-label="${escapeHtml(ui.currentLocation)}"><i></i></span>`,
             anchor: new naver.maps.Point(12, 12),
           },
         });
         mapRef.current.morph(position, 14);
         onLocationChange(currentLocation);
         setLocationStatus("success");
-        setLocationMessage("현재 위치로 이동했어요.");
+        setLocationMessage(ui.located);
       },
       (error) => {
         const permissionDenied = error.code === 1;
         const message = permissionDenied
-          ? "위치 권한이 필요해요. 브라우저 설정에서 허용한 뒤 다시 시도해 주세요."
-          : "현재 위치를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.";
+          ? ui.locationDenied
+          : ui.locationFailed;
         setLocationStatus("error");
         setLocationMessage(message);
         onLocationError?.(message, permissionDenied);
@@ -165,10 +169,10 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
           const marker = new naver.maps.Marker({
             map,
             position: new naver.maps.LatLng(item.latitude, item.longitude),
-            title: `이 지역 시장 ${item.count}곳`,
+            title: locale === "en" ? `${item.count} markets in this area` : `이 지역 시장 ${item.count}곳`,
             zIndex: 8,
             icon: {
-              content: `<button class="map-cluster" type="button" aria-label="이 지역 시장 ${item.count}곳"><strong>${item.count}</strong><small>곳</small></button>`,
+              content: `<button class="map-cluster" type="button" aria-label="${locale === "en" ? `${item.count} markets in this area` : `이 지역 시장 ${item.count}곳`}"><strong>${item.count}</strong><small>${locale === "en" ? "" : "곳"}</small></button>`,
               anchor: new naver.maps.Point(23, 23),
             },
           });
@@ -182,17 +186,17 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
 
         const market = item.market;
         const selected = market.id === selectedId;
-        const timing = formatMarketTiming(market, referenceDate);
+        const timing = formatMarketTiming(market, referenceDate, locale);
         const actionLabel = typeof window.matchMedia === "function" && window.matchMedia("(max-width: 700px)").matches
-          ? "미리보기"
-          : "상세 보기";
+          ? ui.mapPreview
+          : ui.viewDetail;
         const marker = new naver.maps.Marker({
           map,
           position: new naver.maps.LatLng(market.latitude, market.longitude),
           title: `${market.name} · ${timing}`,
           zIndex: selected ? 20 : 10,
           icon: {
-            content: `<button class="map-marker${selected ? " is-selected" : ""}" data-market-id="${escapeHtml(market.id)}" type="button" aria-label="${escapeHtml(market.name)} ${actionLabel}, 운영 일정 ${timing}"><span>${escapeHtml(market.name)}</span><strong>${timing}</strong></button>`,
+            content: `<button class="map-marker${selected ? " is-selected" : ""}" data-market-id="${escapeHtml(market.id)}" type="button" aria-label="${escapeHtml(market.name)} ${escapeHtml(actionLabel)}, ${escapeHtml(ui.scheduleLabel)} ${escapeHtml(timing)}"><span${locale === "en" ? ' lang="ko"' : ""}>${escapeHtml(market.name)}</span><strong>${escapeHtml(timing)}</strong></button>`,
             anchor: new naver.maps.Point(0, 38),
           },
         });
@@ -208,7 +212,7 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
       naver.maps.Event.removeListener(idleListener);
       clearMarkers();
     };
-  }, [markets, onSelect, referenceDate, selectedId, status]);
+  }, [locale, markets, onSelect, referenceDate, selectedId, status, ui.mapPreview, ui.scheduleLabel, ui.viewDetail]);
 
   useEffect(() => {
     if (status !== "ready" || !mapRef.current || !window.naver?.maps || mobileOcclusion === undefined || mobileOcclusion === null) return;
@@ -369,14 +373,14 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
   const showFallback = status === "error";
 
   return (
-    <section className="map-stage" aria-label="전국 전통시장 지도">
+    <section className="map-stage" aria-label={ui.mapLabel}>
       <div className="map-canvas-shell">
         <div ref={containerRef} className="map-canvas" aria-hidden={showFallback} />
       </div>
       {status === "loading" ? (
         <div className="map-status" role="status">
           <span className="loading-ring" aria-hidden="true" />
-          <strong>전국 장날 지도를 펼치는 중</strong>
+          <strong>{ui.mapLoading}</strong>
         </div>
       ) : null}
       {showFallback ? (
@@ -386,8 +390,8 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
             <span className="fallback-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="m9 18-6 3V6l6-3 6 3 6-3v15l-6 3-6-3Zm0 0V3m6 18V6" /></svg>
             </span>
-            <strong>지도 없이도 시장을 찾을 수 있어요</strong>
-            <p>지도 연결을 확인하는 동안 왼쪽 목록에서 시장과 장날을 모두 탐색할 수 있습니다.</p>
+            <strong>{ui.mapFallbackTitle}</strong>
+            <p>{ui.mapFallbackBody}</p>
           </div>
         </div>
       ) : null}
@@ -402,14 +406,14 @@ export function MarketMap({ markets, referenceDate, selectedId, clientId, mobile
           className="location-button"
           disabled={status !== "ready" || locationStatus === "loading"}
           onClick={moveToCurrentLocation}
-          aria-label="현재 위치로 이동"
+          aria-label={locale === "en" ? "Move to current location" : "현재 위치로 이동"}
         >
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M12 2v3m0 14v3M2 12h3m14 0h3" /></svg>
-          <span>{locationStatus === "loading" ? "위치 확인 중" : "현재 위치"}</span>
+          <span>{locationStatus === "loading" ? locale === "en" ? "Locating" : "위치 확인 중" : ui.currentLocation}</span>
         </button>
         {locationMessage ? <p className={`location-message is-${locationStatus}`} role="status">{locationMessage}</p> : null}
       </div>
-      <div className="map-legend" aria-hidden="true"><span /> 시장명 · 운영 일정</div>
+      <div className="map-legend" aria-hidden="true"><span /> {ui.mapLegend}</div>
     </section>
   );
 }

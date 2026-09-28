@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -38,5 +38,21 @@ describe("MarketDetail", () => {
 
     await user.click(screen.getByRole("button", { name: "시장 상세 닫기" }));
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("uses English visit labels and one map-service trigger", () => {
+    render(<MarketDetail locale="en" market={marketFixture} today={new Date(2026, 8, 3)} onClose={vi.fn()} />);
+
+    expect(screen.getByRole("heading", { name: "Visitor information" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Maps & directions" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "NAVER 지도에서 길찾기" })).not.toBeInTheDocument();
+  });
+
+  it("confirms the travel date separately from the next market day", () => {
+    render(<MarketDetail locale="en" market={marketFixture} today={new Date(2026, 8, 3)} selectedDate={new Date(2026, 8, 5)} onClose={vi.fn()} />);
+
+    const selectedDate = screen.getByRole("region", { name: "Your selected travel date" });
+    expect(within(selectedDate).getByText("Market day on your selected date")).toBeInTheDocument();
+    expect(within(selectedDate).getByText(/Sep 5, 2026/)).toBeInTheDocument();
   });
 });

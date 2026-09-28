@@ -1,37 +1,45 @@
 import type { PublicMarket } from "../lib/market";
 import { formatKoreanDate, getDday } from "../lib/market-view";
 import { getNextMarketDate } from "../lib/schedule";
+import type { Locale } from "../lib/locale";
+import { getUiCopy } from "../lib/ui-copy";
 
 interface MarketPreviewProps {
+  locale?: Locale;
   market: PublicMarket;
   today: Date;
+  selectedDate?: Date;
   onOpenDetail: () => void;
 }
 
-export function MarketPreview({ market, today, onOpenDetail }: MarketPreviewProps) {
+export function MarketPreview({ locale = "ko", market, today, selectedDate, onOpenDetail }: MarketPreviewProps) {
+  const ui = getUiCopy(locale);
   const nextDate = getNextMarketDate(market, today);
   const dday = nextDate ? getDday(nextDate, today) : null;
   const scheduleText = market.schedule.kind === "daily"
-    ? "매일 운영"
+    ? ui.dailySchedule
     : market.schedule.kind === "unknown"
-      ? "운영 일정 확인 필요"
+      ? ui.scheduleUnconfirmed
       : nextDate
-        ? formatKoreanDate(nextDate)
-        : "운영 일정 확인 필요";
+        ? formatKoreanDate(nextDate, locale)
+        : ui.scheduleUnconfirmed;
   const ddayText = market.schedule.kind !== "digit-pair" || dday === null
     ? ""
-    : dday === 0 ? " · 오늘 장날" : ` · D-${dday}`;
-  const address = market.roadAddress ?? market.lotAddress ?? "주소 정보 없음";
+    : dday === 0 ? ` · ${ui.marketDayToday}` : ` · D-${dday}`;
+  const address = market.roadAddress ?? market.lotAddress ?? ui.addressMissing;
 
   return (
-    <article className="market-preview" aria-label={`${market.name} 미리보기`}>
+    <article className="market-preview" aria-label={locale === "en" ? `${market.name} preview` : `${market.name} 미리보기`}>
       <p className="sr-only">{market.marketType}</p>
+      {locale === "en" && selectedDate ? (
+        <p className="market-preview-selected-date">{market.schedule.kind === "digit-pair" ? "Market day on your selected date" : "Regular schedule on your selected date"}: {formatKoreanDate(selectedDate, "en")}</p>
+      ) : null}
       <div className="market-preview-date">
-        <strong>{market.schedule.kind === "digit-pair" ? "다음 장날" : "운영 일정"}</strong>
+        <strong>{market.schedule.kind === "digit-pair" ? ui.nextMarketDay : ui.scheduleLabel}</strong>
         <span>{scheduleText}{ddayText}</span>
       </div>
-      <p className="market-preview-address" title={address}>{address}</p>
-      <button type="button" className="market-preview-detail" onClick={onOpenDetail}>상세 보기</button>
+      <p className="market-preview-address" title={address} lang={market.roadAddress || market.lotAddress ? "ko" : undefined}>{address}</p>
+      <button type="button" className="market-preview-detail" onClick={onOpenDetail}>{ui.viewDetail}</button>
     </article>
   );
 }

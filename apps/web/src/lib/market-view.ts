@@ -2,6 +2,7 @@ import type { PublicMarket } from "./market";
 import { getMarketDates, getNextMarketDate, type DateRange } from "./schedule";
 
 import type { DateFilterMode } from "../components/market-filters";
+import type { Locale } from "./locale";
 
 const atStartOfDay = (date: Date): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
@@ -94,28 +95,34 @@ export function filterMarkets(
   markets: PublicMarket[],
   query: string,
   range: DateRange | null,
-  options: { includeDaily?: boolean } = {},
+  options: { includeDaily?: boolean; regionPrefixes?: readonly string[] | null } = {},
 ): PublicMarket[] {
   const includeDaily = options.includeDaily ?? true;
   const normalizedQuery = query.trim().toLocaleLowerCase("ko-KR");
   return markets.filter((market) => {
     const searchable = [market.name, market.roadAddress, market.lotAddress].filter(Boolean).join(" ").toLocaleLowerCase("ko-KR");
-    return (!normalizedQuery || searchable.includes(normalizedQuery))
+    const address = market.roadAddress ?? market.lotAddress ?? "";
+    const matchesQuery = options.regionPrefixes
+      ? options.regionPrefixes.some((prefix) => address.startsWith(prefix))
+      : !normalizedQuery || searchable.includes(normalizedQuery);
+    return matchesQuery
       && (range === null || (market.schedule.kind !== "daily" || includeDaily) && getMarketDates(market, range).length > 0);
   });
 }
 
-export function formatMarketTiming(market: PublicMarket, referenceDate: Date): string {
-  if (market.schedule.kind === "daily") return "매일";
-  if (market.schedule.kind === "unknown") return "일정 확인";
+export function formatMarketTiming(market: PublicMarket, referenceDate: Date, locale: Locale = "ko"): string {
+  if (market.schedule.kind === "daily") return locale === "en" ? "Daily" : "매일";
+  if (market.schedule.kind === "unknown") return locale === "en" ? "Unconfirmed" : "일정 확인";
   const date = getNextMarketDate(market, referenceDate);
+  if (date && locale === "en") return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(date);
   return date ? `${date.getMonth() + 1}/${date.getDate()}` : "일정 확인";
 }
 
-export function formatSchedulePattern(market: PublicMarket): string {
-  if (market.schedule.kind === "daily") return "매일";
-  if (market.schedule.kind === "unknown") return "일정 확인";
+export function formatSchedulePattern(market: PublicMarket, locale: Locale = "ko"): string {
+  if (market.schedule.kind === "daily") return locale === "en" ? "Regular daily schedule" : "매일";
+  if (market.schedule.kind === "unknown") return locale === "en" ? "Schedule not confirmed" : "일정 확인";
   const [first, second] = market.schedule.days;
+  if (locale === "en") return `Market days: ${first} & ${second === 0 ? 10 : second}`;
   return `${first}·${second === 0 ? 10 : second}일장`;
 }
 
@@ -130,7 +137,8 @@ export function formatScheduleDates(market: Pick<PublicMarket, "schedule">): str
     .join("·");
 }
 
-export function formatKoreanDate(date: Date): string {
+export function formatKoreanDate(date: Date, locale: Locale = "ko"): string {
+  if (locale === "en") return new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric", weekday: "short" }).format(date);
   const weekday = new Intl.DateTimeFormat("ko-KR", { weekday: "long" }).format(date);
   return `${date.getMonth() + 1}월 ${date.getDate()}일 ${weekday}`;
 }

@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { publicMarkets } from "../../../lib/market-catalog";
@@ -37,12 +38,14 @@ describe("market detail route", () => {
     expect(metadata.robots).toEqual({ index: false, follow: false });
   });
 
-  it("labels missing coordinates and omits directions", async () => {
+  it("offers one map action with a provider choice", async () => {
     const market = reviewedMarkets[0];
 
     render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
 
-    expect(screen.getByRole("link", { name: "NAVER 지도에서 길찾기" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "지도·길찾기" }));
+    expect(screen.getByRole("link", { name: "NAVER 지도 — 길찾기" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Google 지도 — 위치 보기" })).toBeInTheDocument();
   });
 
   it("renders a selected-map link for a valid market", async () => {
@@ -58,7 +61,7 @@ describe("market detail route", () => {
       `/?when=all&market=${market.id}`,
     );
     expect(screen.getByRole("button", { name: "공유하기" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "NAVER 지도에서 길찾기" }).closest("[data-mobile-action-bar]")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "지도·길찾기" }).closest("[data-mobile-action-bar]")).toBeInTheDocument();
   });
 
   it("uses MarketNextDate as the single schedule landmark", async () => {

@@ -15,8 +15,7 @@ test("finds a market through search and opens the mobile detail sheet", async ({
   await page.getByRole("link", { name: /통복시장/ }).first().click();
   await expect(page.getByRole("article", { name: /통복시장/ })).toContainText("다음 장날");
   await page.getByRole("button", { name: "닫기" }).click();
-  await expect(page.locator(".mobile-market-sheet")).toHaveAttribute("data-snap", "collapsed");
-  await page.getByRole("button", { name: "목록 열기" }).click();
+  await expect(page.locator(".mobile-market-sheet")).toHaveAttribute("data-snap", "full");
   await expect(page.getByRole("link", { name: /통복시장/ }).first()).toBeVisible();
 });
 
@@ -83,40 +82,16 @@ test("returns focus to the selected result after closing detail", async ({ page 
   await expect(marketLink).toBeFocused();
 });
 
-test("returns focus to the list control after closing detail to the map", async ({ page }) => {
+test("returns focus to the selected result after closing detail with the map unavailable", async ({ page }) => {
   await page.goto("/?when=all");
   await openMobileResults(page);
-  await page.getByRole("link", { name: /통복시장/ }).first().click();
+  const marketLink = page.getByRole("link", { name: /통복시장/ }).first();
+  await marketLink.click();
 
   await page.getByRole("button", { name: "닫기" }).click();
 
-  const openListButton = page.getByRole("button", { name: "목록 열기" });
-  await expect(openListButton).toBeVisible();
-  await expect(openListButton).toBeFocused();
-});
-
-test("returns focus to the list control when browser Back closes a collapsed detail", async ({ page }) => {
-  await page.goto("/?when=all");
-  const sheet = page.locator(".mobile-market-sheet");
-  if (await sheet.getAttribute("data-snap") !== "collapsed") {
-    await sheet.getByRole("button", { name: "지도 보기" }).click();
-  }
-  await expect(sheet).toHaveAttribute("data-snap", "collapsed");
-
-  const marketId = await page.locator("[data-market-id]").first().getAttribute("data-market-id");
-  expect(marketId).toBeTruthy();
-  await page.evaluate((id) => {
-    const params = new URLSearchParams(window.location.search);
-    params.set("market", id!);
-    window.history.pushState({ mobileMarket: id }, "", `/?${params.toString()}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
-  }, marketId);
-  await expect(sheet).toHaveAttribute("data-snap", "full");
-
-  await page.goBack();
-
-  await expect(sheet).toHaveAttribute("data-snap", "collapsed");
-  await expect(page.getByRole("button", { name: "목록 열기" })).toBeFocused();
+  await expect(page.locator(".mobile-market-sheet")).toHaveAttribute("data-snap", "full");
+  await expect(marketLink).toBeFocused();
 });
 
 test("Escape closes an expanded detail sheet", async ({ page }) => {

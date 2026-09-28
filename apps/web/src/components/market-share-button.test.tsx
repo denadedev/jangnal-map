@@ -49,6 +49,20 @@ describe("MarketShareButton", () => {
     });
   });
 
+  it("shares an English message and an English market-selection URL", async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { share });
+    render(<MarketShareButton locale="en" market={market} sharePath="/en/map?q=Seoul&when=date&date=2026-09-04&market=uncheon" today={new Date(2026, 8, 3)} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Share" }));
+
+    expect(share).toHaveBeenCalledWith({
+      title: "운천전통시장 | K Market Day",
+      text: "Sep 4, 2026: 운천전통시장. Want to visit?",
+      url: "http://localhost:3000/en/map?q=Seoul&when=date&date=2026-09-04&market=uncheon",
+    });
+  });
+
   it("uses the current date when no reference date is provided", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 8, 3, 12));

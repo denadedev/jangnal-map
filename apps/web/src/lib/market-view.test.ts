@@ -84,6 +84,14 @@ describe("market explorer date semantics", () => {
     expect(filterMarkets([market, daily], "", range, { includeDaily: false })).toEqual([market]);
   });
 
+  it("matches an English province alias by address prefix while retaining Korean search", () => {
+    const seoul = { ...market, id: "seoul", roadAddress: "서울특별시 중구 시장길 1" };
+    const busan = { ...market, id: "busan", roadAddress: "부산광역시 중구 시장길 1" };
+
+    expect(filterMarkets([seoul, busan], "Seoul", null, { regionPrefixes: ["서울특별시"] })).toEqual([seoul]);
+    expect(filterMarkets([seoul, busan], "서울", null)).toEqual([seoul]);
+  });
+
   it("shows an upcoming market day during the next seven days", () => {
     const today = new Date(2026, 8, 8);
     const range = getDateRange("week", today, "2026-09-08");
@@ -92,6 +100,10 @@ describe("market explorer date semantics", () => {
     expect(range).toEqual({ start: new Date(2026, 8, 8), end: new Date(2026, 8, 14) });
     expect(results).toEqual([market]);
     expect(formatMarketTiming(results[0], range!.start)).toBe("9/12");
+  });
+
+  it("spells out the month for English travelers", () => {
+    expect(formatMarketTiming(market, new Date(2026, 8, 8), "en")).toBe("Sep 12");
   });
 
   it("clamps empty, malformed, and past direct dates to today", () => {

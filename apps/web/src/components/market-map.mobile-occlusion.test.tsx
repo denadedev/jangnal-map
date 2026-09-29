@@ -121,7 +121,7 @@ describe("MarketMap mobile occlusion", () => {
       padding: { top: 92, right: 12, bottom: 112, left: 12 },
     }));
     await waitFor(() => expect(panBy).toHaveBeenCalledWith(expect.objectContaining({ x: 0, y: 290 })));
-    expect(markerOptions[0].icon.content).toContain("여백확인시장 상세 보기");
+    expect(markerOptions[0].icon.content).toContain("여백확인시장 미리보기");
   });
 
   it("leaves a selected marker alone when it is already inside the visible map area", async () => {

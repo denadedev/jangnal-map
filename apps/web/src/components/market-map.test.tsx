@@ -11,7 +11,7 @@ describe("MarketMap current location", () => {
     vi.unstubAllGlobals();
   });
 
-  it("lets a mobile page scroll over the embedded map", async () => {
+  it("lets a desktop page scroll over the embedded map like mobile", async () => {
     const mapOptions = vi.fn();
     class FakeMap {
       constructor(_element: HTMLElement, options: unknown) { mapOptions(options); }
@@ -21,7 +21,7 @@ describe("MarketMap current location", () => {
         getSW: () => ({ lat: () => 33, lng: () => 124 }),
       });
     }
-    vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: true }));
+    vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: false }));
     window.naver = {
       maps: {
         Map: FakeMap,

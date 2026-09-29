@@ -26,11 +26,11 @@ export function MarketFilters(_props: MarketFiltersProps) {
   const ui = getUiCopy(locale);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const modes: Array<{ value: DateFilterMode; label: string }> = [
-    { value: "all", label: ui.allMarkets },
-    { value: "today", label: ui.today },
     { value: "week", label: ui.week },
+    { value: "today", label: ui.today },
     { value: "weekend", label: ui.weekend },
     { value: "date", label: ui.chooseDate },
+    { value: "all", label: ui.allMarkets },
   ];
   const selectMode = (nextMode: DateFilterMode) => {
     onModeChange(nextMode);

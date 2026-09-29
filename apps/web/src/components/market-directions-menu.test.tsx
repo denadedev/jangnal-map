@@ -43,6 +43,23 @@ describe("MarketDirectionsMenu", () => {
     );
   });
 
+  it("offers a Kakao route and an address-copy action for Korean visitors", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    render(<MarketDirectionsMenu market={market} />);
+
+    await user.click(screen.getByRole("button", { name: "지도·길찾기" }));
+    expect(screen.getByRole("link", { name: "카카오맵 — 길찾기" })).toHaveAttribute(
+      "href",
+      "https://map.kakao.com/link/to/%ED%85%8C%EC%8A%A4%ED%8A%B8%EC%8B%9C%EC%9E%A5,37.5,127",
+    );
+    await user.click(screen.getByRole("button", { name: "주소 복사" }));
+
+    expect(writeText).toHaveBeenCalledWith("서울특별시 중구 시장길 1");
+    expect(screen.getByRole("status")).toHaveTextContent("주소를 복사했어요");
+  });
+
   it("closes only its own menu on Escape", async () => {
     const outerEscape = vi.fn();
     render(<div onKeyDown={outerEscape}><MarketDirectionsMenu market={market} locale="en" /></div>);

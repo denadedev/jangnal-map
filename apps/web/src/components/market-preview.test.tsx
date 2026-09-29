@@ -47,6 +47,14 @@ describe("MarketPreview", () => {
     expect(screen.getByText(/Market day on your selected date: Sat, Sep 5, 2026/)).toBeInTheDocument();
   });
 
+  it("shows a chosen non-market day separately in the Korean map preview", () => {
+    render(<MarketPreview market={market} today={new Date(2026, 8, 4)} selectedDate={new Date(2026, 8, 6)} onOpenDetail={() => undefined} />);
+
+    expect(screen.getByText(/선택한 방문 날짜: 9월 6일 일요일/)).toBeInTheDocument();
+    expect(screen.getByText("이날은 5일장이 아니에요")).toBeInTheDocument();
+    expect(screen.getByText("9월 5일 토요일 · D-1")).toBeInTheDocument();
+  });
+
   it.each([
     [{ ...market, schedule: { kind: "daily" as const }, roadAddress: null }, "운영 일정", "매일 운영", "서울특별시 중구 시장동 1"],
     [{ ...market, schedule: { kind: "unknown" as const, raw: "확인 중" }, roadAddress: null, lotAddress: null }, "운영 일정", "운영 일정 확인 필요", "주소 정보 없음"],

@@ -60,7 +60,8 @@ describe("MarketFilters", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "이번 주" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "오늘부터 7일" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "다가오는 주말" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "오늘" }));
 
     expect(onModeChange).toHaveBeenCalledWith("today");

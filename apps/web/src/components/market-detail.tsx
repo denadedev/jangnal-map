@@ -1,6 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 import type { PublicMarket } from "../lib/market";
 import type { Locale } from "../lib/locale";
-import { getDday, formatKoreanDate, formatMarketType, formatSchedulePattern } from "../lib/market-view";
+import { getDday, formatKoreanDate, formatMarketType, toIsoDate } from "../lib/market-view";
 import { getMarketDates, getNextMarketDate } from "../lib/schedule";
 import { getUiCopy } from "../lib/ui-copy";
 import { MarketDirectionsMenu } from "./market-directions-menu";
@@ -14,6 +18,7 @@ interface MarketDetailProps {
   sharePath?: string;
   today: Date;
   selectedDate?: Date;
+  onVisitDateChange?: (date: string) => void;
   onClose: () => void;
 }
 
@@ -22,19 +27,10 @@ const formatSourceDate = (value: string | null, locale: Locale): string => {
   return locale === "en" ? value : value.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$1.$2.$3");
 };
 
-const datesThrough = (start: Date, end: Date): Date[] => {
-  const date = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-  const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-  const dates: Date[] = [];
-  while (date <= last) {
-    dates.push(new Date(date));
-    date.setDate(date.getDate() + 1);
-  }
-  return dates;
-};
-
-export function MarketDetail({ locale = "ko", market, detailPath, sharePath, today, selectedDate, onClose }: MarketDetailProps) {
+export function MarketDetail({ locale = "ko", market, detailPath, sharePath, today, selectedDate, onVisitDateChange, onClose }: MarketDetailProps) {
   const ui = getUiCopy(locale);
+  const [monthOffset, setMonthOffset] = useState(0);
+  useEffect(() => setMonthOffset(0), [market?.id, selectedDate?.getTime()]);
   if (!market) {
     return (
       <div className="detail-placeholder">
@@ -47,9 +43,6 @@ export function MarketDetail({ locale = "ko", market, detailPath, sharePath, tod
 
   const nextDate = getNextMarketDate(market, today);
   const dday = nextDate ? getDday(nextDate, today) : null;
-  const timelineEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 6);
-  const timelineDates = market.schedule.kind === "digit-pair" ? datesThrough(today, timelineEnd) : [];
-  const marketDayTimes = new Set(getMarketDates(market, { start: today, end: timelineEnd }).map((date) => date.getTime()));
   const address = market.roadAddress ?? market.lotAddress ?? ui.addressMissing;
   const marketTypeLabel = formatMarketType(market.marketType, locale);
   const hasCoordinates = market.latitude !== null && market.longitude !== null;
@@ -68,6 +61,13 @@ export function MarketDetail({ locale = "ko", market, detailPath, sharePath, tod
       : dday === 0
         ? ui.marketDayToday
         : `D-${dday}`;
+  const visitIsMarketDay = selectedDate ? getMarketDates(market, { start: selectedDate, end: selectedDate }).length > 0 : false;
+  const visitDateState = !selectedDate || market.schedule.kind === "unknown" ? "" : visitIsMarketDay ? "is-market-day" : "is-not-market-day";
+  const baseMonth = selectedDate ?? today;
+  const calendarMonth = new Date(baseMonth.getFullYear(), baseMonth.getMonth() + monthOffset, 1);
+  const calendarMonthNameEn = new Intl.DateTimeFormat("en-US", { month: "long" }).format(calendarMonth);
+  const monthEnd = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0);
+  const monthMarketDays = new Set(getMarketDates(market, { start: calendarMonth, end: monthEnd }).map((date) => date.getDate()));
 
   return (
     <article className="market-detail" aria-label={locale === "en" ? `${market.name} details` : `${market.name} 상세정보`}>
@@ -82,38 +82,68 @@ export function MarketDetail({ locale = "ko", market, detailPath, sharePath, tod
         <span lang={market.roadAddress || market.lotAddress ? "ko" : undefined}>{address}</span>
       </header>
 
-      {locale === "en" && selectedDate ? (
-        <section className="next-date-card selected-date-card" aria-label="Your selected travel date">
+      <section className={`next-date-card selected-date-card ${visitDateState}`} aria-label={locale === "en" ? "Your selected travel date" : "선택한 방문 날짜"}>
           <div>
-            <p>{market.schedule.kind === "digit-pair" ? "Market day on your selected date" : "Regular schedule on your selected date"}</p>
-            <strong>{formatKoreanDate(selectedDate, "en")}</strong>
+            <p>{locale === "en" ? "Your selected travel date" : "선택한 방문 날짜"}</p>
+            <strong>{selectedDate ? formatKoreanDate(selectedDate, locale) : locale === "en" ? "Choose a visit date" : "아직 선택하지 않았어요"}</strong>
+            <span className="visit-date-verdict">{!selectedDate
+              ? locale === "en" ? "Select a date to check the market schedule." : "날짜를 고르면 그날의 운영 일정을 알려드려요."
+              : market.schedule.kind === "unknown"
+              ? ui.scheduleUnconfirmed
+              : market.schedule.kind === "daily"
+                ? locale === "en" ? "Regular daily schedule" : "상설시장 · 매일 운영 일정"
+                : visitIsMarketDay
+                  ? locale === "en" ? "Market day on your selected date" : "이날 5일장이 열려요"
+                  : locale === "en" ? "No periodic market day on this date" : "이날은 5일장이 아니에요"}</span>
+            {market.schedule.kind === "digit-pair" && !visitIsMarketDay && market.marketType.startsWith("상설") ? (
+              selectedDate ? <small>{locale === "en" ? "Permanent stalls may still operate; check with the market before visiting." : "상설 점포는 운영할 수 있어요. 방문 전 확인해 주세요."}</small> : null
+            ) : null}
+            {onVisitDateChange ? <label className="detail-visit-date-control">
+              {locale === "en" ? "Choose visit date" : "방문 날짜 선택"}
+              <input type="date" aria-label={locale === "en" ? "Choose visit date" : "방문 날짜 선택"} min={toIsoDate(today)} value={selectedDate ? toIsoDate(selectedDate) : ""} onChange={(event) => onVisitDateChange(event.target.value)} />
+            </label> : null}
           </div>
         </section>
-      ) : null}
 
       <section className="next-date-card" aria-labelledby="next-market-date">
         <div>
-          <p id="next-market-date">{timingTitle}</p>
+          <p id="next-market-date">{market.schedule.kind === "digit-pair" ? locale === "en" ? "Next market day from today" : "오늘 기준 다음 장날" : timingTitle}</p>
           <strong>{timingText}</strong>
         </div>
         {timingBadge ? <span className="dday">{timingBadge}</span> : null}
       </section>
 
+      <section className="source-summary" aria-label={locale === "en" ? "Market day source" : "장날 정보의 근거"}>
+        <strong>{locale === "en" ? "Market day source" : "장날 정보의 근거"}</strong>
+        <a href={market.source.url} target="_blank" rel="noreferrer" lang="ko">{market.source.name}</a>
+        <p>{ui.sourceDate} {formatSourceDate(market.referenceDate ?? market.source.referenceDate, locale)}{locale === "en" ? " · Not the latest on-site verification date." : " · 현장 최종 확인일이 아닙니다."}</p>
+      </section>
+
       {market.schedule.kind === "digit-pair" ? (
-        <section className="detail-section" aria-labelledby="upcoming-dates">
+        <section className="detail-section" aria-label={locale === "en" ? "Monthly market days" : "월간 장날"}>
           <div className="section-heading">
-            <h3 id="upcoming-dates">{ui.nextSevenDays}</h3>
-            <span>{locale === "en" ? formatSchedulePattern(market, locale) : market.scheduleRaw}</span>
+            <h3>{locale === "en" ? `${calendarMonth.getFullYear()}-${calendarMonth.getMonth() + 1} market days` : `${calendarMonth.getFullYear()}년 ${calendarMonth.getMonth() + 1}월 장날`}</h3>
+            <div className="month-navigation">
+              <button type="button" aria-label={locale === "en" ? "Previous month" : "이전 달"} onClick={() => setMonthOffset((offset) => offset - 1)}>‹</button>
+              <button type="button" aria-label={locale === "en" ? "Next month" : "다음 달"} onClick={() => setMonthOffset((offset) => offset + 1)}>›</button>
+            </div>
           </div>
-          <ol className="date-timeline" aria-label={locale === "en" ? "Market days in the next 7 days" : "오늘부터 7일간 장날"}>
-            {timelineDates.map((date, index) => {
-              const isMarketDay = marketDayTimes.has(date.getTime());
-              const isToday = index === 0;
+          <div className="month-weekdays" aria-hidden="true">
+            {(locale === "en" ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] : ["일", "월", "화", "수", "목", "금", "토"]).map((day) => <span key={day}>{day}</span>)}
+          </div>
+          <ol className="month-calendar" aria-label={locale === "en" ? "Market days this month" : "이달의 장날"}>
+            {Array.from({ length: calendarMonth.getDay() }, (_, index) => <li key={`blank-${index}`} aria-hidden="true" />)}
+            {Array.from({ length: monthEnd.getDate() }, (_, index) => index + 1).map((day) => {
+              const isMarketDay = monthMarketDays.has(day);
+              const isSelected = Boolean(selectedDate && selectedDate.getFullYear() === calendarMonth.getFullYear() && selectedDate.getMonth() === calendarMonth.getMonth() && selectedDate.getDate() === day);
+              const label = locale === "en"
+                ? `${calendarMonthNameEn} ${day}, ${calendarMonth.getFullYear()}${isMarketDay ? ", market day" : ""}${isSelected ? ", selected visit date" : ""}`
+                : `${calendarMonth.getFullYear()}년 ${calendarMonth.getMonth() + 1}월 ${day}일${isMarketDay ? ", 장날" : ""}${isSelected ? ", 선택한 방문 날짜" : ""}`;
               return (
-                <li key={date.toISOString()} className={`${isToday ? "is-today" : ""} ${isMarketDay ? "is-market-day" : ""}`.trim()}>
-                  <strong>{date.getDate()}</strong>
-                  <small>{new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ko-KR", { weekday: "short" }).format(date)}</small>
-                  <em>{isToday && isMarketDay ? ui.marketDayToday : isMarketDay ? ui.marketDay : isToday ? locale === "en" ? "Today" : ui.today : ""}</em>
+                <li key={day} className={`${isMarketDay ? "is-market-day" : ""} ${isSelected ? "is-selected" : ""}`.trim()}>
+                  <time dateTime={`${calendarMonth.getFullYear()}-${String(calendarMonth.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`} aria-label={label} aria-current={isSelected ? "date" : undefined}>
+                    {day}{locale === "ko" ? "일" : ""}
+                  </time>
                 </li>
               );
             })}
@@ -140,9 +170,6 @@ export function MarketDetail({ locale = "ko", market, detailPath, sharePath, tod
       </div>
 
       <footer className="source-note">
-        <span>{ui.source}</span>
-        <a href={market.source.url} target="_blank" rel="noreferrer" lang="ko">{market.source.name}</a>
-        <p>{ui.sourceDate} {formatSourceDate(market.referenceDate ?? market.source.referenceDate, locale)}</p>
         <a className="report-link" href={`/report?kind=market&market=${encodeURIComponent(market.id)}`}>
           {ui.reportCorrection}
         </a>

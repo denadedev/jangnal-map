@@ -12,6 +12,8 @@ import { getUiCopy } from "../lib/ui-copy";
 interface MarketMapProps {
   locale?: Locale;
   markets: PublicMarket[];
+  searchMarkets?: PublicMarket[];
+  searchQuery?: string;
   referenceDate: Date;
   selectedId: string | null;
   clientId: string;
@@ -52,7 +54,7 @@ const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, (charact
   '"': "&quot;",
 })[character] ?? character);
 
-export function MarketMap({ locale = "ko", markets, referenceDate, selectedId, clientId, mobileOcclusion, mobileSheetHeight = 0, onSelect, onLocationChange, onCameraRestoreComplete, onStatusChange, onLocationError }: MarketMapProps) {
+export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQuery = "", referenceDate, selectedId, clientId, mobileOcclusion, mobileSheetHeight = 0, onSelect, onLocationChange, onCameraRestoreComplete, onStatusChange, onLocationError }: MarketMapProps) {
   const ui = getUiCopy(locale);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<NaverMapInstance | null>(null);
@@ -61,6 +63,14 @@ export function MarketMap({ locale = "ko", markets, referenceDate, selectedId, c
   const [status, setStatus] = useState<MapStatus>(clientId ? "idle" : "error");
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
   const [locationMessage, setLocationMessage] = useState("");
+  const [showSearchRestore, setShowSearchRestore] = useState(false);
+  const searchCameraRef = useRef<{ center: NaverLatLng; zoom: number } | null>(null);
+  const showSearchMove = status === "ready" && !showSearchRestore && Boolean(searchQuery.trim()) && searchMarkets.some((market) => market.latitude !== null && market.longitude !== null);
+
+  useEffect(() => {
+    searchCameraRef.current = null;
+    setShowSearchRestore(false);
+  }, [searchQuery]);
   const lastSelectedIdRef = useRef<string | null>(null);
   const cameraSnapshotRef = useRef<CameraSnapshot | null>(null);
   const suppressZoomSnapshotRef = useRef(false);
@@ -100,6 +110,29 @@ export function MarketMap({ locale = "ko", markets, referenceDate, selectedId, c
       mapRef.current = null;
     };
   }, [clientId]);
+
+  const moveToSearchResults = () => {
+    const map = mapRef.current;
+    const naver = window.naver;
+    if (!map || !naver) return;
+    const located = searchMarkets.filter((market) => market.latitude !== null && market.longitude !== null);
+    if (located.length === 0) return;
+    const latitudes = located.map((market) => market.latitude!);
+    const longitudes = located.map((market) => market.longitude!);
+    const bounds = { south: Math.min(...latitudes), west: Math.min(...longitudes), north: Math.max(...latitudes), east: Math.max(...longitudes) };
+    searchCameraRef.current = { center: map.getCenter(), zoom: map.getZoom() };
+    setShowSearchRestore(true);
+    if (bounds.south === bounds.north && bounds.west === bounds.east) map.morph(new naver.maps.LatLng(bounds.south, bounds.west), 12);
+    else map.fitBounds(bounds);
+  };
+
+  const restoreSearchCamera = () => {
+    const camera = searchCameraRef.current;
+    if (!camera || !mapRef.current) return;
+    mapRef.current.morph(camera.center, camera.zoom);
+    searchCameraRef.current = null;
+    setShowSearchRestore(false);
+  };
 
   const moveToCurrentLocation = () => {
     if (status !== "ready" || !mapRef.current || !window.naver?.maps) return;
@@ -393,6 +426,18 @@ export function MarketMap({ locale = "ko", markets, referenceDate, selectedId, c
             <strong>{ui.mapFallbackTitle}</strong>
             <p>{ui.mapFallbackBody}</p>
           </div>
+        </div>
+      ) : null}
+      {status === "ready" && markets.length === 0 && searchQuery.trim() && searchMarkets.length > 0 ? (
+        <div className="map-no-market-days" role="status">
+          <strong>{locale === "en" ? "No market-day pins for the selected dates" : "선택한 날짜에 표시할 장날 핀이 없어요"}</strong>
+          <p>{locale === "en" ? "Matching markets remain in the list." : "검색한 시장은 목록에서 계속 확인할 수 있어요."}</p>
+        </div>
+      ) : null}
+      {status === "ready" && (showSearchMove || showSearchRestore) ? (
+        <div className="map-search-actions">
+          {showSearchMove ? <button type="button" onClick={moveToSearchResults}>{locale === "en" ? "View search results on map" : "검색 결과 지도에서 보기"}</button> : null}
+          {showSearchRestore ? <button type="button" onClick={restoreSearchCamera}>{locale === "en" ? "Previous map" : "이전 지도"}</button> : null}
         </div>
       ) : null}
       <div

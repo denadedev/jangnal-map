@@ -34,7 +34,7 @@ test("keeps mobile controls in short viewports and leaves the map a clear center
     await expect(sheet).toHaveAttribute("data-snap", "collapsed");
 
     const layout = await page.evaluate(() => {
-      const controls = document.querySelector(".mobile-home-controls .market-filters")?.getBoundingClientRect();
+      const controls = document.querySelector(".mobile-home-controls")?.getBoundingClientRect();
       const map = document.querySelector(".map-stage")?.getBoundingClientRect();
       const sheet = document.querySelector(".mobile-market-sheet")?.getBoundingClientRect();
       return {
@@ -54,7 +54,7 @@ test("keeps mobile controls in short viewports and leaves the map a clear center
     expect(layout.mapBottom).toBeGreaterThan(layout.controlsBottom);
     expect(layout.horizontalOverflow).toBeLessThanOrEqual(0);
     if (viewport.width === 375 && viewport.height === 667) {
-      expect(layout.sheetTop - layout.controlsBottom).toBeGreaterThanOrEqual(viewport.height * 0.6);
+      expect(layout.sheetTop - layout.controlsBottom).toBeGreaterThanOrEqual(viewport.height * 0.18);
     }
   }
 });

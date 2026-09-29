@@ -98,9 +98,19 @@ test("Escape closes an expanded detail sheet", async ({ page }) => {
   await page.goto("/?when=all");
   await openMobileResults(page);
   await page.getByRole("link", { name: /통복시장/ }).first().click();
-  await page.getByRole("button", { name: "시트 손잡이" }).press("ArrowUp");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("article", { name: /통복시장/ })).toHaveCount(0);
+});
+
+test("Tab reaches visible controls in the full detail sheet", async ({ page }) => {
+  await page.goto("/?when=all&market=market-1181d511e9973d14");
+  const sheet = page.locator(".mobile-market-sheet");
+  await expect(sheet).toHaveClass(/is-detail/);
+
+  await page.keyboard.press("Tab");
+  await expect(sheet.getByRole("button", { name: "닫기" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(sheet.getByRole("button", { name: "목록으로" })).toBeFocused();
 });
 
 test("restores a scrolled result sheet after closing detail", async ({ page }) => {

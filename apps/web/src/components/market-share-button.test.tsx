@@ -76,6 +76,31 @@ describe("MarketShareButton", () => {
     }));
   });
 
+  it("uses the chosen travel date in a Korean invitation", async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { share });
+    render(<MarketShareButton market={market} selectedDate={new Date(2026, 8, 9)} sharePath="/?when=date&date=2026-09-09&market=uncheon" today={new Date(2026, 8, 3)} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "공유하기" }));
+
+    expect(share).toHaveBeenCalledWith(expect.objectContaining({
+      text: "9월 9일 운천전통시장, 같이 갈래요?",
+      url: "http://localhost:3000/?when=date&date=2026-09-09&market=uncheon",
+    }));
+  });
+
+  it("does not invite someone to a five-day market on a non-market day", async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { share });
+    render(<MarketShareButton market={market} selectedDate={new Date(2026, 8, 5)} sharePath="/?when=date&date=2026-09-05&market=uncheon" today={new Date(2026, 8, 3)} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "공유하기" }));
+
+    expect(share).toHaveBeenCalledWith(expect.objectContaining({
+      text: "9월 5일은 운천전통시장 장날이 아니에요. 방문 전 확인해 주세요.",
+    }));
+  });
+
   it("uses the current date when no reference date is provided", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 8, 3, 12));

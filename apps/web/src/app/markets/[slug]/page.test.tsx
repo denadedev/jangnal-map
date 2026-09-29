@@ -45,7 +45,7 @@ describe("market detail route", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "지도·길찾기" }));
     expect(screen.getByRole("link", { name: "NAVER 지도 — 길찾기" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Google 지도 — 위치 보기" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "카카오맵 — 길찾기" })).toBeInTheDocument();
   });
 
   it("renders a selected-map link for a valid market", async () => {

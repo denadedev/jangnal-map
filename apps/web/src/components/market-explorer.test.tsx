@@ -120,16 +120,24 @@ describe("MarketExplorer", () => {
     vi.unstubAllGlobals();
   });
 
-  it("starts the mobile result sheet half open so the map and results are visible", () => {
+  it("keeps mobile map and results in the page without a result sheet", async () => {
+    const user = userEvent.setup();
     vi.stubGlobal("matchMedia", vi.fn((query: string) => ({
       matches: query === "(max-width: 700px)",
       media: query,
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
     })));
-    const { container } = render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="test" />);
+    const { container } = render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
+    await within(container.querySelector<HTMLElement>(".mobile-market-results")!).findByRole("link", { name: /운천전통시장/ });
 
-    expect(container.querySelector(".mobile-market-sheet")).toHaveAttribute("data-snap", "half");
+    expect(container.querySelector(".mobile-market-sheet.is-results")).not.toBeInTheDocument();
+    expect(container.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "map");
+    const navigation = screen.getByRole("navigation", { name: "주요 화면" });
+    await user.click(within(navigation).getByRole("button", { name: "목록" }));
+    expect(container.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "list");
+    await user.click(within(navigation).getByRole("button", { name: "지도" }));
+    expect(container.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "map");
   });
 
   it("connects mobile map, list, and search controls around the discovery context", async () => {
@@ -146,11 +154,11 @@ describe("MarketExplorer", () => {
     expect(container.querySelector(".mobile-discovery-context")).toHaveTextContent("9/4–9/10");
     const navigation = screen.getByRole("navigation", { name: "주요 화면" });
     await user.click(within(navigation).getByRole("button", { name: "지도" }));
-    expect(container.querySelector(".mobile-market-sheet")).toHaveAttribute("data-snap", "collapsed");
+    expect(container.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "map");
     await user.click(within(navigation).getByRole("button", { name: "목록" }));
-    expect(container.querySelector(".mobile-market-sheet")).toHaveAttribute("data-snap", "full");
+    expect(container.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "list");
     await user.click(within(navigation).getByRole("button", { name: "검색" }));
-    expect(screen.getByRole("searchbox", { name: "시장명 또는 지역 검색" })).toHaveFocus();
+    expect(within(screen.getByRole("dialog", { name: "시장 검색" })).getByRole("searchbox", { name: "시장명 또는 지역 검색" })).toHaveFocus();
   });
 
   it("places mobile market results before visit guides", async () => {
@@ -162,10 +170,10 @@ describe("MarketExplorer", () => {
     })));
     const { container } = render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" reviewedGuides={[{ id: "tongbok", name: "통복시장", schedule: "5·10일장", href: "/markets/tongbok" }]} />);
 
-    const sheet = container.querySelector(".mobile-market-sheet-content") as HTMLElement;
-    await within(sheet).findByRole("link", { name: /운천전통시장/ });
-    const sheetText = sheet.textContent ?? "";
-    expect(sheetText.indexOf("운천전통시장")).toBeLessThan(sheetText.indexOf("시장별 방문 정보"));
+    const results = container.querySelector(".mobile-market-results") as HTMLElement;
+    await within(results).findByRole("link", { name: /운천전통시장/ });
+    const resultsText = results.textContent ?? "";
+    expect(resultsText.indexOf("운천전통시장")).toBeLessThan(resultsText.indexOf("시장별 방문 정보"));
   });
 
   it("loads static markets and keeps the list usable when the map key is missing", async () => {
@@ -183,8 +191,8 @@ describe("MarketExplorer", () => {
     expect(screen.getAllByText("4·9일장").length).toBeGreaterThan(0);
     expect(screen.getAllByText("5·10일장").length).toBeGreaterThan(0);
     expect(screen.getByText("지도 없이도 시장을 찾을 수 있어요")).toBeInTheDocument();
-    expect(within(container.querySelector(".mobile-market-results") as HTMLElement).getByText("지도를 사용할 수 없어 목록을 보여드려요.")).toBeInTheDocument();
-    expect(container.querySelector(".mobile-market-sheet")).toHaveAttribute("data-snap", "full");
+    expect(within(container.querySelector(".mobile-market-results") as HTMLElement).getByText("운천전통시장")).toBeInTheDocument();
+    expect(container.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "map");
     expect(screen.getAllByText("2곳").length).toBeGreaterThan(0);
   });
 
@@ -288,15 +296,15 @@ describe("MarketExplorer", () => {
       removeEventListener: vi.fn(),
     })));
     const { container } = render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
-    const sheet = container.querySelector(".mobile-market-sheet") as HTMLElement;
-    const content = sheet.querySelector(".mobile-market-sheet-content") as HTMLElement;
-    await within(sheet).findByRole("link", { name: /통복시장/ });
-    content.scrollTop = 150;
+    const results = container.querySelector(".mobile-market-results") as HTMLElement;
+    const page = container.querySelector(".explorer-grid") as HTMLElement;
+    await within(results).findByRole("link", { name: /통복시장/ });
+    page.scrollTop = 150;
 
-    await user.click(within(sheet).getByRole("link", { name: /통복시장/ }));
+    await user.click(within(results).getByRole("link", { name: /통복시장/ }));
 
-    expect(sheet).toHaveClass("is-detail");
-    expect(content.scrollTop).toBe(0);
+    expect(container.querySelector(".mobile-market-sheet")).toHaveClass("is-detail");
+    expect(container.querySelector(".mobile-market-sheet-content")).toHaveProperty("scrollTop", 0);
   });
 
   it("shows unknown schedules only when the all-markets filter is selected", async () => {

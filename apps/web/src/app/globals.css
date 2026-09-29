@@ -67,7 +67,7 @@ a { color: inherit; text-decoration: none; }
 
 .mobile-app-bar { display: none; }
 .mobile-home-controls, .market-filter-search-row { display: contents; }
-.mobile-brand-row, .mobile-discovery-context, .mobile-primary-nav { display: none; }
+.mobile-brand-row, .mobile-discovery-context, .mobile-primary-nav, .mobile-map-heading, .mobile-map-caption, .mobile-search-launch, .mobile-search-screen { display: none; }
 .mobile-home-brand { display: none; }
 .mobile-app-bar-menu { display: none; }
 .home-site-footer { display: block; }
@@ -350,6 +350,7 @@ a { color: inherit; text-decoration: none; }
 .fallback-icon svg { width: 23px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
 .fallback-message strong { display: block; font-size: 16px; }
 .fallback-message p { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.mobile-map-fallback-title, .mobile-map-fallback-body, .mobile-map-fallback-list { display: none; }
 
 .map-legend { position: absolute; z-index: 5; right: 14px; bottom: 14px; display: flex; align-items: center; gap: 7px; border: 1px solid rgb(183 172 158 / 80%); border-radius: 3px; padding: 8px 10px; background: rgb(255 253 248 / 90%); color: var(--muted); font-size: 10px; font-weight: 700; backdrop-filter: blur(8px); }
 .map-legend span { width: 8px; height: 8px; border-radius: 50%; background: var(--persimmon); }
@@ -582,7 +583,6 @@ a { color: inherit; text-decoration: none; }
   .mobile-market-sheet[data-snap="full"] { height: 88%; }
   .mobile-market-sheet.is-results[data-snap="full"] { top: var(--mobile-sheet-top); height: auto; }
   .mobile-market-sheet.is-detail[data-snap="full"] { top: calc(12px + env(safe-area-inset-top)); height: calc(100% - 12px - env(safe-area-inset-top)); }
-  .explorer-grid[data-keyboard-open="true"] .mobile-market-sheet.is-results[data-snap="full"] { bottom: var(--mobile-keyboard-bottom); }
   .mobile-market-sheet.is-preview { height: calc(clamp(178px, 26dvh, 180px) + env(safe-area-inset-bottom)); }
   .mobile-market-sheet.is-preview.has-selected-date { height: calc(clamp(236px, 30dvh, 250px) + env(safe-area-inset-bottom)); }
   .mobile-market-sheet-handle { display: grid; width: 100%; min-height: 44px; flex: 0 0 44px; place-items: center; border: 0; background: transparent; touch-action: none; }
@@ -673,6 +673,116 @@ a { color: inherit; text-decoration: none; }
   .map-fallback .fallback-icon svg { width: 18px; }
   .map-fallback .fallback-message strong { font-size: 13px; }
   .map-fallback .fallback-message p { font-size: 10px; }
+
+  .mobile-brand-row { min-height: 62px; border-bottom: 0; padding: 0 20px; }
+  .mobile-brand-row .mobile-app-bar-mark { position: relative; width: 26px; height: 30px; flex: 0 0 26px; border-radius: 45% 45% 48% 48%; background: var(--persimmon); font-size: 0; }
+  .mobile-brand-row .mobile-app-bar-mark::before { position: absolute; top: -5px; left: 12px; width: 7px; height: 5px; border: 2px solid var(--green); border-bottom: 0; border-left: 0; border-radius: 0 8px 0 0; content: ""; transform: rotate(-23deg); }
+  .mobile-brand-row .mobile-app-bar-mark::after { position: absolute; inset: 6px 8px 5px; border-right: 2px solid var(--panel); border-left: 2px solid var(--panel); content: ""; }
+  .mobile-home-controls .market-filters { display: block; border-bottom: 0; padding: 0; }
+  .mobile-home-controls .market-filter-search-row { display: block; padding: 0 20px 14px; }
+  .mobile-home-controls .search-field { display: none; }
+  .mobile-search-launch { display: flex; width: 100%; height: 50px; align-items: center; gap: 11px; border: 1px solid var(--line); border-radius: 12px; padding: 0 14px; background: var(--panel); color: var(--muted); text-align: left; font-size: 14px; }
+  .mobile-search-launch svg { width: 20px; height: 20px; flex: 0 0 auto; fill: none; stroke: var(--ink); stroke-width: 1.8; stroke-linecap: round; }
+  .mobile-search-launch span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-home-controls .date-filter-row { display: block; position: relative; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 20px 16px; }
+  .mobile-home-controls .filter-pills { display: flex; width: 100%; flex-wrap: nowrap; gap: 8px; overflow-x: auto; padding: 0; scrollbar-width: none; }
+  .mobile-home-controls .filter-pills::-webkit-scrollbar { display: none; }
+  .mobile-home-controls .filter-pill { display: inline-flex; height: 44px; min-height: 44px; flex: 0 0 auto; align-items: center; justify-content: center; gap: 4px; border-color: var(--line); padding: 0 15px; background: var(--panel); color: var(--ink); font-size: 13px; font-weight: 700; }
+  .mobile-home-controls .filter-pill[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--panel); }
+  .mobile-home-controls .filter-pill svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+  .mobile-home-controls .direct-date, .mobile-home-controls .direct-date.is-visible { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); opacity: 0; }
+  .mobile-home-controls .direct-date.is-fallback { position: static; width: auto; height: 44px; overflow: visible; clip: auto; opacity: 1; }
+  .mobile-discovery-context { border-bottom: 0; padding: 17px 20px 14px; }
+  .mobile-discovery-context p { margin-bottom: 5px; font-size: 11px; }
+  .mobile-discovery-context h1 { font-size: 25px; }
+  .mobile-discovery-context small { margin-top: 8px; font-size: 12px; }
+  .mobile-view-switch { margin-top: 17px; border-radius: 11px; }
+  .mobile-view-switch button { min-height: 44px; font-size: 13px; }
+  .explorer-grid { display: block; overflow-y: auto; padding: 0 20px calc(24px + env(safe-area-inset-bottom)); scrollbar-width: none; }
+  .explorer-grid::-webkit-scrollbar { display: none; }
+  .explorer-grid[data-mobile-view="list"] .map-stage { display: none; }
+  .map-stage { position: relative; inset: auto; width: 100%; height: 382px; min-height: 382px; margin-bottom: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+  .mobile-map-heading { position: absolute; z-index: 8; top: 0; right: 0; left: 0; display: flex; min-height: 42px; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--line); padding: 0 13px; background: var(--panel); }
+  .mobile-map-heading strong { font-size: 13px; }
+  .mobile-map-heading span { color: var(--muted); font-size: 10px; }
+  .map-canvas-shell, .map-status, .map-fallback { top: 42px; bottom: 50px; }
+  .mobile-map-caption { position: absolute; z-index: 8; right: 0; bottom: 0; left: 0; display: flex; min-height: 50px; align-items: center; margin: 0; border-top: 1px solid var(--line); padding: 8px 13px; background: var(--panel); color: var(--muted); font-size: 11px; line-height: 1.45; }
+  .map-search-actions { top: 52px; }
+  .location-control { top: 52px; }
+  .map-legend { display: none; }
+  .mobile-market-results { display: block; }
+  .mobile-results-heading { display: flex; min-height: 48px; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--line); }
+  .mobile-results-heading h2 { margin: 0; font-size: 15px; }
+  .mobile-results-heading span { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-market-results .market-list-item { min-height: 83px; grid-template-columns: 51px minmax(0, 1fr) 18px; gap: 12px; border-left: 0; padding: 13px 0; }
+  .mobile-market-results .list-date { width: 51px; height: 51px; border-radius: 8px; background: var(--panel); }
+  .mobile-market-results .market-list-item[aria-current="true"] { background: var(--paper); }
+  .mobile-market-results .reviewed-market-guides { margin: 0; }
+  .mobile-primary-nav { position: relative; z-index: 80; min-height: calc(65px + env(safe-area-inset-bottom)); flex: 0 0 calc(65px + env(safe-area-inset-bottom)); grid-template-columns: repeat(3, 1fr); }
+  .mobile-primary-nav button { display: flex; min-height: 65px; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 10px; }
+  .mobile-primary-nav button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .mobile-market-sheet.is-detail { position: fixed; top: 0; right: 0; bottom: 0; left: 0; height: 100dvh; max-height: none; border-radius: 0; }
+  .mobile-search-screen { position: fixed; z-index: 120; inset: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--panel); }
+  .mobile-search-header { display: flex; min-height: calc(65px + env(safe-area-inset-top)); align-items: center; gap: 8px; border-bottom: 1px solid var(--line); padding: env(safe-area-inset-top) 16px 0; }
+  .mobile-search-back { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; border: 0; background: transparent; }
+  .mobile-search-back svg, .mobile-search-input svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .mobile-search-input { display: flex; min-width: 0; height: 46px; flex: 1; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; }
+  .mobile-search-input:focus-within { border-color: var(--persimmon-dark); }
+  .mobile-search-input input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 16px; }
+  .mobile-search-input button { width: 44px; height: 44px; flex: 0 0 44px; border: 0; background: transparent; color: var(--muted); font-size: 22px; }
+  .mobile-search-content { min-height: 0; overflow-y: auto; }
+  .mobile-search-intro { padding: 20px 20px 11px; }
+  .mobile-search-intro h1 { margin: 0 0 7px; font-family: Georgia, "Noto Serif KR", serif; font-size: 24px; letter-spacing: -0.04em; }
+  .mobile-search-intro p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .mobile-search-suggestions { padding: 8px 20px; }
+  .mobile-search-suggestions h2 { margin: 12px 0; color: var(--muted); font-size: 12px; }
+  .mobile-search-suggestions button { display: flex; width: 100%; min-height: 54px; align-items: center; justify-content: space-between; gap: 8px; border: 0; border-bottom: 1px solid var(--soft-line); padding: 8px 0; background: transparent; text-align: left; font-size: 14px; }
+  .mobile-search-suggestions button span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-search-suggestions button small { color: var(--muted); font-size: 11px; }
+  .mobile-search-suggestions p { color: var(--muted); font-size: 12px; }
+  .mobile-market-sheet.is-detail .mobile-market-sheet-heading { min-height: 65px; flex-basis: 65px; justify-content: flex-start; gap: 8px; padding: 0 16px; }
+  .mobile-market-sheet.is-detail .mobile-market-sheet-heading h2 { font-family: inherit; font-size: 17px; letter-spacing: 0; }
+  .mobile-market-sheet-back-button { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; border: 0; border-radius: 50%; background: transparent; }
+  .mobile-market-sheet-back-button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .mobile-market-sheet.is-detail .detail-header { padding-right: 0; }
+  .mobile-market-sheet.is-detail .selected-date-card { margin-top: 18px; border-radius: 12px; padding: 17px; }
+  .mobile-market-sheet.is-detail .selected-date-card strong { font-size: 17px; }
+  .mobile-market-sheet.is-detail .next-date-card:not(.selected-date-card) { border-top: 1px solid var(--line); }
+  .mobile-market-sheet.is-detail .section-heading h3 { font-size: 15px; }
+  .mobile-timing-pattern { color: var(--muted); font-size: 11px; white-space: nowrap; }
+  .mobile-market-sheet.is-detail .detail-actions { padding-top: 10px; }
+  .map-fallback { background: var(--paper); }
+  .map-fallback .fallback-grid, .map-fallback .desktop-map-fallback-title, .map-fallback .desktop-map-fallback-body { display: none; }
+  .map-fallback .fallback-message { width: 100%; border: 0; padding: 20px 15px; background: transparent; box-shadow: none; }
+  .map-fallback .fallback-icon { width: 36px; height: 36px; margin-bottom: 10px; background: transparent; }
+  .map-fallback .fallback-icon svg { width: 30px; }
+  .map-fallback .mobile-map-fallback-title { display: block; font-size: 17px; }
+  .map-fallback .mobile-map-fallback-body { display: block; font-size: 12px; }
+  .mobile-map-fallback-list { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; margin-top: 16px; border: 1px solid var(--ink); border-radius: 8px; padding: 0 12px; background: var(--panel); color: var(--ink); font-size: 12px; font-weight: 800; }
+  .mobile-market-sheet.is-detail .detail-actions .primary-button { background: var(--ink); color: var(--panel); font-size: 14px; }
+  .mobile-visit-date-button { display: block; min-height: 44px; margin-top: 6px; border: 0; padding: 0; background: transparent; color: var(--persimmon-dark); font-size: 12px; font-weight: 800; }
+  .mobile-share-action { margin-top: 12px; }
+  .mobile-share-action .market-action-secondary { min-height: 44px; margin: 0; }
+  .mobile-date-picker-overlay { position: fixed; z-index: 150; inset: 0; display: flex; align-items: flex-end; background: rgb(20 18 16 / 48%); }
+  .mobile-date-picker-dialog { width: 100%; max-height: 85dvh; overflow-y: auto; border-radius: 20px 20px 0 0; padding: 12px 20px calc(22px + env(safe-area-inset-bottom)); background: var(--panel); box-shadow: 0 -8px 35px rgb(20 18 16 / 12%); }
+  .mobile-date-picker-grip { width: 35px; height: 4px; margin: 0 auto 16px; border-radius: 4px; background: var(--line); }
+  .mobile-date-picker-heading, .mobile-date-picker-month { display: flex; align-items: center; justify-content: space-between; }
+  .mobile-date-picker-heading h2 { margin: 0; font-family: Georgia, "Noto Serif KR", serif; font-size: 21px; }
+  .mobile-date-picker-heading button, .mobile-date-picker-month button { width: 44px; height: 44px; border: 0; background: transparent; font-size: 22px; }
+  .mobile-date-picker-dialog > p { margin: 8px 0 17px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .mobile-date-picker-month { margin-bottom: 6px; }
+  .mobile-date-picker-month strong { font-size: 14px; }
+  .mobile-date-picker-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+  .mobile-date-picker-grid > span, .mobile-date-picker-grid > button { display: grid; min-height: 44px; place-items: center; border-radius: 7px; font-size: 12px; }
+  .mobile-date-picker-grid > button { border: 1px solid transparent; background: transparent; }
+  .mobile-date-picker-grid > button.is-market-day { background: var(--persimmon-soft); color: var(--persimmon-dark); font-weight: 800; }
+  .mobile-date-picker-grid > button.is-selected { outline: 2px solid var(--ink); outline-offset: -2px; }
+  .mobile-date-picker-grid > button:disabled { opacity: 0.35; }
+  .mobile-date-picker-weekday { color: var(--muted); font-weight: 750; }
+  .mobile-date-picker-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .mobile-date-picker-actions button { min-height: 50px; border: 1px solid var(--line); border-radius: 9px; padding: 0 15px; background: var(--panel); font-weight: 750; }
+  .mobile-date-picker-actions button:last-child { flex: 1; border-color: var(--ink); background: var(--ink); color: var(--panel); }
+  .mobile-date-picker-actions button:disabled { opacity: 0.5; }
 }
 
 @media (max-width: 700px) and (max-height: 700px) {

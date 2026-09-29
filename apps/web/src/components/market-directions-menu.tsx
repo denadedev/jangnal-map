@@ -10,9 +10,10 @@ interface MarketDirectionsMenuProps {
   locale?: Locale;
   className?: string;
   mobilePrimary?: boolean;
+  label?: string;
 }
 
-export function MarketDirectionsMenu({ market, locale = "ko", className, mobilePrimary = false }: MarketDirectionsMenuProps) {
+export function MarketDirectionsMenu({ market, locale = "ko", className, mobilePrimary = false, label }: MarketDirectionsMenuProps) {
   const [open, setOpen] = useState(false);
   const [copyMessage, setCopyMessage] = useState("");
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -64,7 +65,7 @@ export function MarketDirectionsMenu({ market, locale = "ko", className, mobileP
         aria-controls={menuId}
         onClick={() => setOpen((value) => !value)}
       >
-        {locale === "en" ? "Maps & directions" : "지도·길찾기"}
+        {label ?? (locale === "en" ? "Maps & directions" : "지도·길찾기")}
       </button>
       {open ? (
         <nav id={menuId} className="directions-menu-options" aria-label={locale === "en" ? "Choose a map service" : "지도 서비스 선택"}>

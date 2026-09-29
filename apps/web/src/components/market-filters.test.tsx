@@ -45,6 +45,21 @@ describe("MarketFilters", () => {
     expect(showPicker).toHaveBeenCalledOnce();
   });
 
+  it("shows the selected visit date on the date chip", () => {
+    render(
+      <MarketFilters
+        mode="date"
+        query=""
+        directDate="2026-09-30"
+        onModeChange={() => undefined}
+        onQueryChange={() => undefined}
+        onDirectDateChange={() => undefined}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /9월 30일/ })).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("exposes the active date filter and reports a new filter selection", async () => {
     const onModeChange = vi.fn();
     const user = userEvent.setup();

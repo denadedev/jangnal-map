@@ -8,6 +8,7 @@ export interface NaverProjection {
 }
 
 export interface NaverMapInstance {
+  autoResize: () => void;
   morph: (position: NaverLatLng, zoom: number) => void;
   fitBounds: (bounds: { south: number; west: number; north: number; east: number }) => void;
   panTo: (position: NaverLatLng) => void;

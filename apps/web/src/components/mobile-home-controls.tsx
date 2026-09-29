@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type RefObject } from "react";
+import { useState } from "react";
 
 import { MarketFilters, type MarketFiltersProps } from "./market-filters";
 import { MobileMenu } from "./mobile-menu";
@@ -8,14 +8,13 @@ import { useInstallPrompt } from "./install-prompt";
 import { getUiCopy } from "../lib/ui-copy";
 
 type MobileHomeControlsProps = Omit<MarketFiltersProps, "mobileMenuControl"> & {
-  containerRef?: RefObject<HTMLDivElement | null>;
   languageSwitchHref?: string;
   rangeLabel?: string;
   mobileView?: "map" | "list";
   onViewChange?: (view: "map" | "list") => void;
 };
 
-export function MobileHomeControls({ containerRef, languageSwitchHref, rangeLabel, mobileView = "map", onViewChange, ...props }: MobileHomeControlsProps) {
+export function MobileHomeControls({ languageSwitchHref, rangeLabel, mobileView = "map", onViewChange, ...props }: MobileHomeControlsProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const ui = getUiCopy(props.locale ?? "ko");
   const installPrompt = useInstallPrompt();
@@ -29,7 +28,7 @@ export function MobileHomeControls({ containerRef, languageSwitchHref, rangeLabe
 
   return (
     <>
-      <div ref={containerRef} className="mobile-home-controls">
+      <div className="mobile-home-controls">
         <div className="mobile-brand-row">
           <a href={props.locale === "en" ? "/en" : "/"} aria-label={ui.homeLabel}>
             <span className="mobile-app-bar-mark" aria-hidden="true">{props.locale === "en" ? "K" : "장"}</span>

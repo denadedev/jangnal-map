@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
 import { buildExplorerPath, type Locale } from "../lib/locale";
@@ -12,8 +12,8 @@ import { resolveRegionAlias } from "../lib/region-aliases";
 import { getUiCopy } from "../lib/ui-copy";
 import { MobileHomeControls } from "./mobile-home-controls";
 import { MobileMarketSheet, type SheetMode, type SheetSnap } from "./mobile-market-sheet";
+import { MobileSearchScreen } from "./mobile-search-screen";
 import { MarketDetail } from "./market-detail";
-import { MarketPreview } from "./market-preview";
 import type { DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
 import { MarketMap } from "./market-map";
@@ -82,29 +82,15 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   const selectedOrigin = useRef<SelectionOrigin | null>(null);
   const resultScrollTop = useRef(0);
   const mobileSheetContentRef = useRef<HTMLDivElement | null>(null);
-  const mobileHomeControlsRef = useRef<HTMLDivElement | null>(null);
+  const mobileResultsRef = useRef<HTMLDivElement | null>(null);
   const pendingMapFocusIdRef = useRef<string | null>(null);
   const mapFocusFallbackTimerRef = useRef<number | null>(null);
-  const selectedIdRef = useRef(selectedId);
-  const sheetModeRef = useRef(sheetMode);
-  const searchFocusedRef = useRef(false);
-  const keyboardExpandedRef = useRef(false);
-  const sheetSnapBeforeKeyboardRef = useRef<SheetSnap>("collapsed");
-  const sheetModeBeforeKeyboardRef = useRef<SheetMode>("results");
-  const selectedIdBeforeKeyboardRef = useRef<string | null>(null);
-  const viewportHeightAtSearchFocusRef = useRef(0);
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
   const [hasRestoredUrl, setHasRestoredUrl] = useState(false);
   const [urlNotice, setUrlNotice] = useState("");
   const [mapStatus, setMapStatus] = useState<"idle" | "loading" | "ready" | "error">(mapClientId ? "idle" : "error");
   const [isMobile, setIsMobile] = useState(false);
-  const [mobileOcclusion, setMobileOcclusion] = useState({ top: 0, bottom: 0 });
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
-  const [keyboardBottomInset, setKeyboardBottomInset] = useState(0);
-  useEffect(() => {
-    selectedIdRef.current = selectedId;
-    sheetModeRef.current = sheetMode;
-  }, [selectedId, sheetMode]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   useLayoutEffect(() => {
     if (sheetMode !== "results" && mobileSheetContentRef.current) mobileSheetContentRef.current.scrollTop = 0;
   }, [selectedId, sheetMode]);
@@ -146,37 +132,14 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   const mapMissingCount = filteredMarkets.filter((market) => market.latitude === null || market.longitude === null).length;
   const selectedMarket = markets.find((market) => market.id === selectedId) ?? null;
 
-  const handleSearchFocus = useCallback(() => {
-    searchFocusedRef.current = true;
-    keyboardExpandedRef.current = false;
-    sheetSnapBeforeKeyboardRef.current = sheetSnap;
-    sheetModeBeforeKeyboardRef.current = sheetMode;
-    selectedIdBeforeKeyboardRef.current = selectedId;
-    viewportHeightAtSearchFocusRef.current = window.visualViewport?.height ?? window.innerHeight;
-  }, [selectedId, sheetMode, sheetSnap]);
-
-  const handleSearchBlur = useCallback(() => {
-    window.setTimeout(() => {
-      searchFocusedRef.current = false;
-      if (keyboardExpandedRef.current
-        && selectedIdRef.current === selectedIdBeforeKeyboardRef.current
-        && sheetModeRef.current === "results") {
-        setSheetSnap(sheetSnapBeforeKeyboardRef.current);
-        setSheetMode(sheetModeBeforeKeyboardRef.current);
-      }
-      keyboardExpandedRef.current = false;
-      setIsKeyboardOpen(false);
-      setKeyboardBottomInset(0);
-    }, 0);
-  }, []);
   const handleDirectDateChange = useCallback((date: string) => {
     setDirectDate(toIsoDate(normalizeDirectDate(date, today)));
     setMode("date");
   }, [today]);
 
-  const focusResultSheetControl = useCallback(() => {
+  const focusResultControl = useCallback(() => {
     document.querySelector<HTMLButtonElement>(
-      ".mobile-market-sheet-collapsed-button, .mobile-market-sheet-expand-button, .mobile-market-sheet-map-button",
+      '.mobile-primary-nav button[aria-current="page"], .mobile-view-switch button[aria-pressed="true"]',
     )?.focus();
   }, []);
 
@@ -190,15 +153,15 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     }
     window.requestAnimationFrame(() => {
       if (!cameraRestored) {
-        focusResultSheetControl();
+        focusResultControl();
         return;
       }
       const marker = Array.from(document.querySelectorAll<HTMLElement>(".map-marker[data-market-id]"))
         .find((element) => element.dataset.marketId === marketId && element.isConnected);
       if (marker) marker.focus();
-      else focusResultSheetControl();
+      else focusResultControl();
     });
-  }, [focusResultSheetControl]);
+  }, [focusResultControl]);
 
   useEffect(() => {
     if (!isPending && selectedId && !queryMatches.some((market) => market.id === selectedId)) {
@@ -280,23 +243,23 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         if (pendingMapFocusIdRef.current !== origin.id) return;
         pendingMapFocusIdRef.current = null;
         mapFocusFallbackTimerRef.current = null;
-        focusResultSheetControl();
+        focusResultControl();
       }, 1_000);
     }
     window.requestAnimationFrame(() => {
-      if (mobileSheetContentRef.current) mobileSheetContentRef.current.scrollTop = resultScrollTop.current;
+      if (mobileResultsRef.current) mobileResultsRef.current.scrollTop = resultScrollTop.current;
       if (!(origin?.source === "map" && mapStatus === "ready")) {
         if (origin?.source === "map" || !origin) {
-          focusResultSheetControl();
+          focusResultControl();
         } else {
-          const originItem = Array.from(document.querySelectorAll<HTMLElement>(".mobile-market-sheet [data-market-id]"))
+          const originItem = Array.from(document.querySelectorAll<HTMLElement>(".mobile-market-results [data-market-id]"))
             .find((element) => element.dataset.marketId === origin.id);
           originItem?.focus();
         }
       }
       selectedOrigin.current = null;
     });
-  }, [focusResultSheetControl, mapStatus]);
+  }, [focusResultControl, mapStatus]);
 
   const selectMarket = useCallback((market: PublicMarket, source: "map" | "list") => {
     pendingMapFocusIdRef.current = null;
@@ -307,8 +270,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     const returnSnap = sheetMode === "results" ? sheetSnap : previousSheetSnap.current;
     previousSheetSnap.current = returnSnap;
     selectedOrigin.current = { id: market.id, source };
-    resultScrollTop.current = mobileSheetContentRef.current?.scrollTop ?? 0;
-    const view = source === "map" && window.matchMedia?.("(max-width: 700px)").matches ? "preview" : "detail";
+    resultScrollTop.current = mobileResultsRef.current?.scrollTop ?? 0;
+    const view = "detail";
     const replacingSelection = selectedId !== null;
     window.history[replacingSelection ? "replaceState" : "pushState"]({
       ...(window.history.state ?? {}),
@@ -322,7 +285,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     }, "", buildExplorerPath(locale, { query, mode, directDate, marketId: market.id }));
     setSelectedId(market.id);
     setSheetMode(view);
-    setSheetSnap(view === "preview" ? "collapsed" : "full");
+    setSheetSnap("full");
+    setIsSearchOpen(false);
   }, [directDate, locale, mode, query, selectedId, sheetMode, sheetSnap]);
   const selectMapMarket = useCallback((market: PublicMarket) => selectMarket(market, "map"), [selectMarket]);
   const selectListMarket = useCallback((market: PublicMarket) => selectMarket(market, "list"), [selectMarket]);
@@ -337,22 +301,6 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     setSheetSnap(previousSheetSnap.current);
     restoreResultContext();
   }, [restoreResultContext]);
-  const closeMarketToList = useCallback(() => {
-    previousSheetSnap.current = "full";
-    if (selectedOrigin.current) selectedOrigin.current = { ...selectedOrigin.current, source: "list" };
-    closeMarket();
-  }, [closeMarket]);
-  const openSelectedMarketDetail = useCallback(() => {
-    if (!selectedId) return;
-    const nextState = {
-      ...(window.history.state ?? {}),
-      mobileMarket: selectedId,
-      mobileMarketView: "detail",
-    };
-    window.history.replaceState(nextState, "");
-    setSheetMode("detail");
-    setSheetSnap("full");
-  }, [selectedId]);
   const resetFilters = () => {
     setUrlNotice("");
     setQuery("");
@@ -372,72 +320,6 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   }, []);
 
   useEffect(() => {
-    if (!isMobile || !hasRestoredUrl || mapStatus !== "error" || selectedId) return;
-    setSheetMode("results");
-    setSheetSnap("full");
-  }, [hasRestoredUrl, isMobile, mapStatus, selectedId]);
-
-  useEffect(() => {
-    const viewport = window.visualViewport;
-    if (!viewport) return;
-    const updateKeyboardState = () => {
-      const keyboardOpen = searchFocusedRef.current
-        && viewportHeightAtSearchFocusRef.current - viewport.height > 120;
-      const bottomInset = keyboardOpen
-        ? Math.max(0, Math.round(window.innerHeight - viewport.offsetTop - viewport.height))
-        : 0;
-      setKeyboardBottomInset((current) => current === bottomInset ? current : bottomInset);
-      if (keyboardOpen && !keyboardExpandedRef.current) {
-        keyboardExpandedRef.current = true;
-        setIsKeyboardOpen(true);
-        if (sheetModeRef.current === "preview") setSheetMode("results");
-        if (sheetModeRef.current === "results" || sheetModeRef.current === "preview") setSheetSnap("full");
-      } else if (!keyboardOpen && keyboardExpandedRef.current) {
-        keyboardExpandedRef.current = false;
-        setIsKeyboardOpen(false);
-        if (searchFocusedRef.current
-          && selectedIdRef.current === selectedIdBeforeKeyboardRef.current
-          && sheetModeRef.current === "results") {
-          setSheetSnap(sheetSnapBeforeKeyboardRef.current);
-          setSheetMode(sheetModeBeforeKeyboardRef.current);
-        }
-      }
-    };
-    viewport.addEventListener("resize", updateKeyboardState);
-    return () => viewport.removeEventListener("resize", updateKeyboardState);
-  }, []);
-
-  useEffect(() => {
-    if (!isMobile) return;
-    const toolbar = mobileHomeControlsRef.current;
-    const map = document.querySelector<HTMLElement>(".map-stage");
-    const sheet = document.querySelector<HTMLElement>(".mobile-market-sheet");
-    if (!toolbar || !map || !sheet) return;
-
-    const updateOcclusion = () => {
-      const toolbarRect = toolbar.getBoundingClientRect();
-      const mapRect = map.getBoundingClientRect();
-      const sheetRect = sheet.getBoundingClientRect();
-      const roundUpToEight = (value: number) => Math.ceil(value / 8) * 8;
-      const top = Math.max(0, Math.min(mapRect.height, roundUpToEight(toolbarRect.bottom - mapRect.top)));
-      const bottom = Math.max(0, Math.min(mapRect.height, roundUpToEight(mapRect.bottom - sheetRect.top)));
-      setMobileOcclusion((current) => current.top === top && current.bottom === bottom ? current : { top, bottom });
-    };
-    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateOcclusion);
-    observer?.observe(toolbar);
-    observer?.observe(map);
-    observer?.observe(sheet);
-    window.addEventListener("resize", updateOcclusion);
-    window.visualViewport?.addEventListener("resize", updateOcclusion);
-    updateOcclusion();
-    return () => {
-      observer?.disconnect();
-      window.removeEventListener("resize", updateOcclusion);
-      window.visualViewport?.removeEventListener("resize", updateOcclusion);
-    };
-  }, [isMobile]);
-
-  useEffect(() => {
     const handlePopState = () => {
       const urlState = readUrlState(today);
       setQuery(urlState.query ?? "");
@@ -454,7 +336,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         setSelectedId(marketId);
         const state = window.history.state as Record<string, unknown> | null;
         const hasMatchingState = state?.mobileMarket === marketId;
-        const view = hasMatchingState && state?.mobileMarketView === "preview" ? "preview" : "detail";
+        const view = "detail";
         const source = hasMatchingState && (state?.mobileMarketSource === "map" || state?.mobileMarketSource === "list")
           ? state.mobileMarketSource
           : "map";
@@ -464,7 +346,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         }
         selectedOrigin.current = { id: marketId, source };
         setSheetMode(view);
-        setSheetSnap(view === "preview" ? "collapsed" : "full");
+        setSheetSnap("full");
         return;
       }
       setSelectedId(null);
@@ -517,25 +399,20 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
 
   const handleMapStatus = useCallback((status: "idle" | "loading" | "ready" | "error") => {
     setMapStatus(status);
-    if (status === "error") {
-      previousSheetSnap.current = "full";
-      setSheetMode(selectedId ? "detail" : "results");
-      setSheetSnap("full");
-    }
-  }, [selectedId]);
+  }, []);
 
   const focusSearchAfterLocationError = useCallback((message: string, permissionDenied: boolean) => {
     if (!permissionDenied) return;
-    window.setTimeout(() => document.querySelector<HTMLInputElement>('.search-field input[type="search"]')?.focus(), 0);
+    setIsSearchOpen(true);
     void message;
   }, []);
 
   return (
-    <main className="explorer-shell">
+    <>
+    <main className="explorer-shell" inert={isMobile && isSearchOpen}>
       <MobileHomeControls
         locale={locale}
         languageSwitchHref={buildExplorerPath(locale === "en" ? "ko" : "en", { query, mode, directDate, marketId: selectedId })}
-        containerRef={mobileHomeControlsRef}
         mode={mode}
         query={query}
         directDate={directDate}
@@ -543,10 +420,9 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         rangeLabel={rangeLabel}
         mobileView={sheetSnap === "full" ? "list" : "map"}
         onViewChange={(view) => setSheetSnap(view === "list" ? "full" : "collapsed")}
+        onMobileSearchOpen={() => setIsSearchOpen(true)}
         onModeChange={setMode}
         onQueryChange={setQuery}
-        onSearchFocus={handleSearchFocus}
-        onSearchBlur={handleSearchBlur}
         onDirectDateChange={handleDirectDateChange}
       />
       <header className="app-header">
@@ -574,11 +450,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
 
       <div
         className={`explorer-grid ${selectedMarket ? "has-selection" : ""}`}
-        data-keyboard-open={isKeyboardOpen ? "true" : "false"}
-        style={{
-          "--mobile-sheet-top": `${mobileOcclusion.top + 8}px`,
-          "--mobile-keyboard-bottom": `${keyboardBottomInset}px`,
-        } as CSSProperties}
+        ref={mobileResultsRef}
+        data-mobile-view={sheetSnap === "full" ? "list" : "map"}
       >
         <aside className="list-pane" aria-label={ui.listLabel}>
           {listHeading}
@@ -593,14 +466,12 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
           referenceDate={referenceDate}
           selectedId={selectedId}
           clientId={mapClientId}
-          mobileOcclusion={isMobile
-            ? sheetMode === "detail" || sheetSnap === "full" ? null : mobileOcclusion
-            : undefined}
           onSelect={selectMapMarket}
           onLocationChange={setCurrentLocation}
           onCameraRestoreComplete={focusRestoredMapSelection}
           onStatusChange={handleMapStatus}
           onLocationError={focusSearchAfterLocationError}
+          onFallbackList={() => setSheetSnap("full")}
         />
 
         <aside className="detail-pane" aria-live="polite">
@@ -619,51 +490,42 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         </aside>
 
         {isMobile ? (
+          <section className="mobile-market-results" aria-label={locale === "en" ? "Market results" : "시장 결과"} data-map-status={mapStatus}>
+            <div className="mobile-results-heading">
+              <h2>{locale === "en" ? `${filteredMarkets.length} markets for these dates` : `${mode === "date" ? "선택일에 장이 서는 시장" : "조건에 맞는 시장"} ${filteredMarkets.length}곳`}</h2>
+              <span>{query ? locale === "en" ? `Search: “${query}”` : `“${query}” 검색` : locale === "en" ? `${displayedMarkets.length} results` : `시장 ${displayedMarkets.length}곳`}</span>
+            </div>
+            {marketListContent}
+            {reviewedGuides.length > 0 ? <ReviewedMarketGuides guides={reviewedGuides} /> : null}
+          </section>
+        ) : null}
+
+        {isMobile && sheetMode === "detail" && selectedMarket ? (
           <MobileMarketSheet
             locale={locale}
             hasSelectedDate={mode === "date"}
-            snap={sheetSnap}
+            snap="full"
             onSnapChange={setSheetSnap}
-            mode={sheetMode}
+            mode="detail"
             onModeChange={setSheetMode}
-            title={sheetMode !== "results" && selectedMarket
-              ? sheetMode === "preview" ? locale === "en" ? `${selectedMarket.name} preview` : `${selectedMarket.name} 미리보기` : locale === "en" ? `${selectedMarket.name} details` : `${selectedMarket.name} 상세`
-              : locale === "en" ? `${displayedMarkets.length} market results` : `${displayedMarkets.length}곳 시장 결과`}
+            title={locale === "en" ? `${selectedMarket.name} details` : `${selectedMarket.name} 상세`}
             describedBy="mobile-market-sheet-status"
             contentRef={mobileSheetContentRef}
             onClose={closeMarket}
-            onListView={closeMarketToList}
-            onPreviewOpenDetail={openSelectedMarketDetail}
           >
-            {sheetMode === "detail" ? (
-              <MarketDetail
-                locale={locale}
-                market={selectedMarket}
-                detailPath={selectedMarket && reviewedMarketIdSet.has(selectedMarket.id) ? getMarketPagePath(selectedMarket) : undefined}
-                sharePath={selectedMarket ? locale === "en" || mode === "date"
-                  ? buildExplorerPath(locale, { query, mode, directDate, marketId: selectedMarket.id })
-                  : getMarketBrowsePath(selectedMarket, reviewedMarketIdSet.has(selectedMarket.id)) : undefined}
-                today={today}
-                selectedDate={mode === "date" ? range?.start : undefined}
-                onVisitDateChange={handleDirectDateChange}
-                onClose={closeMarket}
-              />
-            ) : sheetMode === "preview" && selectedMarket ? (
-              <MarketPreview
-                locale={locale}
-                market={selectedMarket}
-                today={today}
-                selectedDate={mode === "date" ? range?.start : undefined}
-                onOpenDetail={openSelectedMarketDetail}
-              />
-            ) : (
-              <div className="mobile-market-results" data-map-status={mapStatus}>
-                {mapStatus === "error" ? <p className="mobile-map-error-note" role="status">{locale === "en" ? "The map is unavailable. Browse the list instead." : "지도를 사용할 수 없어 목록을 보여드려요."}</p> : null}
-                {listHeading}
-                {marketListContent}
-                {reviewedGuides.length > 0 ? <ReviewedMarketGuides guides={reviewedGuides} /> : null}
-              </div>
-            )}
+            <MarketDetail
+              locale={locale}
+              mobile
+              market={selectedMarket}
+              detailPath={reviewedMarketIdSet.has(selectedMarket.id) ? getMarketPagePath(selectedMarket) : undefined}
+              sharePath={locale === "en" || mode === "date"
+                ? buildExplorerPath(locale, { query, mode, directDate, marketId: selectedMarket.id })
+                : getMarketBrowsePath(selectedMarket, reviewedMarketIdSet.has(selectedMarket.id))}
+              today={today}
+              selectedDate={mode === "date" ? range?.start : undefined}
+              onVisitDateChange={handleDirectDateChange}
+              onClose={closeMarket}
+            />
           </MobileMarketSheet>
         ) : null}
       </div>
@@ -671,13 +533,23 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       <div className="home-site-footer"><SiteFooter locale={locale} /></div>
       {isMobile && sheetMode === "results" ? (
         <nav className="mobile-primary-nav" aria-label={locale === "en" ? "Main views" : "주요 화면"}>
-          <button type="button" aria-current={sheetSnap !== "full" ? "page" : undefined} onClick={() => setSheetSnap("collapsed")}>{locale === "en" ? "Map" : "지도"}</button>
-          <button type="button" aria-current={sheetSnap === "full" ? "page" : undefined} onClick={() => setSheetSnap("full")}>{locale === "en" ? "List" : "목록"}</button>
-          <button type="button" onClick={() => document.querySelector<HTMLInputElement>('.search-field input[type="search"]')?.focus()}>{locale === "en" ? "Search" : "검색"}</button>
+          <button type="button" aria-current={sheetSnap !== "full" ? "page" : undefined} onClick={() => setSheetSnap("collapsed")}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16m6-14v16" /></svg>{locale === "en" ? "Map" : "지도"}</button>
+          <button type="button" aria-current={sheetSnap === "full" ? "page" : undefined} onClick={() => setSheetSnap("full")}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>{locale === "en" ? "List" : "목록"}</button>
+          <button type="button" onClick={() => setIsSearchOpen(true)}><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m16 16 5 5" /></svg>{locale === "en" ? "Search" : "검색"}</button>
         </nav>
       ) : null}
 
     </main>
+    {isMobile && isSearchOpen ? <MobileSearchScreen
+      locale={locale}
+      query={query}
+      matches={queryMatches}
+      onQueryChange={setQuery}
+      onSelect={(market) => selectMarket(market, "list")}
+      onShowResults={() => { setSheetSnap("full"); setIsSearchOpen(false); mobileResultsRef.current?.scrollTo(0, 0); }}
+      onClose={() => { setIsSearchOpen(false); window.requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(".mobile-search-launch")?.focus()); }}
+    /> : null}
+    </>
   );
 }
 

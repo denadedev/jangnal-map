@@ -5,18 +5,16 @@ import { describe, expect, it, vi } from "vitest";
 import { MobileMarketSheet } from "./mobile-market-sheet";
 
 describe("MobileMarketSheet detail navigation regression", () => {
-  it("offers explicit close and list actions for a full detail sheet", async () => {
+  it("offers one back action for full-screen detail", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
-    const onModeChange = vi.fn();
-    const onSnapChange = vi.fn();
 
     render(
       <MobileMarketSheet
         snap="full"
-        onSnapChange={onSnapChange}
+        onSnapChange={vi.fn()}
         mode="detail"
-        onModeChange={onModeChange}
+        onModeChange={vi.fn()}
         onClose={onClose}
         title="통복시장 상세"
       >
@@ -24,11 +22,8 @@ describe("MobileMarketSheet detail navigation regression", () => {
       </MobileMarketSheet>,
     );
 
-    await user.click(screen.getByRole("button", { name: "닫기" }));
+    await user.click(screen.getByRole("button", { name: "탐색으로 돌아가기" }));
     expect(onClose).toHaveBeenCalledOnce();
-
-    await user.click(screen.getByRole("button", { name: "목록으로" }));
-    expect(onModeChange).toHaveBeenCalledWith("results");
-    expect(onSnapChange).toHaveBeenCalledWith("full");
+    expect(screen.queryByRole("button", { name: "목록으로" })).not.toBeInTheDocument();
   });
 });

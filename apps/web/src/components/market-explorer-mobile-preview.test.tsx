@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -61,9 +61,7 @@ const mobileMedia = (matches: boolean) => vi.fn((query: string) => ({
 }));
 
 describe("MarketExplorer map-origin selection", () => {
-  let visualViewportDescriptor: PropertyDescriptor | undefined;
   beforeEach(() => {
-    visualViewportDescriptor = Object.getOwnPropertyDescriptor(window, "visualViewport");
     window.history.replaceState(null, "", "/");
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => [market] }));
     vi.stubGlobal("matchMedia", mobileMedia(true));
@@ -71,26 +69,19 @@ describe("MarketExplorer map-origin selection", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    if (visualViewportDescriptor) Object.defineProperty(window, "visualViewport", visualViewportDescriptor);
-    else Reflect.deleteProperty(window, "visualViewport");
   });
 
-  it("opens a map selection in preview, then replaces it with the full detail view", async () => {
+  it("opens a map selection directly in full detail", async () => {
     const user = userEvent.setup();
     render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="test" />);
 
     await user.click(await screen.findByRole("button", { name: "지도에서 첫 시장 선택" }));
-    const sheet = document.querySelector(".mobile-market-sheet");
-    await waitFor(() => expect(sheet).toHaveClass("is-preview"));
-    expect(sheet).toHaveAttribute("data-snap", "collapsed");
-    expect(screen.getByRole("article", { name: "지도선택시장 미리보기" })).toBeVisible();
-    expect(window.history.state.mobileMarketView).toBe("preview");
-
-    await user.click(screen.getByRole("button", { name: "상세 보기" }));
-    await waitFor(() => expect(sheet).toHaveClass("is-detail"));
+    const sheet = await screen.findByRole("dialog", { name: "지도선택시장 상세" });
+    expect(sheet).toHaveClass("is-detail");
     expect(sheet).toHaveAttribute("data-snap", "full");
     expect(sheet).toHaveAttribute("aria-modal", "true");
     expect(window.history.state.mobileMarketView).toBe("detail");
+    expect(screen.queryByRole("article", { name: "지도선택시장 미리보기" })).not.toBeInTheDocument();
   });
 
   it("still renders the map-origin detail path when matchMedia is unavailable", async () => {
@@ -103,13 +94,12 @@ describe("MarketExplorer map-origin selection", () => {
     expect(document.querySelector(".mobile-market-sheet")).not.toBeInTheDocument();
   });
 
-  it("restores the prior result snap when Back closes a preview and Forward reopens it", async () => {
+  it("returns to the map page on Back and reopens full detail on Forward", async () => {
     const user = userEvent.setup();
     render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="test" />);
 
     await user.click(screen.getByRole("button", { name: "지도에서 첫 시장 선택" }));
-    const sheet = document.querySelector(".mobile-market-sheet");
-    await waitFor(() => expect(sheet).toHaveClass("is-preview"));
+    await screen.findByRole("dialog", { name: "지도선택시장 상세" });
     expect(window.history.state.mobileMarketSource).toBe("map");
     expect(window.history.state.mobileReturnSnap).toBe("half");
 
@@ -125,52 +115,27 @@ describe("MarketExplorer map-origin selection", () => {
     });
 
     await traverse("back");
-    await waitFor(() => expect(sheet).toHaveClass("is-results"));
-    expect(sheet).toHaveAttribute("data-snap", "half");
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "지도선택시장 상세" })).not.toBeInTheDocument());
+    expect(document.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "map");
     expect(window.location.search).not.toContain("market=");
 
     await traverse("forward");
-    await waitFor(() => expect(sheet).toHaveClass("is-preview"));
-    expect(sheet).toHaveAttribute("data-snap", "collapsed");
+    await screen.findByRole("dialog", { name: "지도선택시장 상세" });
     expect(window.history.state.mobileMarketSource).toBe("map");
     expect(window.history.state.mobileReturnSnap).toBe("half");
   });
 
-  it("expands results for a smaller visual viewport and restores the prior preview after blur", async () => {
+  it("returns from the search screen to the previous list view", async () => {
     const user = userEvent.setup();
-    const viewport = Object.assign(new EventTarget(), { height: window.innerHeight, offsetTop: 0 }) as EventTarget & {
-      height: number;
-      offsetTop: number;
-    };
-    Object.defineProperty(window, "visualViewport", { configurable: true, value: viewport });
     render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="test" />);
-    const sheet = document.querySelector(".mobile-market-sheet");
-    const search = await screen.findByRole("searchbox", { name: "시장명 또는 지역 검색" });
-
-    search.focus();
-    viewport.height = 480;
-    viewport.dispatchEvent(new Event("resize"));
-    await waitFor(() => expect(document.querySelector(".explorer-grid")).toHaveAttribute("data-keyboard-open", "true"));
-    await waitFor(() => expect(sheet).toHaveAttribute("data-snap", "full"));
-
-    fireEvent.blur(search);
-    await waitFor(() => expect(sheet).toHaveAttribute("data-snap", "half"));
-    await waitFor(() => expect(document.querySelector(".explorer-grid")).toHaveAttribute("data-keyboard-open", "false"));
-
-    viewport.height = window.innerHeight;
-    viewport.dispatchEvent(new Event("resize"));
-    await user.click(screen.getByRole("button", { name: "지도에서 첫 시장 선택" }));
-    await waitFor(() => expect(sheet).toHaveClass("is-preview"));
-
-    search.focus();
-    viewport.height = 480;
-    viewport.dispatchEvent(new Event("resize"));
-    await waitFor(() => expect(sheet).toHaveClass("is-results"));
-    await waitFor(() => expect(sheet).toHaveAttribute("data-snap", "full"));
-
-    fireEvent.blur(search);
-    await waitFor(() => expect(sheet).toHaveClass("is-preview"));
-    expect(sheet).toHaveAttribute("data-snap", "collapsed");
+    const navigation = screen.getByRole("navigation", { name: "주요 화면" });
+    await user.click(within(navigation).getByRole("button", { name: "목록" }));
+    await user.click(within(navigation).getByRole("button", { name: "검색" }));
+    const search = within(screen.getByRole("dialog", { name: "시장 검색" })).getByRole("searchbox");
+    await user.type(search, "지도선택시장");
+    await user.click(screen.getByRole("button", { name: "뒤로" }));
+    expect(document.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "list");
+    expect(screen.queryByRole("dialog", { name: "시장 검색" })).not.toBeInTheDocument();
   });
 
   it("recovers from a transient market data error when the user retries", async () => {
@@ -182,10 +147,10 @@ describe("MarketExplorer map-origin selection", () => {
     render(<MarketExplorer today={new Date(2026, 8, 5)} mapClientId="" />);
 
     expect(await screen.findAllByRole("heading", { name: "시장 정보를 불러오지 못했어요" })).toHaveLength(2);
-    const mobileSheet = document.querySelector<HTMLElement>(".mobile-market-sheet");
-    if (!mobileSheet) throw new Error("Mobile market sheet was not rendered");
-    await user.click(within(mobileSheet).getByRole("button", { name: "다시 시도" }));
-    expect(await within(mobileSheet).findByText("지도선택시장")).toBeInTheDocument();
+    const results = document.querySelector<HTMLElement>(".mobile-market-results");
+    if (!results) throw new Error("Mobile market results were not rendered");
+    await user.click(within(results).getByRole("button", { name: "다시 시도" }));
+    expect(await within(results).findByText("지도선택시장")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

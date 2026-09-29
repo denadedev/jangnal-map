@@ -417,9 +417,6 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         query={query}
         directDate={directDate}
         minDate={toIsoDate(today)}
-        rangeLabel={rangeLabel}
-        mobileView={sheetSnap === "full" ? "list" : "map"}
-        onViewChange={(view) => setSheetSnap(view === "list" ? "full" : "collapsed")}
         onMobileSearchOpen={() => setIsSearchOpen(true)}
         onModeChange={setMode}
         onQueryChange={setQuery}
@@ -453,6 +450,15 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         ref={mobileResultsRef}
         data-mobile-view={sheetSnap === "full" ? "list" : "map"}
       >
+        <div className="mobile-discovery-context">
+          <p>{query ? ui.searchResultsHeading : ui.marketDiscoveryHeading} · {rangeLabel}</p>
+          <h1>{query ? locale === "en" ? `Markets for “${query}”` : `“${query}” 시장 찾기` : ui.marketDiscoveryTitle}</h1>
+          <small>{ui.marketDiscoveryHelp}</small>
+          <div className="mobile-view-switch" role="group" aria-label={ui.resultViewLabel}>
+            <button type="button" aria-pressed={sheetSnap !== "full"} onClick={() => setSheetSnap("collapsed")}>{ui.mapView}</button>
+            <button type="button" aria-pressed={sheetSnap === "full"} onClick={() => setSheetSnap("full")}>{ui.listView}</button>
+          </div>
+        </div>
         <aside className="list-pane" aria-label={ui.listLabel}>
           {listHeading}
           {marketListContent}

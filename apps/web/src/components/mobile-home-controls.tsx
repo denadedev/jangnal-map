@@ -9,12 +9,9 @@ import { getUiCopy } from "../lib/ui-copy";
 
 type MobileHomeControlsProps = Omit<MarketFiltersProps, "mobileMenuControl"> & {
   languageSwitchHref?: string;
-  rangeLabel?: string;
-  mobileView?: "map" | "list";
-  onViewChange?: (view: "map" | "list") => void;
 };
 
-export function MobileHomeControls({ languageSwitchHref, rangeLabel, mobileView = "map", onViewChange, ...props }: MobileHomeControlsProps) {
+export function MobileHomeControls({ languageSwitchHref, ...props }: MobileHomeControlsProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const ui = getUiCopy(props.locale ?? "ko");
   const installPrompt = useInstallPrompt();
@@ -46,23 +43,8 @@ export function MobileHomeControls({ languageSwitchHref, rangeLabel, mobileView 
           </button>
         </div>
         <MarketFilters {...props} />
-        {rangeLabel && onViewChange ? (
-          <div className="mobile-discovery-context">
-            <p>{props.query ? ui.searchResultsHeading : ui.marketDiscoveryHeading} · {rangeLabel}</p>
-            <h1>{props.query ? localeSearchHeading(props.query, props.locale ?? "ko") : ui.marketDiscoveryTitle}</h1>
-            <small>{ui.marketDiscoveryHelp}</small>
-            <div className="mobile-view-switch" role="group" aria-label={ui.resultViewLabel}>
-              <button type="button" aria-pressed={mobileView === "map"} onClick={() => onViewChange("map")}>{ui.mapView}</button>
-              <button type="button" aria-pressed={mobileView === "list"} onClick={() => onViewChange("list")}>{ui.listView}</button>
-            </div>
-          </div>
-        ) : null}
       </div>
       <MobileMenu {...installMenuProps} locale={props.locale} languageSwitchHref={languageSwitchHref} open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );
-}
-
-function localeSearchHeading(query: string, locale: "ko" | "en") {
-  return locale === "en" ? `Markets for “${query}”` : `“${query}” 시장 찾기`;
 }

@@ -692,7 +692,7 @@ a { color: inherit; text-decoration: none; }
   .mobile-home-controls .filter-pill svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
   .mobile-home-controls .direct-date, .mobile-home-controls .direct-date.is-visible { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); opacity: 0; }
   .mobile-home-controls .direct-date.is-fallback { position: static; width: auto; height: 44px; overflow: visible; clip: auto; opacity: 1; }
-  .mobile-discovery-context { border-bottom: 0; padding: 17px 20px 14px; }
+  .mobile-discovery-context { margin: 0 -20px; border-bottom: 0; padding: 17px 20px 14px; }
   .mobile-discovery-context p { margin-bottom: 5px; font-size: 11px; }
   .mobile-discovery-context h1 { font-size: 25px; }
   .mobile-discovery-context small { margin-top: 8px; font-size: 12px; }

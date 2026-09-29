@@ -77,7 +77,7 @@ describe("MarketExplorer map-origin selection", () => {
 
   it("opens a map selection in preview, then replaces it with the full detail view", async () => {
     const user = userEvent.setup();
-    render(<MarketExplorer today={new Date(2026, 8, 4)} />);
+    render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="test" />);
 
     await user.click(await screen.findByRole("button", { name: "지도에서 첫 시장 선택" }));
     const sheet = document.querySelector(".mobile-market-sheet");
@@ -95,7 +95,7 @@ describe("MarketExplorer map-origin selection", () => {
 
   it("still renders the map-origin detail path when matchMedia is unavailable", async () => {
     vi.stubGlobal("matchMedia", undefined);
-    render(<MarketExplorer today={new Date(2026, 8, 4)} />);
+    render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="test" />);
 
     await userEvent.click(await screen.findByRole("button", { name: "지도에서 첫 시장 선택" }));
     await waitFor(() => expect(window.history.state.mobileMarketView).toBe("detail"));
@@ -105,9 +105,8 @@ describe("MarketExplorer map-origin selection", () => {
 
   it("restores the prior result snap when Back closes a preview and Forward reopens it", async () => {
     const user = userEvent.setup();
-    render(<MarketExplorer today={new Date(2026, 8, 4)} />);
+    render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="test" />);
 
-    await user.click(await screen.findByRole("button", { name: "목록 열기" }));
     await user.click(screen.getByRole("button", { name: "지도에서 첫 시장 선택" }));
     const sheet = document.querySelector(".mobile-market-sheet");
     await waitFor(() => expect(sheet).toHaveClass("is-preview"));
@@ -144,7 +143,7 @@ describe("MarketExplorer map-origin selection", () => {
       offsetTop: number;
     };
     Object.defineProperty(window, "visualViewport", { configurable: true, value: viewport });
-    render(<MarketExplorer today={new Date(2026, 8, 4)} />);
+    render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="test" />);
     const sheet = document.querySelector(".mobile-market-sheet");
     const search = await screen.findByRole("searchbox", { name: "시장명 또는 지역 검색" });
 
@@ -155,7 +154,7 @@ describe("MarketExplorer map-origin selection", () => {
     await waitFor(() => expect(sheet).toHaveAttribute("data-snap", "full"));
 
     fireEvent.blur(search);
-    await waitFor(() => expect(sheet).toHaveAttribute("data-snap", "collapsed"));
+    await waitFor(() => expect(sheet).toHaveAttribute("data-snap", "half"));
     await waitFor(() => expect(document.querySelector(".explorer-grid")).toHaveAttribute("data-keyboard-open", "false"));
 
     viewport.height = window.innerHeight;

@@ -115,18 +115,19 @@ describe("MobileMarketSheet", () => {
       </>,
     );
     const sheet = screen.getByRole("dialog", { name: "통복시장 상세" });
-    const handle = screen.getByRole("button", { name: "시트 손잡이" });
+    expect(screen.queryByRole("button", { name: "시트 손잡이" })).not.toBeInTheDocument();
+    const close = screen.getByRole("button", { name: "닫기" });
     const detailAction = screen.getByRole("button", { name: "Detail action" });
 
     expect(sheet).toHaveFocus();
     expect(document.querySelector(".map-stage")).toHaveAttribute("inert");
     expect(document.querySelector(".market-filters")).toHaveAttribute("inert");
     await user.tab();
-    expect(handle).toHaveFocus();
+    expect(close).toHaveFocus();
     await user.tab({ shift: true });
     expect(detailAction).toHaveFocus();
     await user.tab();
-    expect(handle).toHaveFocus();
+    expect(close).toHaveFocus();
 
     unmount();
     expect(outside).toHaveFocus();

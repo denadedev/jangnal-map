@@ -9,6 +9,7 @@ export interface NaverProjection {
 
 export interface NaverMapInstance {
   morph: (position: NaverLatLng, zoom: number) => void;
+  fitBounds: (bounds: { south: number; west: number; north: number; east: number }) => void;
   panTo: (position: NaverLatLng) => void;
   panBy: (offset: NaverPoint) => void;
   setOptions: (options: { padding: { top: number; right: number; bottom: number; left: number } }) => void;

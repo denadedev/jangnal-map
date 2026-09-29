@@ -160,7 +160,7 @@ export function MobileMarketSheet({
       aria-label={title}
       aria-describedby={describedBy}
     >
-      <button
+      {mode !== "detail" ? <button
         type="button"
         className="mobile-market-sheet-handle"
         aria-label={mode === "preview" ? ui.expandPreview : ui.sheetHandle}
@@ -179,7 +179,7 @@ export function MobileMarketSheet({
         }}
       >
         <span className="mobile-market-sheet-grip" aria-hidden="true" />
-      </button>
+      </button> : null}
       {mode === "results" && snap === "collapsed" ? (
         <button
           type="button"

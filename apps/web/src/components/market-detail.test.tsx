@@ -55,4 +55,46 @@ describe("MarketDetail", () => {
     expect(within(selectedDate).getByText("Market day on your selected date")).toBeInTheDocument();
     expect(within(selectedDate).getByText(/Sep 5, 2026/)).toBeInTheDocument();
   });
+
+  it("explains a Korean visit date without implying a mixed market is entirely closed", () => {
+    render(<MarketDetail market={marketFixture} today={new Date(2026, 8, 3)} selectedDate={new Date(2026, 8, 6)} onClose={vi.fn()} />);
+
+    const visitDate = screen.getByRole("region", { name: "선택한 방문 날짜" });
+    expect(within(visitDate).getByText("9월 6일 일요일")).toBeInTheDocument();
+    expect(within(visitDate).getByText("이날은 5일장이 아니에요")).toBeInTheDocument();
+    expect(within(visitDate).getByText(/상설 점포/)).toBeInTheDocument();
+    expect(screen.getByText("오늘 기준 다음 장날")).toBeInTheDocument();
+  });
+
+  it("shows the selected month's market days and source date before directions", () => {
+    render(<MarketDetail market={marketFixture} today={new Date(2026, 8, 3)} selectedDate={new Date(2026, 9, 5)} onClose={vi.fn()} />);
+
+    const detail = screen.getByRole("article", { name: /통복시장 상세정보/ });
+    expect(within(detail).getByRole("heading", { name: "2026년 10월 장날" })).toBeInTheDocument();
+    const calendar = within(detail).getByRole("list", { name: "이달의 장날" });
+    expect(calendar.querySelector('time[datetime="2026-10-05"]')?.parentElement).toHaveClass("is-market-day");
+    expect(calendar.querySelector('time[datetime="2026-10-10"]')?.parentElement).toHaveClass("is-market-day");
+    expect(calendar.querySelector('time[datetime="2026-10-06"]')?.parentElement).not.toHaveClass("is-market-day");
+    expect(within(calendar).getByLabelText("2026년 10월 5일, 장날, 선택한 방문 날짜")).toBeInTheDocument();
+    expect(within(calendar).getByLabelText("2026년 10월 6일")).toBeInTheDocument();
+    expect(detail.textContent?.indexOf("데이터 기준일 2025.11.10")).toBeLessThan(detail.textContent?.indexOf("방문 정보") ?? 0);
+    expect(within(detail).getByText(/현장 최종 확인일이 아닙니다/)).toBeInTheDocument();
+  });
+
+  it("uses a neutral visit-date state for an unconfirmed schedule", () => {
+    render(<MarketDetail market={{ ...marketFixture, schedule: { kind: "unknown", raw: "확인 중" } }} today={new Date(2026, 8, 3)} selectedDate={new Date(2026, 8, 6)} onClose={vi.fn()} />);
+
+    const visitDate = screen.getByRole("region", { name: "선택한 방문 날짜" });
+    expect(within(visitDate).getByText("운영 일정 확인 필요")).toBeInTheDocument();
+    expect(visitDate).not.toHaveClass("is-not-market-day");
+  });
+
+  it("uses English date labels and market-day status in the English calendar", () => {
+    render(<MarketDetail locale="en" market={marketFixture} today={new Date(2026, 8, 3)} selectedDate={new Date(2026, 9, 5)} onClose={vi.fn()} />);
+
+    const calendar = screen.getByRole("list", { name: "Market days this month" });
+    const selectedDay = within(calendar).getByLabelText("October 5, 2026, market day, selected visit date");
+    expect(selectedDay).toHaveTextContent("5");
+    expect(selectedDay.textContent).not.toMatch(/[월일]/);
+  });
 });

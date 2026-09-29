@@ -34,7 +34,7 @@ test("English map searches Seoul and keeps the selected market in an English URL
   await expect(page.getByRole("searchbox", { name: "Search a region in English or a market name in Korean" })).toHaveValue("Seoul");
   await expect(page.locator('.search-field input[type="search"]')).toHaveAccessibleName("Search a region in English or a market name in Korean");
   await expect(page.getByRole("button", { name: "All markets" })).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: /Open list/ }).click();
+  await page.locator(".mobile-view-switch").getByRole("button", { name: "List" }).click();
   const firstMarket = page.locator(".mobile-market-sheet .market-list-item").first();
   await expect(firstMarket).toHaveAttribute("href", /\/en\/map\?q=Seoul&when=all&market=/);
   await expect(firstMarket.locator(".list-copy strong").first()).toHaveAttribute("lang", "ko");
@@ -149,11 +149,11 @@ test("Today advances at Korean midnight in an open English map", async ({ page }
 test("an expired selected travel date is updated visibly at Korean midnight", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-28T14:59:59.000Z") });
   await page.goto("/en/map?when=date&date=2026-09-28&market=market-da5046982c1c50ff");
-  await expect(page.locator('input[type="date"]')).toHaveValue("2026-09-28");
+  await expect(page.locator('.direct-date input[type="date"]')).toHaveValue("2026-09-28");
 
   await page.clock.fastForward(2_000);
 
-  await expect(page.locator('input[type="date"]')).toHaveValue("2026-09-29");
+  await expect(page.locator('.direct-date input[type="date"]')).toHaveValue("2026-09-29");
   await expect(page).toHaveURL(/date=2026-09-29/);
   await expect(page.getByRole("status").filter({ hasText: "The selected date has passed" })).toBeVisible();
 });
@@ -168,7 +168,7 @@ test("English guide and map fit the mobile viewport", async ({ page }) => {
 
 test("English empty results can be cleared", async ({ page }) => {
   await page.goto("/en/map?q=NoSuchProvince&when=all");
-  await page.getByRole("button", { name: /Open list/ }).click();
+  await page.locator(".mobile-view-switch").getByRole("button", { name: "List" }).click();
   const sheet = page.locator(".mobile-market-sheet");
   await expect(sheet.getByRole("heading", { name: "No markets match these filters" })).toBeVisible();
   await sheet.getByRole("button", { name: "Reset filters" }).click();
@@ -178,7 +178,7 @@ test("English empty results can be cleared", async ({ page }) => {
 test("English data loading error offers a working retry", async ({ page }) => {
   await page.route("**/data/markets.json", (route) => route.fulfill({ status: 500, body: "unavailable" }));
   await page.goto("/en/map");
-  await page.getByRole("button", { name: /Open list/ }).click();
+  await page.locator(".mobile-view-switch").getByRole("button", { name: "List" }).click();
   const sheet = page.locator(".mobile-market-sheet");
   await expect(sheet.getByRole("heading", { name: "Could not load market information" })).toBeVisible();
   await page.unroute("**/data/markets.json");

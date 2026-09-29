@@ -6,7 +6,7 @@ test("renders market detail actions in a mobile-safe order", async ({ page }) =>
   await expect(page.getByRole("region", { name: "다음 장날" })).toBeVisible();
   await page.getByRole("button", { name: "지도·길찾기" }).click();
   await expect(page.getByRole("link", { name: "NAVER 지도 — 길찾기" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Google 지도 — 위치 보기" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "카카오맵 — 길찾기" })).toBeVisible();
 });
 
 test("shows the no-coordinate market without a directions action", async ({ page }) => {

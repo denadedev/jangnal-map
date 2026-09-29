@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
 import { getMarketPagePath } from "../lib/market-path";
-import { getNextMarketDate } from "../lib/schedule";
+import { getMarketDates, getNextMarketDate } from "../lib/schedule";
 import type { Locale } from "../lib/locale";
 import { getUiCopy } from "../lib/ui-copy";
 
@@ -38,17 +38,24 @@ export function MarketShareButton({ locale = "ko", market, sharePath, today, sel
       const nextDate = market.schedule.kind === "digit-pair"
         ? getNextMarketDate(market, referenceDate)
         : null;
-      const messageDate = locale === "en" ? selectedDate ?? nextDate : nextDate;
+      const messageDate = selectedDate ?? nextDate;
       const datePrefix = messageDate ? locale === "en"
         ? `${new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric" }).format(messageDate)}: `
         : `${messageDate.getMonth() + 1}월 ${messageDate.getDate()}일 ` : "";
+      const isSelectedNonMarketDay = selectedDate && market.schedule.kind === "digit-pair"
+        && getMarketDates(market, { start: selectedDate, end: selectedDate }).length === 0;
+      const shareText = isSelectedNonMarketDay
+        ? locale === "en"
+          ? `No market day at ${market.name} on ${new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric" }).format(selectedDate)}. Check before visiting.`
+          : `${selectedDate.getMonth() + 1}월 ${selectedDate.getDate()}일은 ${market.name} 장날이 아니에요. 방문 전 확인해 주세요.`
+        : locale === "en" ? `${datePrefix}${market.name}. Want to visit?` : `${datePrefix}${market.name}, 같이 갈래요?`;
       const url = `${window.location.origin}${sharePath ?? getMarketPagePath(market)}`;
 
       if (typeof navigator.share === "function") {
         try {
           await navigator.share({
             title: `${market.name} | ${ui.brand}`,
-            text: locale === "en" ? `${datePrefix}${market.name}. Want to visit?` : `${datePrefix}${market.name}, 같이 갈래요?`,
+            text: shareText,
             url,
           });
           return;

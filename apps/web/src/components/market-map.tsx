@@ -24,6 +24,7 @@ interface MarketMapProps {
   onCameraRestoreComplete?: (focusSelectedMarker: boolean) => void;
   onStatusChange?: (status: MapStatus) => void;
   onLocationError?: (message: string, permissionDenied: boolean) => void;
+  onFallbackList?: () => void;
 }
 
 type MapStatus = "idle" | "loading" | "ready" | "error";
@@ -54,7 +55,7 @@ const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, (charact
   '"': "&quot;",
 })[character] ?? character);
 
-export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQuery = "", referenceDate, selectedId, clientId, mobileOcclusion, mobileSheetHeight = 0, onSelect, onLocationChange, onCameraRestoreComplete, onStatusChange, onLocationError }: MarketMapProps) {
+export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQuery = "", referenceDate, selectedId, clientId, mobileOcclusion, mobileSheetHeight = 0, onSelect, onLocationChange, onCameraRestoreComplete, onStatusChange, onLocationError, onFallbackList }: MarketMapProps) {
   const ui = getUiCopy(locale);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<NaverMapInstance | null>(null);
@@ -110,6 +111,16 @@ export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQu
       mapRef.current = null;
     };
   }, [clientId]);
+
+  useEffect(() => {
+    if (status !== "ready" || !containerRef.current || !mapRef.current || typeof ResizeObserver === "undefined") return;
+    const map = mapRef.current;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry?.contentRect.width > 0 && entry.contentRect.height > 0) map.autoResize();
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [status]);
 
   const moveToSearchResults = () => {
     const map = mapRef.current;
@@ -407,6 +418,7 @@ export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQu
 
   return (
     <section className="map-stage" aria-label={ui.mapLabel}>
+      <div className="mobile-map-heading"><strong>{locale === "en" ? "Market map" : "전국 시장 지도"}</strong><span>{locale === "en" ? "Select a pin" : "핀을 눌러 상세 보기"}</span></div>
       <div className="map-canvas-shell">
         <div ref={containerRef} className="map-canvas" aria-hidden={showFallback} />
       </div>
@@ -423,8 +435,11 @@ export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQu
             <span className="fallback-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="m9 18-6 3V6l6-3 6 3 6-3v15l-6 3-6-3Zm0 0V3m6 18V6" /></svg>
             </span>
-            <strong>{ui.mapFallbackTitle}</strong>
-            <p>{ui.mapFallbackBody}</p>
+            <strong className="desktop-map-fallback-title">{ui.mapFallbackTitle}</strong>
+            <strong className="mobile-map-fallback-title">{locale === "en" ? "Could not load the map" : "지도를 불러올 수 없어요"}</strong>
+            <p className="desktop-map-fallback-body">{ui.mapFallbackBody}</p>
+            <p className="mobile-map-fallback-body">{locale === "en" ? "You can still browse and search the list. Check a market’s date and address before visiting." : "목록과 검색은 계속 사용할 수 있어요. 시장의 방문일과 주소를 확인해 주세요."}</p>
+            {onFallbackList ? <button type="button" className="mobile-map-fallback-list" onClick={onFallbackList}>{locale === "en" ? "Continue with list" : "목록으로 계속"}</button> : null}
           </div>
         </div>
       ) : null}
@@ -459,6 +474,7 @@ export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQu
         {locationMessage ? <p className={`location-message is-${locationStatus}`} role="status">{locationMessage}</p> : null}
       </div>
       <div className="map-legend" aria-hidden="true"><span /> {ui.mapLegend}</div>
+      <p className="mobile-map-caption">{locale === "en" ? "Map pins reflect the selected dates. Check each market before visiting." : "지도 핀은 선택한 날짜 조건을 반영합니다. 방문 전 시장 정보를 확인해 주세요."}</p>
     </section>
   );
 }

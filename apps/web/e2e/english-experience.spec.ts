@@ -31,24 +31,27 @@ test("English map searches Seoul and keeps the selected market in an English URL
   const response = await page.goto("/en/map?q=Seoul&when=all");
 
   expect(response?.status()).toBe(200);
-  await expect(page.getByRole("searchbox", { name: "Search a region in English or a market name in Korean" })).toHaveValue("Seoul");
-  await expect(page.locator('.search-field input[type="search"]')).toHaveAccessibleName("Search a region in English or a market name in Korean");
+  await expect(page.locator(".mobile-search-launch")).toContainText("Seoul");
+  await page.getByRole("navigation", { name: "Main views" }).getByRole("button", { name: "Search" }).click();
+  await expect(page.getByRole("dialog", { name: "Market search" }).getByRole("searchbox", { name: "Search a region in English or a market name in Korean" })).toHaveValue("Seoul");
+  await page.getByRole("dialog", { name: "Market search" }).getByRole("button", { name: "Back" }).click();
   await expect(page.getByRole("button", { name: "All markets" })).toHaveAttribute("aria-pressed", "true");
   await page.locator(".mobile-view-switch").getByRole("button", { name: "List" }).click();
-  const firstMarket = page.locator(".mobile-market-sheet .market-list-item").first();
+  const firstMarket = page.locator(".mobile-market-results .market-list-item").first();
   await expect(firstMarket).toHaveAttribute("href", /\/en\/map\?q=Seoul&when=all&market=/);
   await expect(firstMarket.locator(".list-copy strong").first()).toHaveAttribute("lang", "ko");
   await firstMarket.click();
   await expect(page).toHaveURL(/\/en\/map\?.*market=/);
-  await expect(page.locator(".mobile-market-sheet").getByRole("button", { name: "Maps & directions" })).toBeVisible();
-  await page.locator(".mobile-market-sheet").getByRole("button", { name: "Maps & directions" }).click();
+  await expect(page.locator(".mobile-market-sheet").getByRole("button", { name: "Choose directions" })).toBeVisible();
+  await page.locator(".mobile-market-sheet").getByRole("button", { name: "Choose directions" }).click();
   await expect(page.locator(".mobile-market-sheet").getByRole("link", { name: "Google Maps — View location" })).toHaveAttribute("href", /google\.com\/maps\/search\/\?api=1&query=/);
-  await expect(page.locator(".mobile-market-sheet").getByRole("button", { name: "Maps & directions" })).toBeFocused();
+  await expect(page.locator(".mobile-market-sheet").getByRole("button", { name: "Choose directions" })).toBeFocused();
   await page.keyboard.press("Escape");
-  await expect(page.locator(".mobile-market-sheet").getByRole("button", { name: "Maps & directions" })).toHaveAttribute("aria-expanded", "false");
+  await expect(page.locator(".mobile-market-sheet").getByRole("button", { name: "Choose directions" })).toHaveAttribute("aria-expanded", "false");
   await expect(page.locator(".mobile-market-sheet")).toHaveClass(/is-detail/);
   await page.keyboard.press("Escape");
-  await expect(page.locator(".mobile-market-sheet")).toHaveClass(/is-results/);
+  await expect(page.locator(".mobile-market-sheet")).toHaveCount(0);
+  await expect(page.locator(".mobile-market-results")).toBeVisible();
 });
 
 test("English pages expose distinct search metadata", async ({ page }) => {
@@ -94,7 +97,7 @@ test("a shared English market link confirms the chosen travel date", async ({ pa
   await expect(selectedDate).toContainText("Oct 5, 2026");
 });
 
-test("the English map preview keeps its View details action fully on screen", async ({ page }) => {
+test("an old English preview state opens full detail with its primary action on screen", async ({ page }) => {
   const marketId = "market-c8527eb76514f0dd";
   await page.goto(`/en/map?when=date&date=2026-10-05&market=${marketId}`);
   await expect(page.locator(".mobile-market-sheet")).toHaveClass(/is-detail/);
@@ -103,7 +106,7 @@ test("the English map preview keeps its View details action fully on screen", as
     window.dispatchEvent(new PopStateEvent("popstate"));
   }, marketId);
 
-  const action = page.locator(".mobile-market-sheet").getByRole("button", { name: "View details" });
+  const action = page.locator(".mobile-market-sheet").getByRole("button", { name: "Choose directions" });
   await expect(action).toBeVisible();
   const box = await action.boundingBox();
   expect(box).not.toBeNull();
@@ -119,8 +122,8 @@ test("language switch keeps the selected English map filters", async ({ page }) 
 
 test("browser Forward restores English search and date filters from the URL", async ({ page }) => {
   await page.goto("/en/map?q=Seoul&when=all");
-  await expect(page.locator('.search-field input[type="search"]')).toHaveValue("Seoul");
-  await expect(page.locator(".mobile-market-sheet")).toContainText("195 market results");
+  await expect(page.locator(".mobile-search-launch")).toContainText("Seoul");
+  await expect(page.locator(".mobile-market-results")).toContainText("195 markets for these dates");
   await expect(page).toHaveURL(/\/en\/map\?q=Seoul&when=all$/);
   await page.evaluate(() => {
     window.history.pushState({}, "", "/en/map?q=Busan&when=today");
@@ -132,7 +135,7 @@ test("browser Forward restores English search and date filters from the URL", as
   await page.goForward();
   await expect(page).toHaveURL(/\/en\/map\?q=Busan&when=today$/);
 
-  await expect(page.locator('.search-field input[type="search"]')).toHaveValue("Busan");
+  await expect(page.locator(".mobile-search-launch")).toContainText("Busan");
   await expect(page.getByRole("button", { name: "Market days today" })).toHaveAttribute("aria-pressed", "true");
 });
 
@@ -169,21 +172,21 @@ test("English guide and map fit the mobile viewport", async ({ page }) => {
 test("English empty results can be cleared", async ({ page }) => {
   await page.goto("/en/map?q=NoSuchProvince&when=all");
   await page.locator(".mobile-view-switch").getByRole("button", { name: "List" }).click();
-  const sheet = page.locator(".mobile-market-sheet");
-  await expect(sheet.getByRole("heading", { name: "No markets match these filters" })).toBeVisible();
-  await sheet.getByRole("button", { name: "Reset filters" }).click();
-  await expect(page.locator('.search-field input[type="search"]')).toHaveValue("");
+  const results = page.locator(".mobile-market-results");
+  await expect(results.getByRole("heading", { name: "No markets match these filters" })).toBeVisible();
+  await results.getByRole("button", { name: "Reset filters" }).click();
+  await expect(page.locator(".mobile-search-launch")).not.toContainText("NoSuchProvince");
 });
 
 test("English data loading error offers a working retry", async ({ page }) => {
   await page.route("**/data/markets.json", (route) => route.fulfill({ status: 500, body: "unavailable" }));
   await page.goto("/en/map");
   await page.locator(".mobile-view-switch").getByRole("button", { name: "List" }).click();
-  const sheet = page.locator(".mobile-market-sheet");
-  await expect(sheet.getByRole("heading", { name: "Could not load market information" })).toBeVisible();
+  const results = page.locator(".mobile-market-results");
+  await expect(results.getByRole("heading", { name: "Could not load market information" })).toBeVisible();
   await page.unroute("**/data/markets.json");
-  await sheet.getByRole("button", { name: "Try again" }).click();
-  await expect(sheet.getByRole("heading", { name: "Could not load market information" })).toHaveCount(0);
+  await results.getByRole("button", { name: "Try again" }).click();
+  await expect(results.getByRole("heading", { name: "Could not load market information" })).toHaveCount(0);
 });
 
 test("English market detail distinguishes unconfirmed schedules and missing coordinates", async ({ page }) => {
@@ -192,7 +195,7 @@ test("English market detail distinguishes unconfirmed schedules and missing coor
 
   await page.goto("/en/map?when=all&market=market-58b918874207f50d");
   await expect(page.locator(".mobile-market-sheet")).toContainText("Location needs confirmation");
-  await expect(page.locator(".mobile-market-sheet").getByRole("button", { name: "Maps & directions" })).toHaveCount(0);
+  await expect(page.locator(".mobile-market-sheet").getByRole("button", { name: "Choose directions" })).toHaveCount(0);
 });
 
 test("English date controls do not overlap at narrow desktop width", async ({ page }) => {

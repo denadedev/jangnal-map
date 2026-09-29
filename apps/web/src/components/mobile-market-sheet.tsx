@@ -19,7 +19,6 @@ export interface MobileMarketSheetProps {
   describedBy?: string;
   contentRef?: RefObject<HTMLDivElement | null>;
   onClose?: () => void;
-  onListView?: () => void;
   onPreviewOpenDetail?: () => void;
 }
 
@@ -43,7 +42,6 @@ export function MobileMarketSheet({
   describedBy,
   contentRef,
   onClose,
-  onListView,
   onPreviewOpenDetail,
 }: MobileMarketSheetProps) {
   const ui = getUiCopy(locale);
@@ -77,7 +75,7 @@ export function MobileMarketSheet({
     if (mode !== "detail" || snap !== "full" || !sheetRef.current) return;
     const sheet = sheetRef.current;
     const previousActive = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const backgroundNodes = [".map-stage", ".market-filters", ".mobile-home-controls", ".mobile-app-bar"]
+    const backgroundNodes = [".map-stage", ".mobile-market-results", ".mobile-primary-nav", ".market-filters", ".mobile-home-controls", ".mobile-app-bar"]
       .map((selector) => document.querySelector<HTMLElement>(selector))
       .filter((element): element is HTMLElement => Boolean(element));
     backgroundNodes.forEach((element) => element.setAttribute("inert", ""));
@@ -140,15 +138,6 @@ export function MobileMarketSheet({
     onSnapChange(nextSnap(snap, delta < 0 ? "up" : "down"));
   };
 
-  const handleListView = () => {
-    if (onListView) {
-      onListView();
-      return;
-    }
-    onModeChange("results");
-    onSnapChange("full");
-  };
-
   return (
     <section
       ref={sheetRef}
@@ -193,18 +182,19 @@ export function MobileMarketSheet({
         </button>
       ) : (
         <div className="mobile-market-sheet-heading">
-          <h2>{title}</h2>
           {mode === "detail" ? (
-            <div className="mobile-market-sheet-heading-actions">
-              <button type="button" className="mobile-market-sheet-close-button" onClick={handleClose}>{ui.close}</button>
-              <button type="button" className="mobile-market-sheet-list-button" onClick={handleListView}>{ui.backToList}</button>
-            </div>
+            <>
+              <button type="button" className="mobile-market-sheet-back-button" aria-label={locale === "en" ? "Back to exploration" : "탐색으로 돌아가기"} onClick={handleClose}>
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg>
+              </button>
+              <h2>{locale === "en" ? "Market information" : "시장 정보"}</h2>
+            </>
           ) : mode === "preview" ? (
-            <button type="button" className="mobile-market-sheet-close-button" onClick={handleClose}>{ui.close}</button>
+            <><h2>{title}</h2><button type="button" className="mobile-market-sheet-close-button" onClick={handleClose}>{ui.close}</button></>
           ) : snap === "half" ? (
-            <button type="button" className="mobile-market-sheet-expand-button" onClick={() => onSnapChange("full")}>{ui.enlargeList}</button>
+            <><h2>{title}</h2><button type="button" className="mobile-market-sheet-expand-button" onClick={() => onSnapChange("full")}>{ui.enlargeList}</button></>
           ) : (
-            <button type="button" className="mobile-market-sheet-map-button" onClick={() => onSnapChange("collapsed")}>{ui.viewMap}</button>
+            <><h2>{title}</h2><button type="button" className="mobile-market-sheet-map-button" onClick={() => onSnapChange("collapsed")}>{ui.viewMap}</button></>
           )}
         </div>
       )}

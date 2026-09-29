@@ -1,34 +1,31 @@
-import { expect, Page, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 async function selectMarket(page: Page) {
-  await page.setViewportSize({ width: 375, height: 844 });
   await page.goto("/?when=all");
-  await page.getByRole("searchbox", { name: "시장명 또는 지역 검색" }).fill("평택");
-  const sheet = page.locator(".mobile-market-sheet");
-  if (await sheet.getAttribute("data-snap") === "collapsed") {
-    await sheet.getByRole("button", { name: "목록 열기" }).click();
-  }
-  await page.locator('.mobile-market-sheet a[data-market-id]').first().click();
+  await page.getByRole("navigation", { name: "주요 화면" }).getByRole("button", { name: "검색" }).click();
+  const search = page.getByRole("dialog", { name: "시장 검색" });
+  await search.getByRole("searchbox", { name: "시장명 또는 지역 검색" }).fill("평택");
+  await search.getByRole("button", { name: /전체 결과 보기/ }).click();
+  await page.locator(".mobile-market-results a[data-market-id]").first().click();
 }
 
-test("opens selected market detail at full height and returns to the list", async ({ page }) => {
+test("opens a full-screen market detail and returns to inline results", async ({ page }) => {
   await selectMarket(page);
+  const detail = page.locator(".mobile-market-sheet.is-detail");
+  await expect(detail).toHaveAttribute("aria-modal", "true");
+  await expect(detail.getByRole("heading", { name: "시장 정보" })).toBeVisible();
+  await expect(detail.getByRole("button", { name: "탐색으로 돌아가기" })).toBeVisible();
 
-  const sheet = page.locator(".mobile-market-sheet");
-  await expect(sheet).toHaveAttribute("data-snap", "full");
-  await expect(page.getByRole("button", { name: "닫기" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "목록으로" })).toBeVisible();
-
-  await page.getByRole("button", { name: "목록으로" }).click();
-  await expect(sheet).toHaveAttribute("data-snap", "full");
-  await expect(sheet).toHaveAttribute("aria-label", /시장 결과/);
+  await detail.getByRole("button", { name: "탐색으로 돌아가기" }).click();
+  await expect(detail).toHaveCount(0);
+  await expect(page.locator(".mobile-market-results")).toBeVisible();
+  await expect(page.locator(".explorer-grid")).toHaveAttribute("data-mobile-view", "list");
   await expect(page).not.toHaveURL(/market=/);
 });
 
-test("returns to the full result list when the map is unavailable", async ({ page }) => {
+test("returns to the list even when the map is unavailable", async ({ page }) => {
   await selectMarket(page);
-
-  await page.getByRole("button", { name: "닫기" }).click();
-  await expect(page.locator(".mobile-market-sheet")).toHaveAttribute("data-snap", "full");
-  await expect(page.getByRole("button", { name: "지도 보기" })).toBeVisible();
+  await page.getByRole("button", { name: "탐색으로 돌아가기" }).click();
+  await expect(page.locator(".mobile-market-results")).toBeVisible();
+  await expect(page.locator(".mobile-market-sheet.is-results")).toHaveCount(0);
 });

@@ -28,25 +28,24 @@ describe("MobileMarketSheet", () => {
     expect(onSnapChange).toHaveBeenCalledWith("full");
   });
 
-  it("returns from detail mode to results with the list action", async () => {
+  it("returns from full detail with the back action", async () => {
     const user = userEvent.setup();
-    const onModeChange = vi.fn();
-    const onSnapChange = vi.fn();
+    const onClose = vi.fn();
     render(
       <MobileMarketSheet
         snap="full"
-        onSnapChange={onSnapChange}
+        onSnapChange={vi.fn()}
         mode="detail"
-        onModeChange={onModeChange}
+        onModeChange={vi.fn()}
+        onClose={onClose}
         title="통복시장 상세"
       >
         <p>통복시장</p>
       </MobileMarketSheet>,
     );
 
-    await user.click(screen.getByRole("button", { name: "목록으로" }));
-    expect(onModeChange).toHaveBeenCalledWith("results");
-    expect(onSnapChange).toHaveBeenCalledWith("full");
+    await user.click(screen.getByRole("button", { name: "탐색으로 돌아가기" }));
+    expect(onClose).toHaveBeenCalledOnce();
   });
 
   it("opens full detail from the preview button, ArrowUp, and upward swipe", async () => {
@@ -116,7 +115,7 @@ describe("MobileMarketSheet", () => {
     );
     const sheet = screen.getByRole("dialog", { name: "통복시장 상세" });
     expect(screen.queryByRole("button", { name: "시트 손잡이" })).not.toBeInTheDocument();
-    const close = screen.getByRole("button", { name: "닫기" });
+    const close = screen.getByRole("button", { name: "탐색으로 돌아가기" });
     const detailAction = screen.getByRole("button", { name: "Detail action" });
 
     expect(sheet).toHaveFocus();

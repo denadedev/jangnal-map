@@ -1,25 +1,16 @@
 import { expect, test } from "@playwright/test";
 
-test("keeps every date filter chip visible at the narrow mobile width", async ({ page }) => {
+test("keeps date chips reachable in one horizontal strip at narrow mobile width", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 844 });
   await page.goto("/?when=all");
 
-  const metrics = await page.evaluate(() => {
-    const pills = document.querySelector<HTMLElement>(".filter-pills");
-    const dateInput = document.querySelector<HTMLElement>(".direct-date");
-    const dateSelection = [...document.querySelectorAll<HTMLElement>(".filter-pill")]
-      .find((element) => element.textContent?.trim() === "날짜 선택");
-    const pillsRect = pills?.getBoundingClientRect();
-    const dateSelectionRect = dateSelection?.getBoundingClientRect();
-    return {
-      dateInputDisplay: dateInput ? getComputedStyle(dateInput).display : "",
-      dateInputWidth: dateInput?.getBoundingClientRect().width ?? 0,
-      dateSelectionRight: dateSelectionRect?.right ?? 0,
-      pillsRight: pillsRect?.right ?? 0,
-    };
-  });
-
-  expect(metrics.dateInputDisplay).toBe("none");
-  expect(metrics.dateInputWidth).toBe(0);
-  expect(metrics.dateSelectionRight).toBeLessThanOrEqual(metrics.pillsRight + 1);
+  const strip = page.locator(".mobile-home-controls .filter-pills");
+  await expect(page.getByRole("button", { name: "전체" })).toHaveAttribute("aria-pressed", "true");
+  await expect(strip.locator('.filter-pill[aria-pressed="true"]')).toBeInViewport();
+  expect(await strip.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+  const dateSelection = strip.getByRole("button", { name: "날짜 선택" });
+  await dateSelection.scrollIntoViewIfNeeded();
+  await expect(dateSelection).toBeInViewport();
+  await expect(dateSelection).toHaveCSS("height", "44px");
+  expect(await page.locator(".mobile-home-controls .direct-date").evaluate((element) => element.getBoundingClientRect().width)).toBeLessThanOrEqual(1);
 });

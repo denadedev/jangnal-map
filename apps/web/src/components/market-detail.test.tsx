@@ -56,6 +56,36 @@ describe("MarketDetail", () => {
     expect(within(selectedDate).getByText(/Sep 5, 2026/)).toBeInTheDocument();
   });
 
+  it("opens a mobile visit-date calendar and applies the selected day", async () => {
+    const user = userEvent.setup();
+    const onVisitDateChange = vi.fn();
+    render(<MarketDetail mobile market={marketFixture} today={new Date(2026, 8, 29)} selectedDate={new Date(2026, 8, 30)} onVisitDateChange={onVisitDateChange} onClose={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "방문 날짜 바꾸기" }));
+    const picker = screen.getByRole("dialog", { name: "방문 날짜 선택" });
+    await user.click(within(picker).getByRole("button", { name: "다음 달" }));
+    await user.click(within(picker).getByRole("button", { name: "2026년 10월 5일" }));
+    await user.click(within(picker).getByRole("button", { name: "이 날짜 적용" }));
+
+    expect(onVisitDateChange).toHaveBeenCalledWith("2026-10-05");
+  });
+
+  it("keeps keyboard focus inside the mobile date picker and returns it on close", async () => {
+    const user = userEvent.setup();
+    render(<MarketDetail mobile market={marketFixture} today={new Date(2026, 8, 29)} selectedDate={new Date(2026, 8, 30)} onVisitDateChange={vi.fn()} onClose={vi.fn()} />);
+    const opener = screen.getByRole("button", { name: "방문 날짜 바꾸기" });
+    await user.click(opener);
+    const picker = screen.getByRole("dialog", { name: "방문 날짜 선택" });
+    const close = within(picker).getByRole("button", { name: "닫기" });
+    expect(close).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(within(picker).getByRole("button", { name: "이 날짜 적용" })).toHaveFocus();
+    await user.keyboard("{Escape}");
+    expect(picker).not.toBeInTheDocument();
+    expect(opener).toHaveFocus();
+  });
+
   it("explains a Korean visit date without implying a mixed market is entirely closed", () => {
     render(<MarketDetail market={marketFixture} today={new Date(2026, 8, 3)} selectedDate={new Date(2026, 8, 6)} onClose={vi.fn()} />);
 

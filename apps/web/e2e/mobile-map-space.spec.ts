@@ -15,6 +15,21 @@ test("keeps the map and results in the same scrollable mobile page", async ({ pa
   expect(layout.scrollable).toBe(true);
 });
 
+test("scrolls the discovery heading with both map and list results", async ({ page }) => {
+  await page.goto("/?when=all");
+  const scroll = page.locator(".explorer-grid");
+  const heading = page.getByRole("heading", { name: "오늘, 어디 장이 설까요?" });
+  const navigation = page.getByRole("navigation", { name: "주요 화면" });
+
+  for (const view of ["지도", "목록"]) {
+    await navigation.getByRole("button", { name: view }).click();
+    await scroll.evaluate((element) => { element.scrollTop = 0; });
+    const before = await heading.evaluate((element) => element.getBoundingClientRect().top);
+    await scroll.evaluate((element) => { element.scrollTop = 140; });
+    await expect.poll(() => heading.evaluate((element) => element.getBoundingClientRect().top)).toBeLessThan(before - 100);
+  }
+});
+
 test("keeps navigation visible while map and results scroll in short viewports", async ({ page }) => {
   for (const viewport of [{ width: 320, height: 568 }, { width: 375, height: 667 }, { width: 430, height: 844 }]) {
     await page.setViewportSize(viewport);

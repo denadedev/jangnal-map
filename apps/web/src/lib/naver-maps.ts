@@ -38,7 +38,7 @@ export interface NaverMarker {
 
 export interface NaverMapsNamespace {
   maps: {
-    Map: new (element: HTMLElement, options: { center: NaverLatLng; zoom: number; minZoom?: number }) => NaverMapInstance;
+    Map: new (element: HTMLElement, options: { center: NaverLatLng; zoom: number; minZoom?: number; draggable?: boolean; scrollWheel?: boolean }) => NaverMapInstance;
     LatLng: new (latitude: number, longitude: number) => NaverLatLng;
     Marker: new (options: {
       map: NaverMapInstance;

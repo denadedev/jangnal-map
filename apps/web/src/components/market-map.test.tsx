@@ -11,6 +11,39 @@ describe("MarketMap current location", () => {
     vi.unstubAllGlobals();
   });
 
+  it("lets a mobile page scroll over the embedded map", async () => {
+    const mapOptions = vi.fn();
+    class FakeMap {
+      constructor(_element: HTMLElement, options: unknown) { mapOptions(options); }
+      getZoom = () => 7;
+      getBounds = () => ({
+        getNE: () => ({ lat: () => 38, lng: () => 130 }),
+        getSW: () => ({ lat: () => 33, lng: () => 124 }),
+      });
+    }
+    vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: true }));
+    window.naver = {
+      maps: {
+        Map: FakeMap,
+        LatLng: class FakeLatLng {},
+        Marker: class FakeMarker { setMap = vi.fn(); },
+        Point: class FakePoint {},
+        Event: { addListener: () => ({}), removeListener: () => undefined },
+      },
+    } as unknown as NaverMapsNamespace;
+
+    render(<MarketMap
+      markets={[]}
+      referenceDate={new Date(2026, 8, 7)}
+      selectedId={null}
+      clientId="test-client-id"
+      onSelect={() => undefined}
+      onLocationChange={() => undefined}
+    />);
+
+    await waitFor(() => expect(mapOptions).toHaveBeenCalledWith(expect.objectContaining({ draggable: false, scrollWheel: false })));
+  });
+
   it("reports a successful current location to its parent", async () => {
     const panTo = vi.fn();
     const setZoom = vi.fn();

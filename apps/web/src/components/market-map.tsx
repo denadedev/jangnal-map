@@ -92,13 +92,12 @@ export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQu
     loadNaverMaps(clientId)
       .then((naver) => {
         if (cancelled || !containerRef.current) return;
-        const allowMapDrag = !window.matchMedia?.("(max-width: 700px)").matches;
         const map = new naver.maps.Map(containerRef.current, {
           center: new naver.maps.LatLng(36.35, 127.8),
           zoom: 7,
           minZoom: 6,
-          draggable: allowMapDrag,
-          scrollWheel: allowMapDrag,
+          draggable: false,
+          scrollWheel: false,
         });
         mapRef.current = map;
         setStatus("ready");
@@ -234,9 +233,7 @@ export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQu
         const market = item.market;
         const selected = market.id === selectedId;
         const timing = formatMarketTiming(market, referenceDate, locale);
-        const actionLabel = typeof window.matchMedia === "function" && window.matchMedia("(max-width: 700px)").matches
-          ? ui.mapPreview
-          : ui.viewDetail;
+        const actionLabel = ui.mapPreview;
         const marker = new naver.maps.Marker({
           map,
           position: new naver.maps.LatLng(market.latitude, market.longitude),

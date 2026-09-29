@@ -91,7 +91,7 @@ describe("MarketExplorer map-origin selection", () => {
     await userEvent.click(await screen.findByRole("button", { name: "지도에서 첫 시장 선택" }));
     await waitFor(() => expect(window.history.state.mobileMarketView).toBe("detail"));
     expect(screen.getByRole("article", { name: "지도선택시장 상세정보" })).toBeInTheDocument();
-    expect(document.querySelector(".mobile-market-sheet")).not.toBeInTheDocument();
+    expect(document.querySelector(".mobile-market-sheet")).toHaveClass("is-detail");
   });
 
   it("returns to the map page on Back and reopens full detail on Forward", async () => {
@@ -146,7 +146,7 @@ describe("MarketExplorer map-origin selection", () => {
     const user = userEvent.setup();
     render(<MarketExplorer today={new Date(2026, 8, 5)} mapClientId="" />);
 
-    expect(await screen.findAllByRole("heading", { name: "시장 정보를 불러오지 못했어요" })).toHaveLength(2);
+    expect(await screen.findAllByRole("heading", { name: "시장 정보를 불러오지 못했어요" })).toHaveLength(1);
     const results = document.querySelector<HTMLElement>(".mobile-market-results");
     if (!results) throw new Error("Mobile market results were not rendered");
     await user.click(within(results).getByRole("button", { name: "다시 시도" }));

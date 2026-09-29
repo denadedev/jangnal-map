@@ -31,13 +31,13 @@
 .footer p { margin: 4px 0 0; }
 .footer a { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 
-@media (max-width: 700px) {
+@media screen {
   .header { min-height: 59px; padding: 0 16px; }
   .main { width: min(100% - 24px, 760px); padding: 24px 0 40px; }
   .hero, .section, .footer { padding: 22px 20px; }
   .actions { flex-direction: column; }
   .primary, .secondary { width: 100%; }
   .actions[data-mobile-action-bar] { position: relative; padding-bottom: 70px; }
-  .actions[data-mobile-action-bar] [data-mobile-primary-action] { position: fixed; z-index: 20; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); left: 12px; border-color: var(--ink); background: var(--ink); color: white; box-shadow: 0 8px 20px rgb(37 35 31 / 18%); }
-  .actions[data-mobile-action-bar] :global(.directions-menu-options) { position: fixed; z-index: 21; right: 12px; bottom: calc(68px + env(safe-area-inset-bottom)); left: 12px; }
+  .actions[data-mobile-action-bar] [data-mobile-primary-action] { position: fixed; z-index: 20; right: calc(var(--app-side) + 12px); bottom: calc(12px + env(safe-area-inset-bottom)); left: calc(var(--app-side) + 12px); width: auto; border-color: var(--ink); background: var(--ink); color: white; box-shadow: 0 8px 20px rgb(37 35 31 / 18%); }
+  .actions[data-mobile-action-bar] :global(.directions-menu-options) { position: fixed; z-index: 21; right: calc(var(--app-side) + 12px); bottom: calc(68px + env(safe-area-inset-bottom)); left: calc(var(--app-side) + 12px); }
 }

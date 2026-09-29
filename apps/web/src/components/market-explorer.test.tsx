@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -185,21 +185,20 @@ describe("MarketExplorer", () => {
     })));
     const { container } = render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
-    expect(screen.getByRole("heading", { level: 1, name: "오늘 장날" })).toBeInTheDocument();
-    expect(screen.getByText("전국 5일장·전통시장 일정 지도")).toBeInTheDocument();
+    expect(within(container.querySelector(".mobile-brand-row") as HTMLElement).getByRole("link", { name: "오늘 장날 홈" })).toBeInTheDocument();
     expect((await screen.findAllByText("운천전통시장")).length).toBeGreaterThan(0);
     expect(screen.getAllByText("4·9일장").length).toBeGreaterThan(0);
     expect(screen.getAllByText("5·10일장").length).toBeGreaterThan(0);
     expect(screen.getByText("지도 없이도 시장을 찾을 수 있어요")).toBeInTheDocument();
     expect(within(container.querySelector(".mobile-market-results") as HTMLElement).getByText("운천전통시장")).toBeInTheDocument();
     expect(container.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "map");
-    expect(screen.getAllByText("2곳").length).toBeGreaterThan(0);
+    expect(screen.getByRole("heading", { name: "조건에 맞는 시장 2곳" })).toBeInTheDocument();
   });
 
   it("shows the actual seven-day range beside the result count", async () => {
     render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
 
-    expect(await screen.findByText("9/4–9/10")).toBeInTheDocument();
+    expect(screen.getByText("오늘, 어디 장이 설까요?").closest(".mobile-discovery-context")).toHaveTextContent("9/4–9/10");
   });
 
   it("shows daily markets and omits directions when coordinates are missing", async () => {
@@ -247,9 +246,8 @@ describe("MarketExplorer", () => {
     expect(screen.getByRole("link", { name: /통복시장/ })).toBeInTheDocument();
     expect(screen.getByText("이날은 5일장이 아니에요")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "날짜 제한 해제" })).toBeInTheDocument();
-    const heading = within(screen.getByRole("complementary", { name: "시장 목록" }));
-    expect(heading.getByText("검색된 시장")).toBeInTheDocument();
-    expect(heading.getByText("날짜 조건 일치 0곳")).toBeInTheDocument();
+    const results = within(screen.getByRole("region", { name: "시장 결과" }));
+    expect(results.getByRole("heading", { name: "선택일에 장이 서는 시장 0곳" })).toBeInTheDocument();
   });
 
   it("keeps an unconfirmed schedule findable without claiming it is closed", async () => {
@@ -277,10 +275,14 @@ describe("MarketExplorer", () => {
 
   it("lets a visitor choose a date inside detail without losing the selected market", async () => {
     const user = userEvent.setup();
+    window.history.replaceState(null, "", "/?when=date&date=2026-09-05");
     render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
 
     await user.click(await screen.findByRole("link", { name: /통복시장/ }));
-    fireEvent.change(screen.getByLabelText("방문 날짜 선택"), { target: { value: "2026-09-06" } });
+    await user.click(screen.getByRole("button", { name: "방문 날짜 바꾸기" }));
+    const picker = screen.getByRole("dialog", { name: "방문 날짜 선택" });
+    await user.click(within(picker).getByRole("button", { name: "2026년 9월 6일" }));
+    await user.click(within(picker).getByRole("button", { name: "이 날짜 적용" }));
 
     expect(screen.getByRole("article", { name: "통복시장 상세정보" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "선택한 방문 날짜" })).toHaveTextContent("이날은 5일장이 아니에요");
@@ -315,7 +317,7 @@ describe("MarketExplorer", () => {
     await user.click(await screen.findByRole("button", { name: "전체" }));
 
     expect(screen.getByText("일정미확인시장")).toBeInTheDocument();
-    expect(screen.getByText("4곳")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "조건에 맞는 시장 4곳" })).toBeInTheDocument();
     await waitFor(() => expect(window.location.search).toContain("when=all"));
   });
 
@@ -331,12 +333,12 @@ describe("MarketExplorer", () => {
     const detail = screen.getByRole("article", { name: "통복시장 상세정보" });
     expect(within(detail).getByRole("heading", { name: "통복시장" })).toBeInTheDocument();
     expect(within(detail).queryByRole("link", { name: "통복시장" })).not.toBeInTheDocument();
-    expect(screen.getByText("9월 5일 토요일")).toBeInTheDocument();
+    expect(detail).toHaveTextContent("9월 5일");
     await waitFor(() => expect(window.location.search).toContain("q=%ED%8F%89%ED%83%9D"));
     expect(window.location.search).toContain("market=tongbok");
   });
 
-  it("links reviewed market titles to their canonical page in desktop and mobile details", async () => {
+  it("links reviewed market titles to their canonical page in mobile details", async () => {
     const user = userEvent.setup();
     vi.stubGlobal("matchMedia", vi.fn((query: string) => ({
       matches: query === "(max-width: 700px)",
@@ -359,7 +361,7 @@ describe("MarketExplorer", () => {
     await user.click((await screen.findAllByRole("link", { name: /통복시장/ }))[0]);
 
     const details = await screen.findAllByRole("article", { name: "통복시장 상세정보" });
-    expect(details).toHaveLength(2);
+    expect(details).toHaveLength(1);
     for (const detail of details) {
       expect(within(detail).getByRole("link", { name: "통복시장" })).toHaveAttribute(
         "href",
@@ -428,7 +430,7 @@ describe("MarketExplorer", () => {
 
     await user.click((await screen.findAllByRole("link", { name: /운천전통시장/ }))[0]);
     const selectedDetails = await screen.findAllByRole("article", { name: "운천전통시장 상세정보" });
-    expect(selectedDetails).toHaveLength(2);
+    expect(selectedDetails).toHaveLength(1);
     for (const detail of selectedDetails) {
       expect(within(detail).queryByRole("link", { name: "운천전통시장" })).not.toBeInTheDocument();
     }
@@ -451,7 +453,9 @@ describe("MarketExplorer", () => {
     const user = userEvent.setup();
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
+    await user.click(screen.getByRole("button", { name: "메뉴 열기" }));
     expect(screen.getByRole("link", { name: "불편 신고" })).toHaveAttribute("href", "/report?kind=service");
+    await user.click(screen.getByRole("button", { name: "메뉴 닫기" }));
     await user.click(await screen.findByRole("link", { name: /운천전통시장/ }));
     expect(screen.getByRole("link", { name: "정보가 다른가요? 수정 제보" })).toHaveAttribute(
       "href",
@@ -471,20 +475,20 @@ describe("MarketExplorer", () => {
     expect(shareAction.className).not.toMatch(/share/i);
   });
 
-  it("closes the desktop detail after switching markets without reopening earlier selections", async () => {
+  it("closes detail after switching markets without reopening earlier selections", async () => {
     const user = userEvent.setup();
     window.history.replaceState(null, "", "/?when=all");
     const { container } = render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
-    const list = container.querySelector<HTMLElement>(".list-pane");
-    const detail = container.querySelector<HTMLElement>(".detail-pane");
-    if (!list || !detail) throw new Error("Desktop panes were not rendered");
+    const results = container.querySelector<HTMLElement>(".mobile-market-results");
+    if (!results) throw new Error("Market results were not rendered");
 
-    await user.click(await within(list).findByRole("link", { name: /운천전통시장/ }));
-    await user.click(within(list).getByRole("link", { name: /통복시장/ }));
-    expect(within(detail).getByRole("article", { name: "통복시장 상세정보" })).toBeInTheDocument();
-    await user.click(within(detail).getByRole("button", { name: "시장 상세 닫기" }));
+    await user.click(await within(results).findByRole("link", { name: /운천전통시장/ }));
+    await user.click(screen.getByRole("button", { name: "탐색으로 돌아가기" }));
+    await user.click(within(results).getByRole("link", { name: /통복시장/ }));
+    expect(screen.getByRole("article", { name: "통복시장 상세정보" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "탐색으로 돌아가기" }));
 
-    await waitFor(() => expect(within(detail).queryByRole("article")).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole("article")).not.toBeInTheDocument());
     expect(window.location.search).not.toContain("market=");
   });
 
@@ -514,9 +518,10 @@ describe("MarketExplorer", () => {
     );
   });
 
-  it("홈 헤더에서 온누리상품권 사용처 허브로 연결한다", () => {
+  it("홈 메뉴에서 온누리상품권 사용처 허브로 연결한다", async () => {
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
+    await userEvent.click(screen.getByRole("button", { name: "메뉴 열기" }));
     expect(screen.getByRole("link", { name: "온누리상품권" })).toHaveAttribute("href", "/onnuri");
   });
 });

@@ -24,7 +24,7 @@
 .marketLinks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
 .marketLinks a { display: block; border: 1px solid var(--line); border-radius: 6px; padding: 11px 12px; background: var(--panel); font-size: 12px; font-weight: 750; }
 
-@media (max-width: 700px) {
+@media screen {
   .header { min-height: 59px; padding: 0 16px; }
   .main { width: min(100% - 24px, 880px); padding: 32px 0 52px; }
   .hero { padding-bottom: 26px; }

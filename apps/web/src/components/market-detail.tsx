@@ -20,6 +20,7 @@ interface MarketDetailProps {
   today: Date;
   selectedDate?: Date;
   onVisitDateChange?: (date: string) => void;
+  onClearDate?: () => void;
   onClose: () => void;
 }
 
@@ -28,7 +29,7 @@ const formatSourceDate = (value: string | null, locale: Locale): string => {
   return locale === "en" ? value : value.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$1.$2.$3");
 };
 
-export function MarketDetail({ locale = "ko", mobile = false, market, detailPath, sharePath, today, selectedDate, onVisitDateChange, onClose }: MarketDetailProps) {
+export function MarketDetail({ locale = "ko", mobile = false, market, detailPath, sharePath, today, selectedDate, onVisitDateChange, onClearDate, onClose }: MarketDetailProps) {
   const ui = getUiCopy(locale);
   const [monthOffset, setMonthOffset] = useState(0);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -69,6 +70,7 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
         ? ui.marketDayToday
         : `D-${dday}`;
   const visitIsMarketDay = selectedDate ? getMarketDates(market, { start: selectedDate, end: selectedDate }).length > 0 : false;
+  const nextVisitDate = selectedDate && market.schedule.kind === "digit-pair" && !visitIsMarketDay ? getNextMarketDate(market, selectedDate) : null;
   const visitDateState = !selectedDate || market.schedule.kind === "unknown" ? "" : visitIsMarketDay ? "is-market-day" : "is-not-market-day";
   const baseMonth = selectedDate ?? today;
   const calendarMonth = new Date(baseMonth.getFullYear(), baseMonth.getMonth() + monthOffset, 1);
@@ -119,6 +121,7 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
               selectedDate ? <small>{locale === "en" ? "Permanent stalls may still operate; check with the market before visiting." : "상설 점포는 운영할 수 있어요. 방문 전 확인해 주세요."}</small> : null
             ) : null}
             {onVisitDateChange && mobile ? <button ref={dateOpenButtonRef} type="button" className="mobile-visit-date-button" onClick={openDatePicker}>{locale === "en" ? selectedDate ? "Change visit date" : "Choose visit date" : selectedDate ? "방문 날짜 바꾸기" : "방문 날짜 선택"}</button> : null}
+            {onVisitDateChange && nextVisitDate ? <div className="visit-date-recovery"><button type="button" className="secondary-button" onClick={() => onVisitDateChange(toIsoDate(nextVisitDate))}>{locale === "en" ? "Use next market day" : "다음 장날로 바꾸기"}</button>{onClearDate ? <button type="button" className="secondary-button" onClick={onClearDate}>{locale === "en" ? "Clear date filter" : "날짜 제한 해제"}</button> : null}</div> : null}
             {onVisitDateChange && !mobile ? <label className="detail-visit-date-control">
               {locale === "en" ? "Choose visit date" : "방문 날짜 선택"}
               <input type="date" aria-label={locale === "en" ? "Choose visit date" : "방문 날짜 선택"} min={toIsoDate(today)} value={selectedDate ? toIsoDate(selectedDate) : ""} onChange={(event) => onVisitDateChange(event.target.value)} />
@@ -135,6 +138,7 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
         </div>
         {mobile && market.schedule.kind === "digit-pair" ? <span className="mobile-timing-pattern">{formatSchedulePattern(market, locale)}</span> : timingBadge ? <span className="dday">{timingBadge}</span> : null}
       </section>
+      {market.schedule.kind === "digit-pair" ? <p className="next-date-reference">{locale === "en" ? `From today (${formatKoreanDate(today, locale)}). This is separate from your selected visit date.` : `오늘 ${formatKoreanDate(today)} 기준이에요. 선택한 방문 날짜와는 다른 기준이에요.`}{nextDate && onVisitDateChange ? <button type="button" className="mobile-visit-date-button" onClick={() => onVisitDateChange(toIsoDate(nextDate))}>{locale === "en" ? "Use this market day" : "이 장날을 방문 날짜로"}</button> : null}</p> : null}
 
       <section className="source-summary" aria-label={locale === "en" ? "Market day source" : "장날 정보의 근거"}>
         <strong>{locale === "en" ? "Market day source" : "장날 정보의 근거"}</strong>

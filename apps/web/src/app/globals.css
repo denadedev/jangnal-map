@@ -805,3 +805,43 @@ a { color: inherit; text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* Approved search and visit-date foundations. */
+.mobile-search-date-summary { display: grid; gap: 12px; margin-top: 24px; border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: var(--paper); }
+.mobile-search-date-summary > p { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 0; font-size: 14px; }
+.mobile-search-date-summary strong { color: var(--ink); }
+.mobile-search-suggestions button.mobile-search-result { display: grid; grid-template-columns: 64px minmax(0, 1fr) 16px; gap: 12px; padding: 16px 0; }
+.mobile-search-date-tile { display: flex; min-height: 56px; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 8px; color: var(--persimmon-dark); }
+.mobile-search-date-tile strong { font-size: 20px; }
+.mobile-search-date-tile small { font-size: 14px; }
+.mobile-search-result-copy { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+.mobile-search-result-copy > strong { font-size: 16px; overflow-wrap: anywhere; }
+.mobile-search-result-copy > small { display: block; font-size: 14px; white-space: normal; overflow-wrap: anywhere; }
+.visit-date-recovery { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.visit-date-recovery .secondary-button { min-height: 48px; height: auto; border-radius: 8px; padding: 12px; font-size: 16px; }
+.next-date-reference { color: var(--muted); font-size: 14px; line-height: 1.6; }
+@media (min-width: 0px) {
+  .mobile-brand-row a, .mobile-discovery-context h1, .mobile-market-sheet.is-detail .detail-header h2 { font-size: 24px; }
+  .mobile-home-controls .mobile-filter-search-row { padding-right: 16px; padding-left: 16px; }
+  .mobile-search-launch, .mobile-search-input { min-height: 48px; border-radius: 8px; font-size: 16px; }
+  .mobile-home-controls .date-filter-row { padding-right: 16px; padding-left: 16px; }
+  .mobile-home-controls .filter-pills { flex-wrap: wrap; overflow: visible; }
+  .mobile-home-controls .filter-pill { min-height: 48px; height: auto; border-radius: 8px; font-size: 16px; }
+  .mobile-home-controls .filter-pill[aria-pressed="true"] { background: var(--persimmon-dark); color: var(--panel); }
+  .mobile-home-controls .filter-pill[aria-pressed="true"]::after { margin-left: 4px; content: "✓"; }
+  .mobile-discovery-context { padding-right: 16px; padding-left: 16px; }
+  .mobile-discovery-context p, .mobile-discovery-context small, .mobile-search-intro p, .mobile-search-suggestions h2, .mobile-search-suggestions p { font-size: 14px; }
+  .mobile-search-intro, .mobile-search-suggestions { padding-right: 16px; padding-left: 16px; }
+  .mobile-search-suggestions button { font-size: 16px; }
+  .mobile-search-suggestions button small { font-size: 14px; }
+  .mobile-search-date-tile small { white-space: normal; text-align: center; }
+  .mobile-market-sheet.is-detail .selected-date-card { border-radius: 8px; padding: 16px; }
+  .mobile-market-sheet.is-detail .selected-date-card strong, .mobile-market-sheet.is-detail .next-date-card strong { font-family: inherit; font-size: 20px; }
+  .mobile-market-sheet.is-detail .market-detail { padding-right: 16px; padding-left: 16px; }
+  .mobile-market-sheet.is-detail .detail-actions .primary-button { background: var(--persimmon-dark); font-size: 16px; }
+  .mobile-visit-date-button { min-height: 48px; font-size: 16px; }
+  .mobile-market-sheet.is-detail .visit-date-verdict { font-size: 16px; }
+  .mobile-market-sheet.is-detail .source-summary, .mobile-market-sheet.is-detail .source-summary strong, .mobile-timing-pattern { font-size: 14px; }
+}
+.mobile-search-date-tile strong { white-space: normal; overflow-wrap: anywhere; text-align: center; }
+.mobile-search-input input::-webkit-search-cancel-button { display: none; -webkit-appearance: none; }

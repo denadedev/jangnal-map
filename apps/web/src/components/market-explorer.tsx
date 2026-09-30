@@ -89,6 +89,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   const [urlNotice, setUrlNotice] = useState("");
   const [mapStatus, setMapStatus] = useState<"idle" | "loading" | "ready" | "error">(mapClientId ? "idle" : "error");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const returnToSearchRef = useRef(false);
   useLayoutEffect(() => {
     if (sheetMode !== "results" && mobileSheetContentRef.current) mobileSheetContentRef.current.scrollTop = 0;
   }, [selectedId, sheetMode]);
@@ -170,6 +171,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       setSheetMode("results");
       setSheetSnap("collapsed");
       selectedOrigin.current = null;
+      returnToSearchRef.current = false;
     }
   }, [hasRestoredUrl, isPending, locale, queryMatches, selectedId]);
 
@@ -226,12 +228,19 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       delete nextState.mobileMarket;
       delete nextState.mobileMarketView;
       delete nextState.mobileMarketSource;
+      delete nextState.mobileMarketFromSearch;
       delete nextState.marketSelectionFromResults;
     }
     window.history.replaceState(nextState, "", buildExplorerPath(locale, { query, mode, directDate, marketId: selectedId }));
   }, [directDate, hasRestoredUrl, locale, mode, query, selectedId]);
 
   const restoreResultContext = useCallback(() => {
+    if (returnToSearchRef.current) {
+      returnToSearchRef.current = false;
+      selectedOrigin.current = null;
+      setIsSearchOpen(true);
+      return;
+    }
     const origin = selectedOrigin.current;
     if (origin?.source === "map" && mapStatus === "ready") {
       pendingMapFocusIdRef.current = origin.id;
@@ -259,6 +268,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   }, [focusResultControl, mapStatus]);
 
   const selectMarket = useCallback((market: PublicMarket, source: "map" | "list") => {
+    returnToSearchRef.current = isSearchOpen;
     pendingMapFocusIdRef.current = null;
     if (mapFocusFallbackTimerRef.current !== null) {
       window.clearTimeout(mapFocusFallbackTimerRef.current);
@@ -275,6 +285,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       mobileMarket: market.id,
       mobileMarketView: view,
       mobileMarketSource: source,
+      mobileMarketFromSearch: isSearchOpen,
       mobileReturnSnap: returnSnap,
       marketSelectionFromResults: replacingSelection
         ? Boolean(window.history.state?.marketSelectionFromResults)
@@ -284,7 +295,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     setSheetMode(view);
     setSheetSnap("full");
     setIsSearchOpen(false);
-  }, [directDate, locale, mode, query, selectedId, sheetMode, sheetSnap]);
+  }, [directDate, isSearchOpen, locale, mode, query, selectedId, sheetMode, sheetSnap]);
   const selectMapMarket = useCallback((market: PublicMarket) => selectMarket(market, "map"), [selectMarket]);
   const selectListMarket = useCallback((market: PublicMarket) => selectMarket(market, "list"), [selectMarket]);
   const closeMarket = useCallback(() => {
@@ -310,6 +321,13 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   useEffect(() => {
     const handlePopState = () => {
       const urlState = readUrlState(today);
+      if (!urlState.selectedId && returnToSearchRef.current) {
+        setSelectedId(null);
+        setSheetMode("results");
+        setSheetSnap(previousSheetSnap.current);
+        restoreResultContext();
+        return;
+      }
       setQuery(urlState.query ?? "");
       setMode(urlState.mode ?? "week");
       const requestedDate = urlState.directDate ?? toIsoDate(today);
@@ -324,6 +342,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         setSelectedId(marketId);
         const state = window.history.state as Record<string, unknown> | null;
         const hasMatchingState = state?.mobileMarket === marketId;
+        setIsSearchOpen(false);
+        returnToSearchRef.current = Boolean(hasMatchingState && state?.mobileMarketFromSearch);
         const view = "detail";
         const source = hasMatchingState && (state?.mobileMarketSource === "map" || state?.mobileMarketSource === "list")
           ? state.mobileMarketSource
@@ -464,6 +484,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
               today={today}
               selectedDate={mode === "date" ? range?.start : undefined}
               onVisitDateChange={handleDirectDateChange}
+              onClearDate={clearDateFilter}
               onClose={closeMarket}
             />
           </MobileMarketSheet>
@@ -483,6 +504,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       locale={locale}
       query={query}
       matches={queryMatches}
+      today={today}
+      range={range}
       onQueryChange={setQuery}
       onSelect={(market) => selectMarket(market, "list")}
       onShowResults={() => { setSheetSnap("full"); setIsSearchOpen(false); mobileResultsRef.current?.scrollTo(0, 0); }}

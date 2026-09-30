@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -111,6 +111,34 @@ const successfulResponse = {
 } as Response;
 
 describe("MarketExplorer", () => {
+  it("returns to search after choosing the next visit date from an off-day market", async () => {
+    const user = userEvent.setup();
+    window.history.replaceState(null, "", "/?when=date&date=2026-10-02");
+    render(<MarketExplorer today={new Date(2026, 8, 30)} mapClientId="" />);
+    await user.click(screen.getByRole("button", { name: "검색" }));
+    const search = await screen.findByRole("dialog", { name: "시장 검색" });
+    await user.type(within(search).getByRole("searchbox"), "통복시장");
+    await user.click(await within(search).findByRole("button", { name: /^통복시장/ }));
+    const detail = await screen.findByRole("article", { name: "통복시장 상세정보" });
+    await user.click(within(detail).getByRole("button", { name: "다음 장날로 바꾸기" }));
+    expect(within(detail).getByRole("region", { name: "선택한 방문 날짜" })).toHaveTextContent("2026년 10월 5일");
+    expect(within(detail).getByText("이날 5일장이 열려요")).toBeInTheDocument();
+    await user.click(within(screen.getByRole("dialog", { name: "통복시장 상세" })).getByRole("button", { name: "탐색으로 돌아가기" }));
+    const restored = await screen.findByRole("dialog", { name: "시장 검색" });
+    expect(within(restored).getByRole("searchbox")).toHaveValue("통복시장");
+    expect(within(restored).getByLabelText("날짜 조건에 맞는 시장 수")).toHaveTextContent("1곳");
+    const traverse = (direction: "back" | "forward") => act(async () => {
+      await new Promise<void>((resolve) => {
+        window.addEventListener("popstate", () => resolve(), { once: true });
+        window.history[direction]();
+      });
+    });
+    await traverse("forward");
+    expect(screen.queryByRole("dialog", { name: "시장 검색" })).not.toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "통복시장 상세" })).toBeInTheDocument();
+    await traverse("back");
+    expect(within(screen.getByRole("dialog", { name: "시장 검색" })).getByRole("searchbox")).toHaveValue("통복시장");
+  });
   beforeEach(() => {
     window.history.replaceState(null, "", "/");
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(successfulResponse));

@@ -8,6 +8,12 @@ import { createMarketSlug, findRelatedMarkets, SITE_URL } from "../../../lib/mar
 import MarketPage, { generateMetadata, generateStaticParams } from "./page";
 
 describe("market detail route", () => {
+  it("publishes the corrected Seogwipo dates and their separate source", async () => {
+    render(await MarketPage({ params: Promise.resolve({ slug: "서귀포향토오일시장-2adc6a0b" }) }));
+    expect(screen.getByText("서귀포향토오일시장 장날은 매월 4일·9일·14일·19일·24일·29일입니다.")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "장날 정정 근거" })).toHaveTextContent("제주관광공사");
+  });
+
   it("prebuilds raw path parameters for every public market", async () => {
     const params = await generateStaticParams();
 

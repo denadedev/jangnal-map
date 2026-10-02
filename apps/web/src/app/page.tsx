@@ -1,5 +1,5 @@
 import { MarketExplorer } from "../components/market-explorer";
-import { reviewedMarkets } from "../lib/market-editorial";
+import { findMarketEditorial, reviewedMarkets } from "../lib/market-editorial";
 import { formatSchedulePattern } from "../lib/market-view";
 import { getMarketPagePath } from "../lib/market-path";
 import { isMarketIndexable, SITE_URL } from "../lib/market-seo";
@@ -11,6 +11,14 @@ const websiteJsonLd = {
   alternateName: ["장날 지도", "오늘장날"],
   url: SITE_URL,
 };
+
+const featuredMarketIds = new Set([
+  "market-389b4a24f06ccd11", // 용인중앙시장
+  "market-f9785614947c1065", // 광장시장
+  "market-c3983f871839ecc8", // 속초종합중앙시장
+  "market-46dd8e03711ba7b6", // 북평민속시장
+  "market-2190eaf44c48bbd8", // 제주시민속오일시장
+]);
 
 export default function HomePage() {
   const indexableReviewedMarkets = reviewedMarkets.filter(isMarketIndexable);
@@ -29,6 +37,7 @@ export default function HomePage() {
           name: market.name,
           schedule: formatSchedulePattern(market),
           href: getMarketPagePath(market),
+          summary: featuredMarketIds.has(market.id) ? findMarketEditorial(market.id)?.summary : undefined,
         }))}
       />
     </>

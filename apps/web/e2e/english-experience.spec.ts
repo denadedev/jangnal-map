@@ -16,7 +16,7 @@ test("Korean home links to the English guide", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "메뉴 열기" }).click();
 
-  await expect(page.getByRole("link", { name: "English guide" })).toHaveAttribute("href", "/en");
+  await expect(page.getByRole("dialog", { name: "보조 메뉴" }).getByRole("link", { name: "English guide" })).toHaveAttribute("href", "/en");
 });
 
 test("sitemap advertises only the English guide", async ({ request }) => {
@@ -117,7 +117,7 @@ test("language switch keeps the selected English map filters", async ({ page }) 
   await page.goto("/en/map?q=Seoul&when=all");
   await page.getByRole("button", { name: "Open menu" }).click();
 
-  await expect(page.getByRole("link", { name: "한국어" })).toHaveAttribute("href", "/?q=Seoul&when=all");
+  await expect(page.getByRole("dialog", { name: "Site menu" }).getByRole("link", { name: "한국어" })).toHaveAttribute("href", "/?q=Seoul&when=all");
 });
 
 test("browser Forward restores English search and date filters from the URL", async ({ page }) => {

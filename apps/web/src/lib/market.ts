@@ -24,6 +24,7 @@ export interface PublicMarket {
   longitude: number | null;
   scheduleRaw: string;
   schedule: MarketSchedule;
+  scheduleSource?: { name: string; url: string; checkedAt: string };
   phone: string | null;
   hasParking: boolean | null;
   referenceDate: string | null;

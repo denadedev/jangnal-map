@@ -6,6 +6,29 @@ import type { OnnuriMerchantSummary } from "../src/onnuri-match.js";
 import { readMarketsCsv } from "../src/read-csv.js";
 
 describe("generatePublicMarkets", () => {
+  it("preserves the Seogwipo identity while correcting its schedule from VisitJeju", async () => {
+    const rawRows = await readMarketsCsv("data/fixtures/markets.csv", "utf8");
+    const corrected = generatePublicMarkets([{
+      ...rawRows[0]!,
+      시장명: "서귀포향토오일시장",
+      시장유형: "5일장",
+      소재지도로명주소: "제주특별자치도 서귀포시 토평서로11번길 142",
+      소재지지번주소: "제주특별자치도 서귀포시 동홍동 779-1",
+      위도: "33.26778279",
+      경도: "126.5737587",
+      시장개설주기: "5일+10일",
+    }])[0]!;
+    expect(corrected.id).toBe("market-2adc6a0bdfc73a7b");
+    const expected = {
+      scheduleRaw: "4일+9일",
+      schedule: { kind: "digit-pair", days: [4, 9] },
+      scheduleSource: { name: "제주관광공사 비짓제주 서귀포향토오일시장", url: "https://www.visitjeju.net/kr/detail/view?contentsid=CONT_000000000500732", checkedAt: "2026-10-02" },
+    };
+    expect(corrected).toMatchObject(expected);
+    const artifact = JSON.parse(await readFile("../../apps/web/public/data/markets.json", "utf8"));
+    expect(artifact.find((market: { id: string }) => market.id === corrected.id)).toMatchObject(expected);
+  });
+
   it("시장 ID별 온누리 집계를 병합하고 미매칭 시장은 null로 둔다", async () => {
     const rawRows = await readMarketsCsv("data/fixtures/markets.csv", "utf8");
     const generated = generatePublicMarkets(rawRows);

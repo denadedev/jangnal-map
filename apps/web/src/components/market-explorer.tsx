@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { SiteFooter } from "./site-footer";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
@@ -125,7 +126,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     [currentLocation, inactiveMarkets],
   );
   const displayedMarkets = query.trim() ? queryMatches : filteredMarkets;
-  const rangeLabel = range
+  const dateReady = hasRestoredUrl || Boolean(providedToday);
+  const rangeLabel = !dateReady ? ui.week : range
     ? `${range.start.getMonth() + 1}/${range.start.getDate()}${range.start.getTime() === range.end.getTime() ? "" : `–${range.end.getMonth() + 1}/${range.end.getDate()}`}`
     : ui.allMarkets;
   const selectedMarket = markets.find((market) => market.id === selectedId) ?? null;
@@ -411,8 +413,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         languageSwitchHref={buildExplorerPath(locale === "en" ? "ko" : "en", { query, mode, directDate, marketId: selectedId })}
         mode={mode}
         query={query}
-        directDate={directDate}
-        minDate={toIsoDate(today)}
+        directDate={dateReady ? directDate : ""}
+        minDate={dateReady ? toIsoDate(today) : undefined}
         onMobileSearchOpen={() => setIsSearchOpen(true)}
         onModeChange={setMode}
         onQueryChange={setQuery}
@@ -430,6 +432,13 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
           <p>{query ? ui.searchResultsHeading : ui.marketDiscoveryHeading} · {rangeLabel}</p>
           <h1>{query ? locale === "en" ? `Markets for “${query}”` : `“${query}” 시장 찾기` : ui.marketDiscoveryTitle}</h1>
           <small>{ui.marketDiscoveryHelp}</small>
+          {reviewedGuides.length > 0 ? <a className="visit-guides-shortcut" href="#reviewed-market-guides-heading" onClick={(event) => {
+            event.preventDefault();
+            const heading = document.getElementById("reviewed-market-guides-heading");
+            heading?.scrollIntoView({ block: "start" });
+            heading?.focus({ preventScroll: true });
+          }}>시장별 방문 정보</a> : null}
+          <noscript><p>{locale === "en" ? "Enable JavaScript to use the map and date filters. Market guides remain available through the links below." : "지도와 날짜 검색은 자바스크립트가 필요합니다. 아래 시장별 방문 안내는 바로 읽을 수 있습니다."}</p></noscript>
           <div className="mobile-view-switch" role="group" aria-label={ui.resultViewLabel}>
             <button type="button" aria-pressed={sheetSnap !== "full"} onClick={() => setSheetSnap("collapsed")}>{ui.mapView}</button>
             <button type="button" aria-pressed={sheetSnap === "full"} onClick={() => setSheetSnap("full")}>{ui.listView}</button>
@@ -452,13 +461,14 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         />
 
         <section className="mobile-market-results" aria-label={locale === "en" ? "Market results" : "시장 결과"} data-map-status={mapStatus}>
-          <div className="mobile-results-heading">
+          {!isPending && !isError && dateReady ? <div className="mobile-results-heading">
             <h2>{locale === "en" ? `${filteredMarkets.length} markets for these dates` : `${mode === "date" ? "선택일에 장이 서는 시장" : "조건에 맞는 시장"} ${filteredMarkets.length}곳`}</h2>
             <span>{query ? locale === "en" ? `Search: “${query}”` : `“${query}” 검색` : locale === "en" ? `${displayedMarkets.length} results` : `시장 ${displayedMarkets.length}곳`}</span>
-          </div>
+          </div> : null}
           {marketListContent}
           {reviewedGuides.length > 0 ? <ReviewedMarketGuides guides={reviewedGuides} /> : null}
         </section>
+        <SiteFooter locale={locale} />
 
         {sheetMode === "detail" && selectedMarket ? (
           <MobileMarketSheet

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { PublicMarket } from "./market";
 import { publicMarkets } from "./market-catalog";
-import { createMarketSeoText, createMarketSlug, findMarketBySlug, getMarketPagePath, isMarketIndexable } from "./market-seo";
+import { createMarketScheduleAnswer, createMarketSeoText, createMarketSlug, findMarketBySlug, getMarketPagePath, isMarketIndexable } from "./market-seo";
 
 const periodicMarket: PublicMarket = {
   id: "market-389b4a24f06ccd11",
@@ -78,7 +78,12 @@ describe("market SEO copy", () => {
     const unknown = { ...periodicMarket, scheduleRaw: "확인 중", schedule: { kind: "unknown" as const, raw: "확인 중" } };
     const closed = { ...periodicMarket, status: "폐장" as const };
 
-    expect(createMarketSeoText(daily).title).toBe("용인 중앙시장 영업일 · 매일 운영 | 오늘 장날");
+    expect(createMarketSeoText(daily).title).toBe("용인 중앙시장 영업일 · 상설시장 | 오늘 장날");
+    expect(createMarketSeoText(daily).description).toContain("휴무");
+    expect(createMarketScheduleAnswer(daily)).toBe("용인 중앙시장은 상설시장입니다. 점포별 영업일과 정기휴무는 방문 전 확인하세요.");
+    const withOnnuri = { ...daily, onnuri: publicMarkets.find((market) => market.onnuri)?.onnuri ?? null };
+    expect(createMarketSeoText(withOnnuri).title).toContain("상설시장");
+    expect(createMarketSeoText(withOnnuri).description).toContain("휴무");
     expect(isMarketIndexable(daily)).toBe(true);
     expect(isMarketIndexable(unknown)).toBe(false);
     expect(isMarketIndexable(closed)).toBe(false);

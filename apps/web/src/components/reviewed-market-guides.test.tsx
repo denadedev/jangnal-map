@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { ReviewedMarketGuides, type ReviewedMarketGuide } from "./reviewed-market-guides";
 
 const guides: ReviewedMarketGuide[] = [
-  { id: "one", name: "첫 시장", schedule: "4·9일장", href: "/markets/첫-시장-one" },
+  { id: "one", name: "첫 시장", schedule: "4·9일장", href: "/markets/첫-시장-one", summary: "상설 구역과 오일장 구역을 함께 둘러보는 시장입니다." },
   { id: "two", name: "두 번째 시장", schedule: "매일", href: "/markets/두-번째-시장-two" },
 ];
 
@@ -16,20 +16,22 @@ describe("ReviewedMarketGuides", () => {
     expect(screen.getByRole("heading", { name: "시장별 방문 정보" })).toBeInTheDocument();
     expect(screen.getByText("주소·주차·교통·방문 팁을 정리했어요.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /첫 시장.*4·9일장/ })).toHaveAttribute("href", guides[0].href);
-    expect(screen.getAllByRole("link")).toHaveLength(2);
+    expect(screen.getByText(guides[0].summary!)).toBeVisible();
+    expect(screen.getAllByRole("link", { hidden: true })).toHaveLength(2);
   });
 
-  it("starts with the mobile guide disclosure closed and opens it on request", async () => {
+  it("uses a native disclosure for the remaining guides", async () => {
     const user = userEvent.setup();
     render(<ReviewedMarketGuides guides={guides} />);
 
-    const toggle = screen.getByRole("button", { name: /시장별 방문 정보/ });
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    const toggle = screen.getByText("시장 2곳 전체 안내");
+    const disclosure = toggle.closest("details");
+    expect(disclosure).not.toHaveAttribute("open");
 
     await user.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(disclosure).toHaveAttribute("open");
 
     await user.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(disclosure).not.toHaveAttribute("open");
   });
 });

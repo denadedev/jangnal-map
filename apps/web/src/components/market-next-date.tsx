@@ -21,8 +21,8 @@ export function MarketNextDate({ market }: MarketNextDateProps) {
     return (
       <section aria-label="다음 장날">
         <p>운영 일정</p>
-        <strong>매일 운영</strong>
-        <span>오늘 운영</span>
+        <strong>공공데이터상 매일 운영</strong>
+        <p>점포별 영업일과 정기휴무는 방문 전 확인하세요.</p>
       </section>
     );
   }

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import nextConfig from "../../next.config";
 import { publicMarkets } from "../lib/market-catalog";
-import { reviewedMarkets } from "../lib/market-editorial";
+import { findMarketEditorial, reviewedMarkets } from "../lib/market-editorial";
 import { getMarketPagePath, isMarketIndexable, SITE_URL } from "../lib/market-seo";
 import { metadata } from "./layout";
 import robots from "./robots";
@@ -43,12 +43,12 @@ describe("SEO metadata routes", () => {
     const entries = sitemap();
 
     expect(entries.find(({ url }) => url === `${SITE_URL}/markets/용인중앙시장-389b4a24`)).toMatchObject({
-      lastModified: "2025-11-10",
+      lastModified: findMarketEditorial("market-389b4a24f06ccd11")?.reviewedAt,
       changeFrequency: "monthly",
       priority: 0.8,
     });
     expect(entries.find(({ url }) => url === `${SITE_URL}/markets/광명전통시장-d8d1a37e`)).toMatchObject({
-      lastModified: "2025-11-10",
+      lastModified: findMarketEditorial("market-d8d1a37e4d63609b")?.reviewedAt,
       changeFrequency: "monthly",
       priority: 0.6,
     });

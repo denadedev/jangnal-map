@@ -19,7 +19,7 @@ test("finds a market through search and opens full-screen detail", async ({ page
 test("opens a reviewed market's standalone page from the detail title", async ({ page }) => {
   await page.goto("/?when=all");
   await searchFor(page, "북평민속시장");
-  await page.locator(".mobile-market-results").getByRole("link", { name: /북평민속시장/ }).click();
+  await page.locator(".mobile-market-results .market-list").getByRole("link", { name: /북평민속시장/ }).click();
   const detail = page.getByRole("article", { name: "북평민속시장 상세정보" });
   const titleLink = detail.getByRole("link", { name: "북평민속시장" });
   await expect(titleLink).toHaveAttribute("href", /\/markets\/북평민속시장-/);

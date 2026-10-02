@@ -63,7 +63,7 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
         ? formatKoreanDate(nextDate, locale)
         : ui.scheduleUnconfirmed;
   const timingBadge = market.schedule.kind === "daily"
-    ? locale === "en" ? null : ui.operatingToday
+    ? null
     : dday === null
       ? null
       : dday === 0
@@ -138,12 +138,13 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
         </div>
         {mobile && market.schedule.kind === "digit-pair" ? <span className="mobile-timing-pattern">{formatSchedulePattern(market, locale)}</span> : timingBadge ? <span className="dday">{timingBadge}</span> : null}
       </section>
+      {market.schedule.kind === "daily" ? <p className="next-date-reference">{locale === "en" ? "Public data lists a daily schedule. Check individual stall opening days and regular market closures before visiting." : "공공데이터에 등록된 상설 일정입니다. 점포별 영업일과 정기휴무는 방문 전 확인하세요."}</p> : null}
       {market.schedule.kind === "digit-pair" ? <p className="next-date-reference">{locale === "en" ? `From today (${formatKoreanDate(today, locale)}). This is separate from your selected visit date.` : `오늘 ${formatKoreanDate(today)} 기준이에요. 선택한 방문 날짜와는 다른 기준이에요.`}{nextDate && onVisitDateChange ? <button type="button" className="mobile-visit-date-button" onClick={() => onVisitDateChange(toIsoDate(nextDate))}>{locale === "en" ? "Use this market day" : "이 장날을 방문 날짜로"}</button> : null}</p> : null}
 
       <section className="source-summary" aria-label={locale === "en" ? "Market day source" : "장날 정보의 근거"}>
         <strong>{locale === "en" ? "Market day source" : "장날 정보의 근거"}</strong>
-        <a href={market.source.url} target="_blank" rel="noreferrer" lang="ko">{market.source.name}</a>
-        <p>{ui.sourceDate} {formatSourceDate(market.referenceDate ?? market.source.referenceDate, locale)}{locale === "en" ? " · Not the latest on-site verification date." : " · 현장 최종 확인일이 아닙니다."}</p>
+        <a href={market.scheduleSource?.url ?? market.source.url} target="_blank" rel="noreferrer" lang="ko">{market.scheduleSource?.name ?? market.source.name}</a>
+        <p>{market.scheduleSource ? locale === "en" ? "Schedule source checked" : "장날 출처 확인일" : ui.sourceDate} {formatSourceDate(market.scheduleSource?.checkedAt ?? market.referenceDate ?? market.source.referenceDate, locale)}{locale === "en" ? " · Not the latest on-site verification date." : " · 현장 최종 확인일이 아닙니다."}</p>
       </section>
 
       {market.schedule.kind === "digit-pair" ? (

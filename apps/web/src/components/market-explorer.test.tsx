@@ -111,6 +111,24 @@ const successfulResponse = {
 } as Response;
 
 describe("MarketExplorer", () => {
+  it("does not announce empty results while market data is pending", () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+    render(<MarketExplorer today={new Date(2026, 9, 2)} />);
+
+    const results = screen.getByRole("region", { name: "시장 결과" });
+    expect(results).toHaveTextContent("시장 정보를 불러오는 중입니다.");
+    expect(results).not.toHaveTextContent("0곳");
+  });
+
+  it("does not announce empty results when data loading fails", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    render(<MarketExplorer today={new Date(2026, 9, 2)} />);
+
+    const results = screen.getByRole("region", { name: "시장 결과" });
+    await within(results).findByRole("button", { name: "다시 시도" });
+    expect(results).not.toHaveTextContent("0곳");
+  });
+
   it("returns to search after choosing the next visit date from an off-day market", async () => {
     const user = userEvent.setup();
     window.history.replaceState(null, "", "/?when=date&date=2026-10-02");
@@ -236,8 +254,9 @@ describe("MarketExplorer", () => {
 
     await user.click(await screen.findByRole("link", { name: /제천중앙시장/ }));
 
-    expect(screen.getByText("매일 운영")).toBeInTheDocument();
-    expect(screen.getByText("오늘 운영")).toBeInTheDocument();
+    expect(screen.getByText("상설시장")).toBeInTheDocument();
+    expect(screen.queryByText("오늘 운영")).not.toBeInTheDocument();
+    expect(screen.getByText(/점포별 영업일과 정기휴무/)).toBeInTheDocument();
     expect(screen.getAllByText("위치 확인 필요")).toHaveLength(2);
     expect(screen.queryByRole("link", { name: "NAVER 지도에서 길찾기" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "공유하기" }).closest(".detail-actions")).toHaveClass("share-only");

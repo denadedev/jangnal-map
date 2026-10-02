@@ -14062,12 +14062,12 @@
     "lotAddress": "제주특별자치도 서귀포시 동홍동 779-1",
     "latitude": 33.26778279,
     "longitude": 126.5737587,
-    "scheduleRaw": "5일+10일",
+    "scheduleRaw": "4일+9일",
     "schedule": {
       "kind": "digit-pair",
       "days": [
-        5,
-        0
+        4,
+        9
       ]
     },
     "phone": "064-763-0965",
@@ -14089,6 +14089,11 @@
         "name": "소상공인시장진흥공단 전국 온누리상품권 가맹점 현황",
         "url": "https://www.data.go.kr/data/3060079/fileData.do?recommendDataYn=Y"
       }
+    },
+    "scheduleSource": {
+      "name": "제주관광공사 비짓제주 서귀포향토오일시장",
+      "url": "https://www.visitjeju.net/kr/detail/view?contentsid=CONT_000000000500732",
+      "checkedAt": "2026-10-02"
     }
   },
   {

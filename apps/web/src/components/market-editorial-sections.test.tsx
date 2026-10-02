@@ -26,6 +26,7 @@ describe("MarketEditorialSections", () => {
     expect(screen.getByRole("heading", { name: "교통과 주차" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "대표 품목과 시장 특성" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "편집 출처" })).toBeInTheDocument();
+    expect(screen.getByText(/편집 내용 확인일/)).toHaveTextContent("편집 내용 확인일 2026-09-21");
     expect(screen.getByRole("link", { name: "공식 출처" })).toHaveAttribute("href", "https://example.com/source");
   });
 });

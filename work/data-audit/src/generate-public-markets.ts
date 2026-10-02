@@ -26,6 +26,7 @@ export interface PublicMarket {
     | { kind: "digit-pair"; days: [number, number] }
     | { kind: "unknown"; raw: string };
   phone: string | null;
+  scheduleSource?: { name: string; url: string; checkedAt: string };
   hasParking: boolean | null;
   referenceDate: string | null;
   status: "운영" | "폐장";
@@ -70,6 +71,16 @@ const publicMarket = (raw: RawMarket, market: NormalizedMarket): PublicMarket =>
     statusVerified: market.statusVerified,
     onnuri: null,
     source: { name: SOURCE_NAME, url: SOURCE_URL, referenceDate },
+    // Keep the existing URL identity; VisitJeju corrects this source record's 5·10 schedule to 4·9.
+    ...(id === "market-2adc6a0bdfc73a7b" ? {
+      scheduleRaw: "4일+9일",
+      schedule: { kind: "digit-pair" as const, days: [4, 9] as [number, number] },
+      scheduleSource: {
+        name: "제주관광공사 비짓제주 서귀포향토오일시장",
+        url: "https://www.visitjeju.net/kr/detail/view?contentsid=CONT_000000000500732",
+        checkedAt: "2026-10-02",
+      },
+    } : {}),
   };
 };
 

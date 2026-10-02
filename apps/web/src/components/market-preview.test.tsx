@@ -56,7 +56,7 @@ describe("MarketPreview", () => {
   });
 
   it.each([
-    [{ ...market, schedule: { kind: "daily" as const }, roadAddress: null }, "운영 일정", "매일 운영", "서울특별시 중구 시장동 1"],
+    [{ ...market, schedule: { kind: "daily" as const }, roadAddress: null }, "운영 일정", "상설시장", "서울특별시 중구 시장동 1"],
     [{ ...market, schedule: { kind: "unknown" as const, raw: "확인 중" }, roadAddress: null, lotAddress: null }, "운영 일정", "운영 일정 확인 필요", "주소 정보 없음"],
   ])("handles a non-5-day schedule and missing address with readable fallback", (marketVariant, label, schedule, address) => {
     render(<MarketPreview market={marketVariant} today={new Date(2026, 8, 5)} onOpenDetail={() => undefined} />);

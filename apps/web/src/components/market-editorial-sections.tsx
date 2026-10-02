@@ -30,6 +30,7 @@ export function MarketEditorialSections({ editorial }: MarketEditorialSectionsPr
       </section>
       <section className="editorial-section" aria-labelledby="editorial-sources-heading">
         <h2 id="editorial-sources-heading">편집 출처</h2>
+        <p>편집 내용 확인일 <time dateTime={editorial.reviewedAt}>{editorial.reviewedAt}</time></p>
         <ul>
           {editorial.sources.map((source) => (
             <li key={source.url}>

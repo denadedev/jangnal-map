@@ -8,6 +8,20 @@ import { MarketDetail } from "./market-detail";
 const marketFixture = publicMarkets.find((market) => market.name === "통복시장") ?? publicMarkets[0];
 
 describe("MarketDetail", () => {
+  it("shows the source of a corrected market schedule", () => {
+    const market = publicMarkets.find((entry) => entry.id === "market-2adc6a0bdfc73a7b")!;
+    render(<MarketDetail market={market} today={new Date(2026, 9, 2)} onClose={vi.fn()} />);
+    const source = screen.getByRole("region", { name: "장날 정보의 근거" });
+    expect(within(source).getByRole("link", { name: "제주관광공사 비짓제주 서귀포향토오일시장" })).toHaveAttribute("href", "https://www.visitjeju.net/kr/detail/view?contentsid=CONT_000000000500732");
+    expect(source).toHaveTextContent("2026.10.02");
+  });
+
+  it("qualifies the public-data daily schedule without claiming live opening status", () => {
+    render(<MarketDetail market={{ ...marketFixture, schedule: { kind: "daily" } }} today={new Date(2026, 9, 2)} onClose={vi.fn()} />);
+    expect(screen.queryByText("오늘 운영")).not.toBeInTheDocument();
+    expect(screen.getByText(/점포별 영업일과 정기휴무/)).toBeInTheDocument();
+  });
+
   it("links a reviewed market name to its standalone detail page", () => {
     render(
       <MarketDetail

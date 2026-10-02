@@ -23,6 +23,17 @@ vi.mock("../lib/market-editorial", async (importOriginal) => {
 });
 
 describe("HomePage SEO", () => {
+  it("does not publish placeholder dates or empty results before loading", () => {
+    const html = renderToStaticMarkup(<HomePage />);
+
+    expect(html).not.toContain("1/15");
+    expect(html).not.toContain("2000-01-15");
+    expect(html).not.toContain("시장 0곳");
+    expect(html).toContain("시장 정보를 불러오는 중입니다.");
+    expect(html).toContain('href="/about#data-policy"');
+    expect(html).toContain('href="#reviewed-market-guides-heading"');
+  });
+
   afterEach(() => {
     vi.unstubAllGlobals();
   });

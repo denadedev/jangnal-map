@@ -118,6 +118,10 @@ export default async function MarketPage({ params }: MarketPageProps) {
           <section className={styles.section} aria-labelledby="schedule-answer-heading">
             <h2 id="schedule-answer-heading">장날 날짜</h2>
             <p className={styles.scheduleAnswer}>{createMarketScheduleAnswer(market)}</p>
+            {market.scheduleSource ? <section aria-label="장날 정정 근거">
+              <a href={market.scheduleSource.url} target="_blank" rel="noreferrer">{market.scheduleSource.name}</a>
+              <p>장날 출처 확인일 {formatSourceDate(market.scheduleSource.checkedAt)} · 아래 원본 데이터 기준일과 별개입니다.</p>
+            </section> : null}
           </section>
           <div className={`${styles.section} ${styles.nextDate}`}>
             <MarketNextDate market={market} />

@@ -36,7 +36,7 @@ export function createMarketScheduleAnswer(market: PublicMarket): string {
     return `${market.name} 장날은 매월 ${formatScheduleDates(market)}입니다.`;
   }
   if (market.schedule.kind === "daily") {
-    return `${market.name}은 매일 운영합니다.`;
+    return `${market.name}은 상설시장입니다. 점포별 영업일과 정기휴무는 방문 전 확인하세요.`;
   }
   return `${market.name}의 운영 일정은 확인이 필요합니다.`;
 }
@@ -60,10 +60,10 @@ export function createMarketSeoText(market: PublicMarket): { title: string; desc
     return {
       title: market.schedule.kind === "digit-pair"
         ? `${market.name} 장날 날짜 (${schedule}) | 오늘 장날`
-        : `${market.name} 영업일 · 매일 운영 | 오늘 장날`,
+        : `${market.name} 영업일 · 상설시장 | 오늘 장날`,
       description: market.schedule.kind === "digit-pair"
         ? `${locationPrefix}${market.name} 장날은 매월 ${formatScheduleDates(market)}입니다. 온누리상품권 가맹점 ${total}곳, 디지털 ${digital}곳·지류 ${paper}곳, 주소와 주차 정보를 확인하세요.`
-        : `${locationPrefix}${market.name}은 매일 운영합니다. 온누리상품권 가맹점 ${total}곳, 디지털 ${digital}곳·지류 ${paper}곳, 주소와 주차 정보를 확인하세요.`,
+        : `${locationPrefix}${market.name}은 상설시장입니다. 점포별 영업일과 휴무를 확인하세요. 온누리상품권 가맹점 ${total}곳, 디지털 ${digital}곳·지류 ${paper}곳, 주소와 주차 정보를 제공합니다.`,
     };
   }
 
@@ -77,8 +77,8 @@ export function createMarketSeoText(market: PublicMarket): { title: string; desc
 
   if (market.schedule.kind === "daily") {
     return {
-      title: `${market.name} 영업일 · 매일 운영 | 오늘 장날`,
-      description: `${locationPrefix}${market.name}은 매일 운영하는 전통시장입니다. 주소와 전화, 주차 정보를 확인하고 전국 장날 지도에서 위치를 찾아보세요.`,
+      title: `${market.name} 영업일 · 상설시장 | 오늘 장날`,
+      description: `${locationPrefix}${market.name}은 상설시장입니다. 점포별 영업일과 휴무, 주소와 전화, 주차 정보를 확인하고 전국 장날 지도에서 위치를 찾아보세요.`,
     };
   }
 

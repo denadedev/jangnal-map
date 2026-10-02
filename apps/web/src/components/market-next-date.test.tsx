@@ -25,6 +25,12 @@ const periodicMarket: PublicMarket = {
 };
 
 describe("MarketNextDate", () => {
+  it("does not promise that a permanent market is open today", () => {
+    render(<MarketNextDate market={{ ...periodicMarket, schedule: { kind: "daily" } }} />);
+    expect(screen.queryByText("오늘 운영")).not.toBeInTheDocument();
+    expect(screen.getByText(/점포별 영업일과 정기휴무/)).toBeInTheDocument();
+  });
+
   afterEach(() => vi.useRealTimers());
 
   it("replaces the durable schedule fallback with the next date from the browser clock", async () => {

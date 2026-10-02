@@ -1,12 +1,9 @@
-"use client";
-
-import { useState } from "react";
-
 export interface ReviewedMarketGuide {
   id: string;
   name: string;
   schedule: string;
   href: string;
+  summary?: string;
 }
 
 interface ReviewedMarketGuidesProps {
@@ -14,37 +11,33 @@ interface ReviewedMarketGuidesProps {
 }
 
 export function ReviewedMarketGuides({ guides }: ReviewedMarketGuidesProps) {
-  const [expanded, setExpanded] = useState(false);
-
   return (
-    <section className="reviewed-market-guides" aria-labelledby="reviewed-market-guides-heading" data-expanded={expanded}>
+    <section className="reviewed-market-guides" aria-labelledby="reviewed-market-guides-heading">
       <div className="reviewed-market-guides-heading">
-        <h2 id="reviewed-market-guides-heading">시장별 방문 정보</h2>
-        <div className="reviewed-market-guides-actions">
-          <span>시장 {guides.length}곳</span>
-          <button
-            type="button"
-            className="reviewed-market-guides-toggle"
-            aria-label={`시장별 방문 정보 ${expanded ? "접기" : "펼치기"}`}
-            aria-expanded={expanded}
-            aria-controls="reviewed-market-guides-content"
-            onClick={() => setExpanded((current) => !current)}
-          >
-            {expanded ? "접기" : "펼치기"}
-          </button>
-        </div>
+        <h2 id="reviewed-market-guides-heading" tabIndex={-1}>시장별 방문 정보</h2>
+        <span>시장 {guides.length}곳</span>
       </div>
-      <div id="reviewed-market-guides-content" className="reviewed-market-guides-content">
-        <p>주소·주차·교통·방문 팁을 정리했어요.</p>
+      <p>주소·주차·교통·방문 팁을 정리했어요.</p>
+      <div className="reviewed-market-guides-list reviewed-market-previews">
+        {guides.filter((guide) => guide.summary).map((guide) => (
+          <a key={guide.id} href={guide.href} className="reviewed-market-guide-link">
+            <strong>{guide.name}</strong>
+            <span>{guide.schedule}</span>
+            <p>{guide.summary}</p>
+          </a>
+        ))}
+      </div>
+      <details className="reviewed-market-guides-content">
+        <summary className="reviewed-market-guides-toggle">시장 {guides.length}곳 전체 안내</summary>
         <div className="reviewed-market-guides-list">
-          {guides.map((guide) => (
+          {guides.filter((guide) => !guide.summary).map((guide) => (
             <a key={guide.id} href={guide.href} className="reviewed-market-guide-link">
               <strong>{guide.name}</strong>
               <span>{guide.schedule}</span>
             </a>
           ))}
         </div>
-      </div>
+      </details>
     </section>
   );
 }

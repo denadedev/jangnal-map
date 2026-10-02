@@ -52,10 +52,10 @@ test("keeps mobile visit guides reachable below results", async ({ page }) => {
   await page.goto("/?when=all");
   await page.getByRole("navigation", { name: "주요 화면" }).getByRole("button", { name: "목록" }).click();
   const guides = page.locator(".mobile-market-results .reviewed-market-guides");
-  const toggle = guides.getByRole("button", { name: /시장별 방문 정보/ });
+  const toggle = guides.locator("summary");
   await toggle.scrollIntoViewIfNeeded();
-  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(guides.locator("details")).not.toHaveAttribute("open");
   await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(guides.locator("details")).toHaveAttribute("open");
   await expect(guides.locator("a").first()).toBeVisible();
 });

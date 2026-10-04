@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -11,28 +11,32 @@ describe("MarketMap current location", () => {
     vi.unstubAllGlobals();
   });
 
-  it("lets a desktop page scroll over the embedded map like mobile", async () => {
+  it.each(["ko", "en"] as const)("scrolls with one finger and pans with two without a mode button (%s)", async (locale) => {
     const mapOptions = vi.fn();
+    const setOptions = vi.fn();
+    const panBy = vi.fn();
     class FakeMap {
       constructor(_element: HTMLElement, options: unknown) { mapOptions(options); }
+      setOptions = setOptions;
+      panBy = panBy;
       getZoom = () => 7;
       getBounds = () => ({
         getNE: () => ({ lat: () => 38, lng: () => 130 }),
         getSW: () => ({ lat: () => 33, lng: () => 124 }),
       });
     }
-    vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: false }));
     window.naver = {
       maps: {
         Map: FakeMap,
         LatLng: class FakeLatLng {},
         Marker: class FakeMarker { setMap = vi.fn(); },
-        Point: class FakePoint {},
+        Point: class FakePoint { constructor(public x: number, public y: number) {} },
         Event: { addListener: () => ({}), removeListener: () => undefined },
       },
     } as unknown as NaverMapsNamespace;
 
-    render(<MarketMap
+    const view = render(<MarketMap
+      locale={locale}
       markets={[]}
       referenceDate={new Date(2026, 8, 7)}
       selectedId={null}
@@ -41,7 +45,37 @@ describe("MarketMap current location", () => {
       onLocationChange={() => undefined}
     />);
 
-    await waitFor(() => expect(mapOptions).toHaveBeenCalledWith(expect.objectContaining({ draggable: false, scrollWheel: false })));
+    await waitFor(() => expect(mapOptions).toHaveBeenCalledWith(expect.objectContaining({ draggable: true, scrollWheel: false, pinchZoom: true, disableTwoFingerTapZoom: true })));
+    expect(screen.queryByRole("button", { name: /지도 이동|이동 완료|Move map|Done moving/ })).not.toBeInTheDocument();
+    const canvas = document.querySelector(".map-canvas")!;
+    expect(fireEvent.touchStart(canvas, { touches: [{ clientX: 100, clientY: 100 }] })).toBe(true);
+    expect(setOptions).toHaveBeenLastCalledWith({ draggable: false });
+    expect(fireEvent.touchMove(canvas, { touches: [{ clientX: 100, clientY: 70 }] })).toBe(true);
+    expect(panBy).not.toHaveBeenCalled();
+
+    expect(fireEvent.touchStart(canvas, { touches: [{ clientX: 100, clientY: 100 }, { clientX: 200, clientY: 100 }] })).toBe(false);
+    expect(fireEvent.touchMove(canvas, { touches: [{ clientX: 120, clientY: 70 }, { clientX: 220, clientY: 70 }] })).toBe(false);
+    expect(panBy).toHaveBeenLastCalledWith(expect.objectContaining({ x: 20, y: -30 }));
+    expect(panBy).toHaveBeenCalledTimes(1);
+
+    fireEvent.touchEnd(canvas, { touches: [{ clientX: 120, clientY: 70 }] });
+    expect(fireEvent.touchMove(canvas, { touches: [{ clientX: 120, clientY: 40 }] })).toBe(true);
+    expect(panBy).toHaveBeenCalledTimes(1);
+    fireEvent.touchEnd(canvas, { touches: [] });
+    expect(setOptions).toHaveBeenLastCalledWith({ draggable: true });
+
+    fireEvent.touchStart(canvas, { touches: [{ clientX: 30, clientY: 40 }, { clientX: 130, clientY: 40 }] });
+    fireEvent.touchMove(canvas, { touches: [{ clientX: 20, clientY: 55 }, { clientX: 120, clientY: 55 }] });
+    expect(panBy).toHaveBeenLastCalledWith(expect.objectContaining({ x: -10, y: 15 }));
+    fireEvent.touchCancel(canvas, { touches: [] });
+    expect(setOptions).toHaveBeenLastCalledWith({ draggable: true });
+    expect(fireEvent.touchMove(canvas, { touches: [{ clientX: 20, clientY: 60 }] })).toBe(true);
+    expect(panBy).toHaveBeenCalledTimes(2);
+    expect(mapOptions).toHaveBeenCalledTimes(1);
+    view.unmount();
+    fireEvent.touchStart(canvas, { touches: [{ clientX: 30, clientY: 40 }, { clientX: 130, clientY: 40 }] });
+    fireEvent.touchMove(canvas, { touches: [{ clientX: 50, clientY: 40 }, { clientX: 150, clientY: 40 }] });
+    expect(panBy).toHaveBeenCalledTimes(2);
   });
 
   it("reports a successful current location to its parent", async () => {

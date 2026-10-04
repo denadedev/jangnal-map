@@ -13,7 +13,7 @@ export interface NaverMapInstance {
   fitBounds: (bounds: { south: number; west: number; north: number; east: number }) => void;
   panTo: (position: NaverLatLng) => void;
   panBy: (offset: NaverPoint) => void;
-  setOptions: (options: { padding: { top: number; right: number; bottom: number; left: number } }) => void;
+  setOptions: (options: { draggable?: boolean; padding?: { top: number; right: number; bottom: number; left: number } }) => void;
   getCenter: () => NaverLatLng;
   getProjection: () => NaverProjection | null;
   setZoom: (zoom: number) => void;
@@ -38,7 +38,7 @@ export interface NaverMarker {
 
 export interface NaverMapsNamespace {
   maps: {
-    Map: new (element: HTMLElement, options: { center: NaverLatLng; zoom: number; minZoom?: number; draggable?: boolean; scrollWheel?: boolean }) => NaverMapInstance;
+    Map: new (element: HTMLElement, options: { center: NaverLatLng; zoom: number; minZoom?: number; draggable?: boolean; scrollWheel?: boolean; pinchZoom?: boolean; disableTwoFingerTapZoom?: boolean }) => NaverMapInstance;
     LatLng: new (latitude: number, longitude: number) => NaverLatLng;
     Marker: new (options: {
       map: NaverMapInstance;

@@ -171,7 +171,7 @@ export function ReportForm({ configured, supportEmail, scope, market }: ReportFo
       {errors.contact ? <p id="contact-error" className="field-error">{errors.contact}</p> : null}
       <p className="privacy-note">
         제보 답변을 위해 사용하며 처리 완료 후 90일 이내 삭제합니다. 입력하지 않아도 제보할 수 있습니다.{" "}
-        <a href="/privacy">자세히 보기</a>
+        <a href="https://legal-hub.denadedev.workers.dev/kmarketday/privacy/">자세히 보기</a>
       </p>
       <label className="consent-field">
         <input

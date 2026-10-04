@@ -126,51 +126,6 @@ export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQu
     return () => observer.disconnect();
   }, [status]);
 
-  useEffect(() => {
-    if (status !== "ready" || !containerRef.current || !mapRef.current || !window.naver?.maps) return;
-    const container = containerRef.current;
-    const map = mapRef.current;
-    const naver = window.naver;
-    let previous: { x: number; y: number } | null = null;
-    const touchCenter = (touches: TouchList) => touches.length === 2
-      ? { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 }
-      : null;
-    const start = (event: TouchEvent) => {
-      map.setOptions({ draggable: false });
-      previous = touchCenter(event.touches);
-      if (previous) event.preventDefault();
-    };
-    const move = (event: TouchEvent) => {
-      const center = touchCenter(event.touches);
-      if (center) {
-        event.preventDefault();
-        if (previous) {
-          const x = center.x - previous.x;
-          const y = center.y - previous.y;
-          if (x || y) {
-            if (cameraSnapshotRef.current) cameraSnapshotRef.current.shouldRestore = false;
-            map.panBy(new naver.maps.Point(x, y));
-          }
-        }
-      }
-      previous = center;
-    };
-    const end = (event: TouchEvent) => {
-      previous = touchCenter(event.touches);
-      if (event.touches.length === 0) map.setOptions({ draggable: true });
-    };
-    container.addEventListener("touchstart", start, { capture: true, passive: false });
-    container.addEventListener("touchmove", move, { capture: true, passive: false });
-    container.addEventListener("touchend", end, true);
-    container.addEventListener("touchcancel", end, true);
-    return () => {
-      container.removeEventListener("touchstart", start, true);
-      container.removeEventListener("touchmove", move, true);
-      container.removeEventListener("touchend", end, true);
-      container.removeEventListener("touchcancel", end, true);
-    };
-  }, [status]);
-
   const moveToSearchResults = () => {
     const map = mapRef.current;
     const naver = window.naver;
@@ -467,7 +422,7 @@ export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQu
     <section className="map-stage" aria-label={ui.mapLabel}>
       <div className="mobile-map-heading">
         <strong>{locale === "en" ? "Market map" : "전국 시장 지도"}</strong>
-        <span>{locale === "en" ? "Move & zoom with two fingers" : "두 손가락으로 이동·확대"}</span>
+        <span>{locale === "en" ? "Drag to move · Pinch to zoom" : "드래그로 이동 · 두 손가락으로 확대"}</span>
       </div>
       <div className="map-canvas-shell">
         <div ref={containerRef} className="map-canvas" aria-hidden={showFallback} />

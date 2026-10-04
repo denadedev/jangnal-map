@@ -11,7 +11,7 @@ describe("MarketMap current location", () => {
     vi.unstubAllGlobals();
   });
 
-  it.each(["ko", "en"] as const)("scrolls with one finger and pans with two without a mode button (%s)", async (locale) => {
+  it.each(["ko", "en"] as const)("keeps native map dragging enabled for one and two fingers without a mode button (%s)", async (locale) => {
     const mapOptions = vi.fn();
     const setOptions = vi.fn();
     const panBy = vi.fn();
@@ -35,7 +35,7 @@ describe("MarketMap current location", () => {
       },
     } as unknown as NaverMapsNamespace;
 
-    const view = render(<MarketMap
+    render(<MarketMap
       locale={locale}
       markets={[]}
       referenceDate={new Date(2026, 8, 7)}
@@ -48,34 +48,16 @@ describe("MarketMap current location", () => {
     await waitFor(() => expect(mapOptions).toHaveBeenCalledWith(expect.objectContaining({ draggable: true, scrollWheel: false, pinchZoom: true, disableTwoFingerTapZoom: true })));
     expect(screen.queryByRole("button", { name: /지도 이동|이동 완료|Move map|Done moving/ })).not.toBeInTheDocument();
     const canvas = document.querySelector(".map-canvas")!;
-    expect(fireEvent.touchStart(canvas, { touches: [{ clientX: 100, clientY: 100 }] })).toBe(true);
-    expect(setOptions).toHaveBeenLastCalledWith({ draggable: false });
-    expect(fireEvent.touchMove(canvas, { touches: [{ clientX: 100, clientY: 70 }] })).toBe(true);
-    expect(panBy).not.toHaveBeenCalled();
-
-    expect(fireEvent.touchStart(canvas, { touches: [{ clientX: 100, clientY: 100 }, { clientX: 200, clientY: 100 }] })).toBe(false);
-    expect(fireEvent.touchMove(canvas, { touches: [{ clientX: 120, clientY: 70 }, { clientX: 220, clientY: 70 }] })).toBe(false);
-    expect(panBy).toHaveBeenLastCalledWith(expect.objectContaining({ x: 20, y: -30 }));
-    expect(panBy).toHaveBeenCalledTimes(1);
-
-    fireEvent.touchEnd(canvas, { touches: [{ clientX: 120, clientY: 70 }] });
-    expect(fireEvent.touchMove(canvas, { touches: [{ clientX: 120, clientY: 40 }] })).toBe(true);
-    expect(panBy).toHaveBeenCalledTimes(1);
+    fireEvent.touchStart(canvas, { touches: [{ clientX: 100, clientY: 100 }] });
+    fireEvent.touchMove(canvas, { touches: [{ clientX: 100, clientY: 70 }] });
+    expect(setOptions).not.toHaveBeenCalledWith(expect.objectContaining({ draggable: false }));
     fireEvent.touchEnd(canvas, { touches: [] });
-    expect(setOptions).toHaveBeenLastCalledWith({ draggable: true });
-
-    fireEvent.touchStart(canvas, { touches: [{ clientX: 30, clientY: 40 }, { clientX: 130, clientY: 40 }] });
-    fireEvent.touchMove(canvas, { touches: [{ clientX: 20, clientY: 55 }, { clientX: 120, clientY: 55 }] });
-    expect(panBy).toHaveBeenLastCalledWith(expect.objectContaining({ x: -10, y: 15 }));
+    fireEvent.touchStart(canvas, { touches: [{ clientX: 100, clientY: 100 }, { clientX: 200, clientY: 100 }] });
+    fireEvent.touchMove(canvas, { touches: [{ clientX: 120, clientY: 70 }, { clientX: 220, clientY: 70 }] });
+    expect(setOptions).not.toHaveBeenCalledWith(expect.objectContaining({ draggable: false }));
+    expect(panBy).not.toHaveBeenCalled();
     fireEvent.touchCancel(canvas, { touches: [] });
-    expect(setOptions).toHaveBeenLastCalledWith({ draggable: true });
-    expect(fireEvent.touchMove(canvas, { touches: [{ clientX: 20, clientY: 60 }] })).toBe(true);
-    expect(panBy).toHaveBeenCalledTimes(2);
     expect(mapOptions).toHaveBeenCalledTimes(1);
-    view.unmount();
-    fireEvent.touchStart(canvas, { touches: [{ clientX: 30, clientY: 40 }, { clientX: 130, clientY: 40 }] });
-    fireEvent.touchMove(canvas, { touches: [{ clientX: 50, clientY: 40 }, { clientX: 150, clientY: 40 }] });
-    expect(panBy).toHaveBeenCalledTimes(2);
   });
 
   it("reports a successful current location to its parent", async () => {

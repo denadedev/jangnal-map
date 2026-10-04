@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/react";
+import { fireEvent, render, waitFor } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -191,7 +191,7 @@ describe("MarketMap mobile camera behavior", () => {
     await waitFor(() => expect(onCameraRestoreComplete).toHaveBeenCalledWith(true));
   });
 
-  it.each(["dragstart", "zoom_changed"] as const)(
+  it.each(["dragstart", "zoom_changed", "two-finger-pan"] as const)(
     "keeps the user's map position after a %s gesture instead of restoring the old camera",
     async (gesture) => {
       const fake = installFakeNaverMap();
@@ -212,7 +212,12 @@ describe("MarketMap mobile camera behavior", () => {
         />,
       );
       await waitFor(() => expect(fake.markerOptions.length).toBeGreaterThan(0));
-      fake.emit(gesture);
+      if (gesture === "two-finger-pan") {
+        const canvas = document.querySelector(".map-canvas")!;
+        fireEvent.touchStart(canvas, { touches: [{ clientX: 100, clientY: 100 }, { clientX: 200, clientY: 100 }] });
+        fireEvent.touchMove(canvas, { touches: [{ clientX: 120, clientY: 70 }, { clientX: 220, clientY: 70 }] });
+        fireEvent.touchEnd(canvas, { touches: [] });
+      } else fake.emit(gesture);
 
       view.rerender(
         <MarketMap

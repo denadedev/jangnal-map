@@ -23,7 +23,7 @@ export interface PublicMarket {
   scheduleRaw: string;
   schedule:
     | { kind: "daily" }
-    | { kind: "digit-pair"; days: [number, number] }
+    | { kind: "digit-pair"; days: [number, number]; skipsFirstAfterThirtyFirst?: true }
     | { kind: "unknown"; raw: string };
   phone: string | null;
   scheduleSource?: { name: string; url: string; checkedAt: string };
@@ -79,6 +79,15 @@ const publicMarket = (raw: RawMarket, market: NormalizedMarket): PublicMarket =>
         name: "제주관광공사 비짓제주 서귀포향토오일시장",
         url: "https://www.visitjeju.net/kr/detail/view?contentsid=CONT_000000000500732",
         checkedAt: "2026-10-02",
+      },
+    } : {}),
+    // VisitJeju: 31일이 있는 달은 31일에 장이 서고 다음 날 1일은 쉰다.
+    ...(id === "market-e668bef943d8adcf" ? {
+      schedule: { kind: "digit-pair" as const, days: [1, 6] as [number, number], skipsFirstAfterThirtyFirst: true as const },
+      scheduleSource: {
+        name: "제주관광공사 비짓제주 대정오일시장",
+        url: "https://www.visitjeju.net/kr/detail/view?contentsid=CNTS_200000000012266",
+        checkedAt: "2026-10-11",
       },
     } : {}),
   };

@@ -11,6 +11,7 @@ describe("AboutPage", () => {
     expect(screen.getByText(/운영 주체: 오늘 장날 운영자/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "데이터 출처와 편집 기준" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "정보 수정과 제보" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "denadedev@gmail.com" })).toHaveAttribute("href", "mailto:denadedev@gmail.com");
     expect(screen.getByRole("link", { name: "정보 수정 제보" })).toHaveAttribute("href", "/report?kind=service");
   });
 });

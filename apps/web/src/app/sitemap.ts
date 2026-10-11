@@ -10,6 +10,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/about`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE_URL}/onnuri`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${SITE_URL}/en`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${SITE_URL}/privacy`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE_URL}/terms`, changeFrequency: "yearly", priority: 0.3 },
     ...publicMarkets.filter(isMarketIndexable).map((market) => ({
       url: `${SITE_URL}${getMarketPagePath(market)}`,
       lastModified: [market.referenceDate ?? market.source.referenceDate ?? "", findMarketEditorial(market.id)!.reviewedAt].sort().at(-1),

@@ -29,6 +29,29 @@ describe("generatePublicMarkets", () => {
     expect(artifact.find((market: { id: string }) => market.id === corrected.id)).toMatchObject(expected);
   });
 
+  it("대정오일시장은 31일 장이 선 다음 날 1일을 쉬는 비짓제주 일정을 반영한다", async () => {
+    const rawRows = await readMarketsCsv("data/fixtures/markets.csv", "utf8");
+    const corrected = generatePublicMarkets([{
+      ...rawRows[0]!,
+      시장명: "대정오일시장",
+      시장유형: "5일장",
+      소재지도로명주소: "제주특별자치도 서귀포시 대정읍 신영로36번길 65",
+      소재지지번주소: "제주특별자치도 서귀포시 대정읍 하모리 1089-15",
+      위도: "33.22061006",
+      경도: "126.2482168",
+      시장개설주기: "1일+6일",
+    }])[0]!;
+    expect(corrected.id).toBe("market-e668bef943d8adcf");
+    const expected = {
+      scheduleRaw: "1일+6일",
+      schedule: { kind: "digit-pair", days: [1, 6], skipsFirstAfterThirtyFirst: true },
+      scheduleSource: { name: "제주관광공사 비짓제주 대정오일시장", url: "https://www.visitjeju.net/kr/detail/view?contentsid=CNTS_200000000012266", checkedAt: "2026-10-11" },
+    };
+    expect(corrected).toMatchObject(expected);
+    const artifact = JSON.parse(await readFile("../../apps/web/public/data/markets.json", "utf8"));
+    expect(artifact.find((market: { id: string }) => market.id === corrected.id)).toMatchObject(expected);
+  });
+
   it("시장 ID별 온누리 집계를 병합하고 미매칭 시장은 null로 둔다", async () => {
     const rawRows = await readMarketsCsv("data/fixtures/markets.csv", "utf8");
     const generated = generatePublicMarkets(rawRows);

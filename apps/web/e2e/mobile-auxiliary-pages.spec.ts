@@ -26,5 +26,5 @@ test("keeps auxiliary pages readable and actionable", async ({ page }) => {
   await expect(page.getByRole("button", { name: "제보 보내기" })).toBeVisible();
 
   await page.goto("/privacy");
-  await expect(page.getByRole("heading", { name: "개인정보 처리 안내" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "개인정보 처리방침" })).toBeVisible();
 });

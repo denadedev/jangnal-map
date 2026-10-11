@@ -21,7 +21,7 @@ test("offers meaningful guides and navigation without JavaScript", async ({ brow
     await expect(guides.locator(".reviewed-market-previews p").first()).toBeVisible();
     await guides.locator("summary").click();
     await expect(guides.locator("details a").first()).toBeVisible();
-    await expect(guides.locator("a")).toHaveCount(30);
+    await expect(guides.locator("a")).toHaveCount(55);
     await expect(page.getByRole("link", { name: "데이터 출처와 편집 기준" })).toBeVisible();
     await guides.getByRole("link", { name: /용인중앙시장/ }).click();
     await expect(page.getByRole("heading", { name: "한눈에 보는 시장 특징" })).toBeVisible();
@@ -85,7 +85,7 @@ test("publishes the canonical connection files", async ({ page }) => {
   const sitemap = await page.request.get("/sitemap.xml");
   const sitemapText = await sitemap.text();
   expect(sitemap.status()).toBe(200);
-  expect((sitemapText.match(/<loc>/g) ?? []).length).toBe(34);
+  expect((sitemapText.match(/<loc>/g) ?? []).length).toBe(61);
   expect(sitemapText).not.toContain("spamfam.kr");
   expect(sitemapText).not.toContain("jangnal.spamfam.kr");
   expect(sitemapText).not.toContain("jangnal-map.vercel.app");

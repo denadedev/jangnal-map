@@ -14143,7 +14143,8 @@
       "days": [
         1,
         6
-      ]
+      ],
+      "skipsFirstAfterThirtyFirst": true
     },
     "phone": null,
     "hasParking": true,
@@ -14155,7 +14156,12 @@
       "url": "https://www.data.go.kr/data/15012894/standard.do?recommendDataYn=Y",
       "referenceDate": "2025-11-10"
     },
-    "onnuri": null
+    "onnuri": null,
+    "scheduleSource": {
+      "name": "제주관광공사 비짓제주 대정오일시장",
+      "url": "https://www.visitjeju.net/kr/detail/view?contentsid=CNTS_200000000012266",
+      "checkedAt": "2026-10-11"
+    }
   },
   {
     "id": "market-0180586bc42310b3",

@@ -67,6 +67,30 @@ describe("getMarketDates", () => {
   });
 });
 
+describe("getMarketDates with the first-day exception", () => {
+  const daejeong = { schedule: { kind: "digit-pair" as const, days: [1, 6] as [number, number], skipsFirstAfterThirtyFirst: true as const } };
+
+  it("opens on the 31st and skips the following 1st", () => {
+    const dates = getMarketDates(daejeong, { start: new Date(2026, 6, 26), end: new Date(2026, 7, 6) });
+
+    expect(dateParts(dates)).toEqual([
+      [2026, 7, 26],
+      [2026, 7, 31],
+      [2026, 8, 6],
+    ]);
+  });
+
+  it("keeps the 1st after a month without a 31st", () => {
+    const dates = getMarketDates(daejeong, { start: new Date(2026, 9, 1), end: new Date(2026, 9, 1) });
+
+    expect(dateParts(dates)).toEqual([[2026, 10, 1]]);
+  });
+
+  it("finds the 6th as the next market day after a skipped 1st", () => {
+    expect(getNextMarketDate(daejeong, new Date(2026, 7, 1))).toEqual(new Date(2026, 7, 6));
+  });
+});
+
 describe("getNextMarketDate", () => {
   it("uses today for daily markets and no date for unknown schedules", () => {
     const from = new Date(2026, 8, 7);

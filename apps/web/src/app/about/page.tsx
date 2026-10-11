@@ -46,6 +46,7 @@ export default function AboutPage() {
             <p>오늘 장날 운영자는 원본 데이터의 기준일과 편집 콘텐츠의 확인일을 함께 관리합니다. 시장별 정보가 달라졌다면 해당 시장의 제보 링크를 통해 알려주세요.</p>
             <p>데이터 기준일은 원본 자료의 시점, 편집 내용 확인일은 안내를 검토한 시점입니다. 각 출처를 읽은 날짜는 출처 옆에 따로 표시하며, 현장 영업을 확인한 날짜를 뜻하지 않습니다. 공식 자료로 장날을 정정한 경우에는 장날 출처를 별도로 표시합니다.</p>
             <p>운영 주체: 오늘 장날 운영자</p>
+            <p>문의: <a href="mailto:denadedev@gmail.com">denadedev@gmail.com</a></p>
           </section>
 
           <section className={styles.section} aria-labelledby="correction-heading">

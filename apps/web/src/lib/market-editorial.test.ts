@@ -56,7 +56,7 @@ describe("market editorial catalog", () => {
       "market-0b1ee7b765707fb2",
       "market-00f8629bf12716ac",
     ]));
-    expect(marketEditorialEntries).toHaveLength(30);
+    expect(marketEditorialEntries).toHaveLength(55);
     const reviewedRegions = new Set(reviewedMarkets.map((market) =>
       (market.roadAddress ?? market.lotAddress ?? "").split(/\s+/)[0],
     ));

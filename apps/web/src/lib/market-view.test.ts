@@ -55,6 +55,8 @@ describe("market explorer date semantics", () => {
   it("formats recurring market days as explicit calendar dates", () => {
     expect(formatScheduleDates(market)).toBe("2일·7일·12일·17일·22일·27일");
     expect(formatScheduleDates({ ...market, schedule: { kind: "digit-pair", days: [5, 0] } })).toBe("5일·10일·15일·20일·25일·30일");
+    expect(formatScheduleDates({ ...market, schedule: { kind: "digit-pair", days: [1, 6], skipsFirstAfterThirtyFirst: true } }))
+      .toBe("1일·6일·11일·16일·21일·26일·31일(31일 장이 선 다음 날 1일은 쉼)");
     expect(formatScheduleDates({ ...market, schedule: { kind: "daily" } })).toBe("매일");
     expect(formatScheduleDates({ ...market, schedule: { kind: "unknown", raw: "확인 중" } })).toBe("일정 확인 필요");
   });

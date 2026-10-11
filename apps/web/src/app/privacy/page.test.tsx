@@ -3,37 +3,25 @@ import { afterEach, expect, it, vi } from "vitest";
 
 import PrivacyPage from "./page";
 
-afterEach(() => vi.unstubAllEnvs());
+const hubHtml = `<html><body><article class="document"><h1>개인정보 처리방침</h1>
+<section id="section-3"><h2>3. Google AdSense</h2><p>광고 쿠키 안내</p></section></article></body></html>`;
 
-it("explains optional contact processing and deletion", () => {
-  vi.stubEnv("REPORT_TO_EMAIL", "privacy@example.com");
-  render(<PrivacyPage />);
+afterEach(() => vi.unstubAllGlobals());
 
-  expect(screen.getByText(/전화번호 또는 이메일/)).toBeInTheDocument();
-  expect(screen.getByText(/처리 완료 후 90일 이내/)).toBeInTheDocument();
-  expect(screen.getByText(/운영 이메일로 전송/)).toBeInTheDocument();
-  expect(screen.getByText(/Umami Analytics/)).toBeInTheDocument();
-  expect(screen.getByText(/쿠키를 사용하지 않으며/)).toBeInTheDocument();
-  expect(screen.getByText(/방문 페이지, 유입 경로, 브라우저와 기기 유형/)).toBeInTheDocument();
-  expect(screen.queryByText(/Formspree/)).not.toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "privacy@example.com" })).toHaveAttribute(
-    "href",
-    "mailto:privacy@example.com?subject=%5B%EC%98%A4%EB%8A%98%EC%9E%A5%EB%82%A0%5D%20%EA%B0%9C%EC%9D%B8%EC%A0%95%EB%B3%B4%20%EC%82%AD%EC%A0%9C%20%EC%9A%94%EC%B2%AD",
-  );
+it("renders the legal hub privacy policy on the site domain", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(hubHtml)));
+  render(await PrivacyPage());
+
+  expect(screen.getByRole("heading", { level: 1, name: "개인정보 처리방침" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "3. Google AdSense" })).toBeInTheDocument();
 });
 
-it("discloses AdSense advertising data use and settings", () => {
-  render(<PrivacyPage />);
+it("links to the hub document when it cannot be loaded", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
+  render(await PrivacyPage());
 
-  expect(screen.getByRole("heading", { name: "Google AdSense 광고" })).toBeInTheDocument();
-  expect(screen.getByText(/쿠키, 웹 비콘, IP 주소 또는 기기 식별자/)).toBeInTheDocument();
-  expect(screen.getByText(/맞춤형 광고가 제공될 수/)).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Google 광고 설정" })).toHaveAttribute(
+  expect(screen.getByRole("link", { name: "개인정보 처리방침 원문 보기" })).toHaveAttribute(
     "href",
-    "https://www.google.com/settings/ads",
-  );
-  expect(screen.getByRole("link", { name: "Google 파트너 사이트의 데이터 사용 방식" })).toHaveAttribute(
-    "href",
-    "https://policies.google.com/technologies/partner-sites?hl=ko",
+    "https://legal-hub.denadedev.workers.dev/kmarketday/privacy/",
   );
 });

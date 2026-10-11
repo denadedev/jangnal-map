@@ -9,9 +9,12 @@ async function get(path, status = 200) {
   return response.text();
 }
 const home = await get("/");
-for (const route of ["/report", "/privacy"]) {
+const report = await get("/report");
+assert.ok(report.includes(expectedEmail), "/report must use runtime email, not build-time settings");
+// Legal Hub 장애 시에도 같은 제목의 대체 화면이 나오므로 제목만 확인한다.
+for (const [route, title] of [["/privacy", "개인정보 처리방침"], ["/terms", "이용약관"]]) {
   const html = await get(route);
-  assert.ok(html.includes(expectedEmail), `${route} must use runtime email, not build-time settings`);
+  assert.ok(html.includes(`<h1>`) && html.includes(title), `${route} must render the ${title} document`);
 }
 const sitemap = await get("/sitemap.xml");
 const detail = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)]

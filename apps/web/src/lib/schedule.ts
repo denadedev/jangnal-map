@@ -11,7 +11,14 @@ type ScheduledMarket = {
 
 const atStartOfDay = (date: Date): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-const hasMarketDayEnding = (date: Date, days: [number, number]): boolean => days.includes(date.getDate() % 10);
+type DigitPairSchedule = Extract<MarketSchedule, { kind: "digit-pair" }>;
+
+const followsThirtyFirst = (date: Date): boolean =>
+  date.getDate() === 1 && new Date(date.getFullYear(), date.getMonth(), 0).getDate() === 31;
+
+// 일부 1·6일장은 31일에 장을 열고 다음 날 1일은 쉰다.
+const hasMarketDayEnding = (date: Date, schedule: DigitPairSchedule): boolean =>
+  schedule.days.includes(date.getDate() % 10) && !(schedule.skipsFirstAfterThirtyFirst && followsThirtyFirst(date));
 
 export function getMarketDates(market: ScheduledMarket, range: DateRange): Date[] {
   const start = atStartOfDay(range.start);
@@ -21,7 +28,7 @@ export function getMarketDates(market: ScheduledMarket, range: DateRange): Date[
 
   const dates: Date[] = [];
   for (const date = start; date <= end; date.setDate(date.getDate() + 1)) {
-    if (market.schedule.kind === "daily" || hasMarketDayEnding(date, market.schedule.days)) {
+    if (market.schedule.kind === "daily" || hasMarketDayEnding(date, market.schedule)) {
       dates.push(new Date(date));
     }
   }
@@ -33,7 +40,7 @@ export function getNextMarketDate(market: ScheduledMarket, from: Date): Date | n
   if (market.schedule.kind === "unknown") return null;
   const date = atStartOfDay(from);
   if (market.schedule.kind === "daily") return date;
-  while (!hasMarketDayEnding(date, market.schedule.days)) {
+  while (!hasMarketDayEnding(date, market.schedule)) {
     date.setDate(date.getDate() + 1);
   }
 

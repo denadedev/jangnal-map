@@ -8,8 +8,8 @@ export function SiteFooter({ locale = "ko" }: { locale?: Locale }) {
     <footer className={styles.footer} aria-label={locale === "en" ? "Site information" : "사이트 정보"}>
       <nav className={styles.links} aria-label={locale === "en" ? "Site information menu" : "사이트 정보 메뉴"}>
         <a href="/about">{ui.about}</a>
-        <a href="https://legal-hub.denadedev.workers.dev/kmarketday/privacy/">{ui.privacy}</a>
-        <a href="https://legal-hub.denadedev.workers.dev/kmarketday/terms/">{ui.terms}</a>
+        <a href="/privacy">{ui.privacy}</a>
+        <a href="/terms">{ui.terms}</a>
         <a href="/about#data-policy">{ui.dataPolicy}</a>
         <a href="/report?kind=service">{ui.reportInfo}</a>
         <a href={locale === "en" ? "/" : "/en"}>{locale === "en" ? "한국어" : "English guide"}</a>

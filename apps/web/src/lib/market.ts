@@ -1,6 +1,6 @@
 export type MarketSchedule =
   | { kind: "daily" }
-  | { kind: "digit-pair"; days: [number, number] }
+  | { kind: "digit-pair"; days: [number, number]; skipsFirstAfterThirtyFirst?: true }
   | { kind: "unknown"; raw: string };
 
 export interface OnnuriMerchantSummary {

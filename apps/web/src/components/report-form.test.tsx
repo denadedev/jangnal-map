@@ -18,6 +18,12 @@ describe("ReportForm", () => {
     expect(screen.getByRole("textbox", { name: "알려주실 내용" })).toHaveValue("입력 내용");
   });
 
+  it("links contact processing details to the on-site privacy policy", () => {
+    render(<ReportForm configured supportEmail="help@example.com" scope="service" market={null} />);
+
+    expect(screen.getByRole("link", { name: "자세히 보기" })).toHaveAttribute("href", "/privacy");
+  });
+
   it("submits an anonymous market report with verified market context", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });

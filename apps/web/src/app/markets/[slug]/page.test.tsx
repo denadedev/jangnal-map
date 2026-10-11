@@ -17,8 +17,8 @@ describe("market detail route", () => {
   it("prebuilds raw path parameters for every public market", async () => {
     const params = await generateStaticParams();
 
-    expect(params).toHaveLength(30);
-    expect(new Set(params.map(({ slug }) => slug))).toHaveLength(30);
+    expect(params).toHaveLength(55);
+    expect(new Set(params.map(({ slug }) => slug))).toHaveLength(55);
     expect(params).toContainEqual({ slug: "용인중앙시장-389b4a24" });
   });
 

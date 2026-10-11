@@ -25,11 +25,11 @@ describe("MobileAppBar", () => {
     expect(screen.getByRole("link", { name: "불편 신고" })).toHaveAttribute("href", "/report?kind=service");
     expect(screen.getByRole("link", { name: "개인정보 처리방침" })).toHaveAttribute(
       "href",
-      "https://legal-hub.denadedev.workers.dev/kmarketday/privacy/",
+      "/privacy",
     );
     expect(screen.getByRole("link", { name: "이용약관" })).toHaveAttribute(
       "href",
-      "https://legal-hub.denadedev.workers.dev/kmarketday/terms/",
+      "/terms",
     );
 
     await user.keyboard("{Escape}");

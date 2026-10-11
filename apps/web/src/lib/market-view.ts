@@ -141,10 +141,11 @@ export function formatScheduleDates(market: Pick<PublicMarket, "schedule">): str
   if (market.schedule.kind === "unknown") return "일정 확인 필요";
 
   const days = market.schedule.days;
-  return Array.from({ length: 31 }, (_, index) => index + 1)
+  const dates = Array.from({ length: 31 }, (_, index) => index + 1)
     .filter((day) => days.includes(day % 10))
     .map((day) => `${day}일`)
     .join("·");
+  return market.schedule.skipsFirstAfterThirtyFirst ? `${dates}(31일 장이 선 다음 날 1일은 쉼)` : dates;
 }
 
 export function formatKoreanDate(date: Date, locale: Locale = "ko"): string {

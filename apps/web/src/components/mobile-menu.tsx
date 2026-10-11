@@ -101,8 +101,8 @@ export function MobileMenu({
           <a className="mobile-menu-link" href="/en">{locale === "en" ? "Market-day guide" : "English guide"}</a>
           <a className="mobile-menu-link" href="/onnuri">{ui.onnuri}</a>
           <a className="mobile-menu-link" href="/report?kind=service">{ui.report}</a>
-          <a className="mobile-menu-link" href="https://legal-hub.denadedev.workers.dev/kmarketday/privacy/">{ui.privacy}</a>
-          <a className="mobile-menu-link" href="https://legal-hub.denadedev.workers.dev/kmarketday/terms/">{ui.terms}</a>
+          <a className="mobile-menu-link" href="/privacy">{ui.privacy}</a>
+          <a className="mobile-menu-link" href="/terms">{ui.terms}</a>
           <a className="mobile-menu-link" href="/about">{ui.about}</a>
           <a className="mobile-menu-link" href="/about#data-policy">{ui.dataPolicy}</a>
           <a className="mobile-menu-link" href={languageSwitchHref ?? (locale === "en" ? "/" : "/en/map")}>{locale === "en" ? "한국어" : "English map"}</a>

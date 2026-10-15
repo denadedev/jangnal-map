@@ -1,5 +1,7 @@
 import type { PublicMarket } from "./market";
 import { publicMarkets } from "./market-catalog";
+import { reviewedMarketIds } from "./market-editorial";
+import { getMarketBrowsePath } from "./market-path";
 import { findRegionEditorial } from "./region-editorial";
 import { getMarketDistrict, getMarketRegion, REGIONS, type Region, type RegionSlug } from "./region";
 import { getMarketDates, getNextMarketDate } from "./schedule";
@@ -94,3 +96,28 @@ export function isLaunchRegion(slug: RegionSlug): boolean {
 }
 
 export const launchRegions = (): Region[] => REGIONS.filter((region) => isLaunchRegion(region.slug));
+
+export interface MarketLink {
+  id: string;
+  name: string;
+  district: string;
+  marketType: string;
+  schedule: PublicMarket["schedule"];
+  hasParking: boolean | null;
+  href: string;
+  reviewed: boolean;
+}
+
+export function toMarketLink(market: PublicMarket): MarketLink {
+  const reviewed = reviewedMarketIds.has(market.id);
+  return {
+    id: market.id,
+    name: market.name,
+    district: getMarketDistrict(market),
+    marketType: market.marketType,
+    schedule: market.schedule,
+    hasParking: market.hasParking,
+    href: getMarketBrowsePath(market, reviewed),
+    reviewed,
+  };
+}

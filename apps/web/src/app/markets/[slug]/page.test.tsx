@@ -109,4 +109,15 @@ describe("market detail route", () => {
     expect(screen.getByRole("heading", { name: "같은 지역 장날" })).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /장날/ }).length).toBeGreaterThan(1);
   });
+
+  it("links periodic markets to their region landing page", async () => {
+    const periodic = reviewedMarkets.find((item) => item.name === "청도공설시장")!;
+    const { unmount } = render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(periodic) }) }));
+    expect(screen.getByRole("link", { name: "경북 장날 전체 보기" })).toHaveAttribute("href", "/jangnal/gyeongbuk");
+    unmount();
+
+    const daily = reviewedMarkets.find((item) => item.schedule.kind === "daily")!;
+    render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(daily) }) }));
+    expect(screen.queryByRole("link", { name: /장날 전체 보기/ })).not.toBeInTheDocument();
+  });
 });

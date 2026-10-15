@@ -29,6 +29,7 @@
 .relatedList { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .relatedList a { display: block; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 13px; font-weight: 700; }
 .footer p { margin: 4px 0 0; }
+.regionLink { display: inline-flex; min-height: 44px; align-items: center; margin-top: 12px; font-size: 13px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
 .footer a { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 
 @media screen {

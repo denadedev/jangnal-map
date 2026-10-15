@@ -21,6 +21,7 @@ describe("MobileAppBar", () => {
     render(<MobileAppBar title="시장 정보" backHref="/?when=all" />);
 
     await user.click(screen.getByRole("button", { name: "메뉴 열기" }));
+    expect(screen.getByRole("link", { name: "지역별 장날" })).toHaveAttribute("href", "/jangnal");
     expect(screen.getByRole("link", { name: "온누리상품권" })).toHaveAttribute("href", "/onnuri");
     expect(screen.getByRole("link", { name: "불편 신고" })).toHaveAttribute("href", "/report?kind=service");
     expect(screen.getByRole("link", { name: "개인정보 처리방침" })).toHaveAttribute(

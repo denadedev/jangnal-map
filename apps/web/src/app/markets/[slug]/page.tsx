@@ -20,7 +20,9 @@ import {
   isMarketIndexable,
   SITE_URL,
 } from "../../../lib/market-seo";
+import { isLaunchRegion } from "../../../lib/jangnal-landing";
 import { formatSchedulePattern } from "../../../lib/market-view";
+import { getMarketRegion } from "../../../lib/region";
 import styles from "./page.module.css";
 
 export const dynamicParams = false;
@@ -75,6 +77,8 @@ export default async function MarketPage({ params }: MarketPageProps) {
       ? `${market.name} 영업일`
       : `${market.name} 전통시장 정보`;
   const relatedMarkets = findRelatedMarkets(market);
+  const region = getMarketRegion(market);
+  const regionLanding = market.schedule.kind === "digit-pair" && region && isLaunchRegion(region.slug) ? region : null;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Place",
@@ -159,6 +163,11 @@ export default async function MarketPage({ params }: MarketPageProps) {
                   </li>
                 ))}
               </ul>
+              {regionLanding ? <a className={styles.regionLink} href={`/jangnal/${regionLanding.slug}`}>{regionLanding.shortName} 장날 전체 보기</a> : null}
+            </section>
+          ) : regionLanding ? (
+            <section className={styles.section}>
+              <a className={styles.regionLink} href={`/jangnal/${regionLanding.slug}`}>{regionLanding.shortName} 장날 전체 보기</a>
             </section>
           ) : null}
           <footer className={styles.footer}>

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { publicMarkets } from "../lib/market-catalog";
+import { DAY_PATTERNS, launchRegions } from "../lib/jangnal-landing";
 import { findMarketEditorial } from "../lib/market-editorial";
 import { getMarketPagePath, isMarketIndexable, SITE_URL } from "../lib/market-seo";
 
@@ -10,6 +11,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/about`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE_URL}/onnuri`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${SITE_URL}/en`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${SITE_URL}/jangnal`, changeFrequency: "daily", priority: 0.9 },
+    ...launchRegions().map((region) => ({ url: `${SITE_URL}/jangnal/${region.slug}`, changeFrequency: "daily" as const, priority: 0.8 })),
+    ...DAY_PATTERNS.map((pattern) => ({ url: `${SITE_URL}/jangnal/days/${pattern}`, changeFrequency: "daily" as const, priority: 0.7 })),
     { url: `${SITE_URL}/privacy`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/terms`, changeFrequency: "yearly", priority: 0.3 },
     ...publicMarkets.filter(isMarketIndexable).map((market) => ({

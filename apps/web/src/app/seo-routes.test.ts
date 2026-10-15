@@ -17,9 +17,14 @@ describe("SEO metadata routes", () => {
       .map((market) => `${SITE_URL}${getMarketPagePath(market)}`)
       .sort();
 
-    expect(entries).toHaveLength(61);
+    expect(entries).toHaveLength(75);
     expect(new Set(urls)).toHaveLength(entries.length);
-    expect(urls.sort()).toEqual([SITE_URL, `${SITE_URL}/about`, `${SITE_URL}/en`, `${SITE_URL}/onnuri`, `${SITE_URL}/privacy`, `${SITE_URL}/terms`, ...indexableUrls].sort());
+    const landingUrls = [
+      `${SITE_URL}/jangnal`,
+      ...["chungbuk", "chungnam", "gangwon", "gyeongbuk", "gyeonggi", "gyeongnam", "jeonbuk", "jeonnam"].map((slug) => `${SITE_URL}/jangnal/${slug}`),
+      ...["1-6", "2-7", "3-8", "4-9", "5-10"].map((pattern) => `${SITE_URL}/jangnal/days/${pattern}`),
+    ];
+    expect(urls.sort()).toEqual([SITE_URL, `${SITE_URL}/about`, `${SITE_URL}/en`, `${SITE_URL}/onnuri`, `${SITE_URL}/privacy`, `${SITE_URL}/terms`, ...landingUrls, ...indexableUrls].sort());
     expect(urls).not.toContain(`${SITE_URL}/markets/삽교시장-09e8d20c`);
   });
 

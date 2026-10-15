@@ -1,5 +1,5 @@
-import type { DayPattern, MarketLink } from "../lib/jangnal-landing";
-import { formatPatternLabel, getPatternOf } from "../lib/jangnal-landing";
+import type { DayPattern, MarketLink } from "../lib/jangnal-dates";
+import { formatPatternLabel, getPatternOf } from "../lib/jangnal-dates";
 import styles from "./jangnal-landing.module.css";
 
 const patternClass: Record<DayPattern, string> = {

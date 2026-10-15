@@ -8,9 +8,10 @@ import {
   getMonthCalendar,
   getNextOpenDate,
   getPatternForDate,
+  getPatternDays,
   type DayPattern,
   type MarketLink,
-} from "../lib/jangnal-landing";
+} from "../lib/jangnal-dates";
 import { getKoreaCalendarDate } from "../lib/korea-date";
 import { formatKoreanDate, getDateRange, getDday } from "../lib/market-view";
 import { MarketLegend, MarketRow, PatternTag, getPatternClass } from "./jangnal-market-row";
@@ -146,7 +147,7 @@ export function PatternDates({ pattern }: { pattern: DayPattern }) {
     );
   }
 
-  const sample = { schedule: { kind: "digit-pair" as const, days: patternDays(pattern) } };
+  const sample = { schedule: { kind: "digit-pair" as const, days: getPatternDays(pattern) } };
   const dates: Date[] = [];
   for (let offset = 0; dates.length < 6 && offset < 62; offset += 1) {
     const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
@@ -171,10 +172,6 @@ export function PatternDates({ pattern }: { pattern: DayPattern }) {
   );
 }
 
-const patternDays = (pattern: DayPattern): [number, number] => {
-  const [low] = pattern.split("-").map(Number);
-  return [low, (low + 5) % 10];
-};
 
 export function HubToday({ markets }: { markets: MarketLink[] }) {
   const today = useKoreaToday();

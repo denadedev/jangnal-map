@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { MarketLink } from "../lib/jangnal-landing";
+import type { MarketLink } from "../lib/jangnal-dates";
 import { HubToday, PatternDates, RegionToday } from "./jangnal-today";
 
 const market = (id: string, name: string, days: [number, number], reviewed = false): MarketLink => ({

@@ -76,6 +76,12 @@ NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=your_naver_maps_client_id
 
 기능 범위와 남은 실기기·사용자 검증 항목은 [영어 방문자 기획](docs/product/2026-09-28-english-traveler-plan.md)에 정리했습니다. 배포 후에는 Search Console에서 `/en` 색인·검색 노출을, Umami에서 `/en`과 `/en/map` 방문을 확인합니다. 유입 경로가 `Direct`인 방문은 영어 검색 유입으로 계산하지 않습니다.
 
+## 지역별 장날 페이지
+
+`/jangnal`은 전국 허브, `/jangnal/{시·도 영문 슬러그}`는 시·도 페이지, `/jangnal/days/{1-6|2-7|3-8|4-9|5-10}`은 날짜 끝자리별 페이지입니다. 시·도 페이지는 운영 중인 정기 장날 시장이 20곳 이상이고 `apps/web/public/data/region-editorial.json`에 지역 소개가 있는 시·도만 빌드합니다. 지역 소개는 `validateRegionEditorial` 테스트로 형식과 대표 시장의 소속 시·도를 검증합니다.
+
+오늘·이번 주말·이번 달 달력은 기존 시장 상세의 다음 장날처럼 브라우저에서 한국 날짜로 계산합니다. 미검수 시장에는 독립 URL을 만들지 않고 지도 선택 상태로 연결합니다. 기획은 [지역별 장날 랜딩 PRD](docs/product/2026-10-14-prd-region-landing.md)에 있습니다.
+
 ## AdSense 승인 준비
 
 승인 전에는 광고 요청을 만들지 않습니다. 사이트 연결은 루트 `ads.txt`와

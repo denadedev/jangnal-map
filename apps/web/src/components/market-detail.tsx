@@ -10,6 +10,7 @@ import { getUiCopy } from "../lib/ui-copy";
 import { MarketDirectionsMenu } from "./market-directions-menu";
 import { MarketShareButton } from "./market-share-button";
 import { OnnuriSummary } from "./onnuri-summary";
+import { formatPatternDigits } from "./jangnal-number";
 
 interface MarketDetailProps {
   locale?: Locale;
@@ -101,6 +102,18 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
         <h2>{detailPath ? <a href={detailPath}><span lang="ko">{market.name}</span>{locale === "en" ? " (Korean)" : ""}</a> : <span lang="ko">{market.name}</span>}</h2>
         <span lang={market.roadAddress || market.lotAddress ? "ko" : undefined}>{address}</span>
       </header>
+
+      {market.schedule.kind === "digit-pair" ? (
+        <div className="detail-pattern">
+          <b className="jn" aria-hidden="true">{formatPatternDigits(market)}</b>
+          <span>
+            <small>{locale === "en" ? "Market-day rule" : "장날 규칙"}</small>
+            {locale === "en"
+              ? `Dates ending in ${market.schedule.days[0]} and ${market.schedule.days[1]}`
+              : `날짜 끝자리가 ${market.schedule.days[0]}, ${market.schedule.days[1]}인 날`}
+          </span>
+        </div>
+      ) : null}
 
       <section className={`next-date-card selected-date-card ${visitDateState}`} aria-label={locale === "en" ? "Your selected travel date" : "선택한 방문 날짜"}>
           <div>

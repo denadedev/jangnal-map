@@ -131,6 +131,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     ? `${range.start.getMonth() + 1}/${range.start.getDate()}${range.start.getTime() === range.end.getTime() ? "" : `–${range.end.getMonth() + 1}/${range.end.getDate()}`}`
     : ui.allMarkets;
   const selectedMarket = markets.find((market) => market.id === selectedId) ?? null;
+  const todayDigit = today.getDate() % 5 || 5;
+  const todayPattern = `${todayDigit}·${todayDigit + 5}`;
 
   const handleDirectDateChange = useCallback((date: string) => {
     setDirectDate(toIsoDate(normalizeDirectDate(date, today)));
@@ -429,6 +431,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         data-mobile-view={sheetSnap === "full" ? "list" : "map"}
       >
         <div className="mobile-discovery-context">
+          {dateReady && locale === "ko" ? <p className="today-jangnal"><b className="jn">{todayPattern}</b><span>{today.getMonth() + 1}월 {today.getDate()}일, 오늘은 {todayPattern}장이 서요</span></p> : null}
           <p>{query ? ui.searchResultsHeading : ui.marketDiscoveryHeading} · {rangeLabel}</p>
           <h1>{query ? locale === "en" ? `Markets for “${query}”` : `“${query}” 시장 찾기` : ui.marketDiscoveryTitle}</h1>
           <small>{ui.marketDiscoveryHelp}</small>

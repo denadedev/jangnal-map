@@ -8,11 +8,11 @@
   padding: 9px 24px;
   background: var(--panel);
   color: var(--muted);
-  font-size: 10px;
+  font-size: 15px;
 }
 
 .links { display: flex; flex-wrap: wrap; gap: 12px; }
-.links a { color: var(--ink); font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
+.links a { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .footer p { margin: 0; }
 
 @media screen {

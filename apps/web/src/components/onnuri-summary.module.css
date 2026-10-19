@@ -1,6 +1,6 @@
 .card {
-  border: 1px solid #e5c5b7;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
   padding: 18px;
   background: var(--persimmon-soft);
 }
@@ -9,14 +9,14 @@
 .card h3 {
   margin: 0 0 12px;
   color: var(--persimmon-dark);
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .counts strong,
 .unknown {
   display: block;
-  font-size: 18px;
-  letter-spacing: -0.035em;
+  font-size: 20px;
+  letter-spacing: -0.01em;
 }
 
 .counts div {
@@ -27,25 +27,25 @@
 }
 
 .counts div span {
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   padding: 5px 9px;
   background: var(--panel);
-  color: #6b4334;
-  font-size: 11px;
-  font-weight: 800;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .counts small {
   display: block;
   margin-top: 8px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 15px;
 }
 
 .card p {
   margin: 13px 0 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 15px;
   line-height: 1.6;
 }
 
@@ -61,8 +61,8 @@
   min-height: 44px;
   display: inline-flex;
   align-items: center;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 3px;
 }

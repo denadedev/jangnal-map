@@ -10,8 +10,8 @@
   width: min(640px, 100%);
   min-height: 44px;
   margin: 0 auto 16px;
-  font-size: 13px;
-  font-weight: 750;
+  font-size: 15px;
+  font-weight: 700;
   line-height: 44px;
 }
 
@@ -19,7 +19,7 @@
   width: min(640px, 100%);
   margin: 0 auto;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-m);
   padding: 32px;
   background: var(--panel);
   box-shadow: var(--shadow);
@@ -28,40 +28,40 @@
 .eyebrow {
   margin: 0 0 8px;
   color: var(--persimmon-dark);
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .card h1 {
   margin: 0;
-  font-family: Georgia, "Noto Serif KR", serif;
+  
   font-size: clamp(27px, 6vw, 38px);
-  letter-spacing: -0.05em;
+  letter-spacing: -0.01em;
 }
 
 .card h2 {
   margin: 28px 0 8px;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .market {
   display: inline-block;
   margin-top: 14px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   padding: 7px 11px;
   background: var(--persimmon-soft);
   color: var(--persimmon-dark);
-  font-size: 12px;
+  font-size: 15px;
 }
 
 .card > p:not(.eyebrow) {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.6;
 }
 
 .card > p a {
-  font-weight: 750;
+  font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -72,11 +72,11 @@
   min-height: 48px;
   align-items: center;
   justify-content: center;
-  border-radius: 5px;
+  border-radius: var(--r-s);
   padding: 0 18px;
   background: var(--ink);
   color: white;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .primary {
@@ -99,14 +99,14 @@
 .card :global(.report-field) {
   display: grid;
   gap: 8px;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .card :global(.report-field small) {
   color: var(--muted);
-  font-size: 11px;
-  font-weight: 650;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .card :global(.report-options) {
@@ -131,7 +131,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: var(--r-s);
   padding: 8px;
   background: white;
   text-align: center;
@@ -144,7 +144,7 @@
 }
 
 .card :global(.report-options input:focus-visible + span) {
-  outline: 3px solid rgb(197 78 45 / 30%);
+  outline: 3px solid oklch(0.53 0.19 29 / 30%);
   outline-offset: 2px;
 }
 
@@ -153,7 +153,7 @@
 .card :global(input[name="contact"]) {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: var(--r-s);
   padding: 12px;
   background: white;
   font: inherit;
@@ -166,21 +166,21 @@
 .card :global(.field-error),
 .card :global([role="alert"]) {
   margin: -8px 0 0;
-  color: #a62f1d;
-  font-size: 12px;
+  color: var(--accent-ink);
+  font-size: 15px;
   line-height: 1.5;
 }
 
 .card :global(.privacy-note) {
   margin: -4px 0 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.6;
 }
 
 .card :global(.privacy-note a),
 .card :global([role="alert"] a) {
-  font-weight: 800;
+  font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -190,16 +190,16 @@
   min-height: 44px;
   align-items: center;
   gap: 9px;
-  font-size: 12px;
+  font-size: 15px;
 }
 
 .card :global(button[type="submit"]) {
   min-height: 48px;
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--r-s);
   background: var(--ink);
   color: white;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .card :global(button:disabled) {
@@ -242,7 +242,7 @@
   .card :global(input[type="url"]),
   .card :global(input[name="contact"]) {
     min-height: 48px;
-    font-size: 16px;
+    font-size: 18px;
   }
 
   .card :global(textarea) { min-height: 144px; }

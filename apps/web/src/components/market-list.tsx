@@ -4,6 +4,7 @@ import { getMarketBrowsePath } from "../lib/market-path";
 import { formatDistance, formatMarketTiming, formatSchedulePattern, getDistanceKm, type Coordinates } from "../lib/market-view";
 import type { Locale } from "../lib/locale";
 import { getUiCopy } from "../lib/ui-copy";
+import { JangnalTile } from "./jangnal-number";
 
 interface MarketListProps {
   locale?: Locale;
@@ -55,12 +56,18 @@ export function MarketList({ locale = "ko", getMarketHref, markets, inactiveMark
             }}
           >
             <span className="list-date" aria-label={`${ui.scheduleLabel} ${formatMarketTiming(market, referenceDate, locale)}`}>
-              <strong>{formatMarketTiming(market, referenceDate, locale)}</strong>
-              <small>{market.schedule.kind === "daily" ? ui.operates : ui.marketDay}</small>
+              <JangnalTile
+                market={market}
+                referenceDate={referenceDate}
+                todayLabel={locale === "en" ? "Today" : "오늘"}
+                marketDayLabel={market.schedule.kind === "daily" ? ui.operates : ui.marketDay}
+                dailyLabel={locale === "en" ? "Daily" : "매일"}
+                unknownLabel={locale === "en" ? "?" : "확인"}
+              />
             </span>
             <span className="list-copy">
               <strong lang={locale === "en" ? "ko" : undefined}>{market.name}</strong>
-              {locale === "en" && market.schedule.kind === "daily" ? null : <span className={`schedule-tag is-${market.schedule.kind}`}>{formatSchedulePattern(market, locale)}</span>}
+              {locale === "en" && market.schedule.kind === "daily" ? null : <span className="sr-only">{formatSchedulePattern(market, locale)}</span>}
               <span lang={market.roadAddress || market.lotAddress ? "ko" : undefined}>{market.roadAddress ?? market.lotAddress ?? ui.addressMissing}</span>
               {distance !== null ? <span className="distance-label">{locale === "en" ? "From your location" : "현재 위치에서"} <b>{formatDistance(distance)}</b></span> : null}
               {market.latitude === null || market.longitude === null ? <em>{ui.locationMissing}</em> : null}
@@ -71,6 +78,7 @@ export function MarketList({ locale = "ko", getMarketHref, markets, inactiveMark
                   ? locale === "en" ? "No market day on this date" : "이날은 5일장이 아니에요"
                   : locale === "en" ? "No market day in this period" : "선택한 기간에 장날이 없어요"}</em> : null}
             </span>
+            <span className="list-when" aria-hidden="true">{formatMarketTiming(market, referenceDate, locale)}</span>
             <svg className="chevron" aria-hidden="true" viewBox="0 0 24 24">
               <path d="m9 6 6 6-6 6" />
             </svg>

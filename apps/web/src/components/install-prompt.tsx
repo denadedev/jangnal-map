@@ -24,12 +24,15 @@ interface WindowWithUmami extends Window {
 }
 
 // android: 브라우저가 설치 창을 띄워 준다. 나머지는 사용자가 직접 따라 할 안내를 보여 준다.
-export type InstallPlatform = "android" | "ios-safari" | "ios-chrome" | "inapp";
+// browser-menu: 설치 창을 주지 않는 웨일·파이어폭스·오페라는 브라우저 메뉴의 '홈 화면에 추가'로 안내한다.
+export type InstallPlatform = "android" | "ios-safari" | "ios-chrome" | "inapp" | "browser-menu";
 
 const IN_APP_BROWSER = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|DaumApps|everytimeApp|BAND\//i;
+const MENU_INSTALL_BROWSER = /Whale\/|Firefox\/|FxiOS|OPR\/|OPT\//i;
 
 export const detectGuidePlatform = (userAgent: string, maxTouchPoints: number): InstallPlatform | null => {
   if (IN_APP_BROWSER.test(userAgent)) return "inapp";
+  if (MENU_INSTALL_BROWSER.test(userAgent)) return "browser-menu";
   const ios = /iPhone|iPad|iPod/i.test(userAgent) || (/Macintosh/i.test(userAgent) && maxTouchPoints > 1);
   if (!ios) return null;
   return /CriOS/i.test(userAgent) ? "ios-chrome" : "ios-safari";

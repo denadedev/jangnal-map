@@ -120,4 +120,19 @@ describe("market detail route", () => {
     render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(daily) }) }));
     expect(screen.queryByRole("link", { name: /장날 전체 보기/ })).not.toBeInTheDocument();
   });
+
+  it("publishes a postal address and a breadcrumb through the region landing", async () => {
+    const { container } = render(await MarketPage({ params: Promise.resolve({ slug: "용인중앙시장-389b4a24" }) }));
+    const [place, breadcrumb] = [...container.querySelectorAll('script[type="application/ld+json"]')]
+      .map((script) => JSON.parse(script.textContent ?? ""));
+
+    expect(place.address).toMatchObject({ "@type": "PostalAddress", addressRegion: "경기도", addressCountry: "KR" });
+    expect(breadcrumb["@type"]).toBe("BreadcrumbList");
+    expect(breadcrumb.itemListElement.map((item: { name: string; item?: string }) => [item.name, item.item])).toEqual([
+      ["오늘 장날", `${SITE_URL}/`],
+      ["장날", `${SITE_URL}/jangnal`],
+      ["경기 장날", `${SITE_URL}/jangnal/gyeonggi`],
+      ["용인중앙시장", undefined],
+    ]);
+  });
 });

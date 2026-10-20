@@ -7,7 +7,7 @@ import { LegalDocumentPage } from "../../components/legal-document-page";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "개인정보 처리방침 · 오늘 장날",
+  title: "개인정보 처리방침 | 오늘 장날",
   alternates: { canonical: "/privacy" },
 };
 

@@ -7,7 +7,7 @@ import { publicMarkets } from "../../lib/market-catalog";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "제보하기 · 오늘 장날",
+  title: "제보하기 | 오늘 장날",
   robots: { index: false, follow: false },
 };
 

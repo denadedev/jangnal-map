@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import styles from "./page.module.css";
+import { OG_IMAGE } from "../../lib/site-config";
 
 const title = "Find Korean Traditional Market Days by Date";
 const description = "Choose a travel date and region to find traditional market days across Korea.";
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
   description,
   alternates: { canonical: "/en" },
   openGraph: {
+    images: [OG_IMAGE],
     title,
     description,
     url: "/en",

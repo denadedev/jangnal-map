@@ -31,6 +31,7 @@ describe("market detail route", () => {
     expect(metadata.title).toContain("장날 날짜");
     expect(metadata.alternates?.canonical).toBe(`${SITE_URL}/markets/${slug}`);
     expect(metadata.openGraph?.url).toBe(`${SITE_URL}/markets/${slug}`);
+    expect(metadata.openGraph?.images).toEqual([expect.objectContaining({ url: "/og-image.png", width: 1200, height: 630 })]);
     expect(metadata.description).toContain("장날은 매월");
   });
 
@@ -119,5 +120,20 @@ describe("market detail route", () => {
     const daily = reviewedMarkets.find((item) => item.schedule.kind === "daily")!;
     render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(daily) }) }));
     expect(screen.queryByRole("link", { name: /장날 전체 보기/ })).not.toBeInTheDocument();
+  });
+
+  it("publishes a postal address and a breadcrumb through the region landing", async () => {
+    const { container } = render(await MarketPage({ params: Promise.resolve({ slug: "용인중앙시장-389b4a24" }) }));
+    const [place, breadcrumb] = [...container.querySelectorAll('script[type="application/ld+json"]')]
+      .map((script) => JSON.parse(script.textContent ?? ""));
+
+    expect(place.address).toMatchObject({ "@type": "PostalAddress", addressRegion: "경기도", addressCountry: "KR" });
+    expect(breadcrumb["@type"]).toBe("BreadcrumbList");
+    expect(breadcrumb.itemListElement.map((item: { name: string; item?: string }) => [item.name, item.item])).toEqual([
+      ["오늘 장날", `${SITE_URL}/`],
+      ["장날", `${SITE_URL}/jangnal`],
+      ["경기 장날", `${SITE_URL}/jangnal/gyeonggi`],
+      ["용인중앙시장", undefined],
+    ]);
   });
 });

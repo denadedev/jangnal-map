@@ -48,4 +48,17 @@ describe("region landing route", () => {
     await expect(RegionPage(params("unknown"))).rejects.toThrow();
     expect((await generateMetadata(params("seoul"))).robots).toEqual({ index: false, follow: false });
   });
+
+  it("publishes the visible breadcrumb as structured data", async () => {
+    const { container } = render(await RegionPage(params("gyeongbuk")));
+    const breadcrumb = [...container.querySelectorAll('script[type="application/ld+json"]')]
+      .map((script) => JSON.parse(script.textContent ?? ""))
+      .find((data) => data["@type"] === "BreadcrumbList");
+
+    expect(breadcrumb.itemListElement.map((item: { name: string; item?: string }) => [item.name, item.item])).toEqual([
+      ["오늘 장날", `${SITE_URL}/`],
+      ["장날", `${SITE_URL}/jangnal`],
+      ["경북", undefined],
+    ]);
+  });
 });

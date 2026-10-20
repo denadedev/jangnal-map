@@ -16,6 +16,7 @@ import {
 import { getMarketPagePath, SITE_URL } from "../../../lib/market-seo";
 import { findRegionBySlug, type Region } from "../../../lib/region";
 import { findRegionEditorial } from "../../../lib/region-editorial";
+import { OG_IMAGE } from "../../../lib/site-config";
 
 export const dynamicParams = false;
 
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: RegionPageProps): Promise<Met
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, type: "website", locale: "ko_KR" },
+    openGraph: { images: [OG_IMAGE], title, description, url, type: "website", locale: "ko_KR" },
   };
 }
 

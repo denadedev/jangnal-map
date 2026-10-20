@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import type { MarketLink } from "../lib/jangnal-landing";
+import { createBreadcrumbJsonLd } from "../lib/market-seo";
 import { MarketLegend, MarketRow } from "./jangnal-market-row";
 import { MobileAppBar } from "./mobile-app-bar";
 import { SiteFooter } from "./site-footer";
@@ -15,6 +16,10 @@ export function LandingShell({ crumbs, current, children }: { crumbs: [string, s
     <div className={styles.page}>
       <MobileAppBar title="장날" backHref="/" />
       <main className={styles.main}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(createBreadcrumbJsonLd([...crumbs, [current]])).replace(/</g, "\\u003c") }}
+        />
         <nav className={styles.crumbs} aria-label="현재 위치">
           {crumbs.map(([label, href]) => <span key={href}><a href={href}>{label}</a> › </span>)}
           <span aria-current="page">{current}</span>

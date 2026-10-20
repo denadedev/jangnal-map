@@ -5,6 +5,7 @@ import { DataBasis, Faq, LandingHero, LandingShell, LinkRow, landingStyles as st
 import { HubToday } from "../../components/jangnal-today";
 import { DAY_PATTERNS, getPatternMarkets, getRegionMarkets, launchRegions, periodicMarkets, toMarketLink } from "../../lib/jangnal-landing";
 import { SITE_URL } from "../../lib/market-seo";
+import { OG_IMAGE } from "../../lib/site-config";
 
 const title = "전국 장날 · 오늘 열리는 5일장 | 오늘 장날";
 const description = `전국 5일장 ${periodicMarkets.length}곳을 시·도별, 날짜 끝자리별로 정리했습니다. 오늘과 이번 주말 열리는 장날을 확인하세요.`;
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   title,
   description,
   alternates: { canonical: `${SITE_URL}/jangnal` },
-  openGraph: { title, description, url: `${SITE_URL}/jangnal`, type: "website", locale: "ko_KR" },
+  openGraph: { images: [OG_IMAGE], title, description, url: `${SITE_URL}/jangnal`, type: "website", locale: "ko_KR" },
 };
 
 export default function JangnalHubPage() {

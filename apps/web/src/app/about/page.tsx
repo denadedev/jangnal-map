@@ -3,12 +3,14 @@ import type { Metadata } from "next";
 import { MobileAppBar } from "../../components/mobile-app-bar";
 import { SiteFooter } from "../../components/site-footer";
 import styles from "./page.module.css";
+import { OG_IMAGE } from "../../lib/site-config";
 
 export const metadata: Metadata = {
   title: "오늘 장날 서비스 소개",
   description: "오늘 장날의 시장 데이터 출처, 편집 기준, 갱신 방식과 정보 수정 방법을 안내합니다.",
   alternates: { canonical: "/about" },
   openGraph: {
+    images: [OG_IMAGE],
     title: "오늘 장날 서비스 소개",
     description: "오늘 장날의 시장 데이터 출처와 편집 기준을 안내합니다.",
     url: "/about",

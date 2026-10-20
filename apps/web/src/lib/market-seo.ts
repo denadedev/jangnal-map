@@ -31,6 +31,19 @@ export function findRelatedMarkets(market: PublicMarket, limit = 6): PublicMarke
     .slice(0, limit);
 }
 
+export function createBreadcrumbJsonLd(items: [name: string, path?: string][]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map(([name, path], index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name,
+      ...(path ? { item: `${SITE_URL}${path}` } : {}),
+    })),
+  };
+}
+
 export function createMarketScheduleAnswer(market: PublicMarket): string {
   if (market.schedule.kind === "digit-pair") {
     return `${market.name} 장날은 매월 ${formatScheduleDates(market)}입니다.`;

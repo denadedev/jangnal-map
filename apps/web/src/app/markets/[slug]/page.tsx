@@ -11,6 +11,7 @@ import { MarketDirectionsMenu } from "../../../components/market-directions-menu
 import { publicMarkets } from "../../../lib/market-catalog";
 import { findMarketEditorial } from "../../../lib/market-editorial";
 import {
+  createBreadcrumbJsonLd,
   createMarketSeoText,
   createMarketScheduleAnswer,
   createMarketSlug,
@@ -22,8 +23,9 @@ import {
 } from "../../../lib/market-seo";
 import { isLaunchRegion } from "../../../lib/jangnal-landing";
 import { formatSchedulePattern } from "../../../lib/market-view";
-import { getMarketRegion } from "../../../lib/region";
+import { getMarketDistrict, getMarketRegion } from "../../../lib/region";
 import styles from "./page.module.css";
+import { OG_IMAGE } from "../../../lib/site-config";
 
 export const dynamicParams = false;
 
@@ -53,6 +55,7 @@ export async function generateMetadata({ params }: MarketPageProps): Promise<Met
     alternates: { canonical: url },
     robots: isMarketIndexable(market) ? undefined : { index: false, follow: true },
     openGraph: {
+      images: [OG_IMAGE],
       title: seo.title,
       description: seo.description,
       url,
@@ -84,7 +87,17 @@ export default async function MarketPage({ params }: MarketPageProps) {
     "@type": "Place",
     name: market.name,
     url: `${SITE_URL}${getMarketPagePath(market)}`,
-    address,
+    ...(market.roadAddress ?? market.lotAddress
+      ? {
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: market.roadAddress ?? market.lotAddress,
+          ...(region ? { addressRegion: region.name } : {}),
+          ...(getMarketDistrict(market) ? { addressLocality: getMarketDistrict(market) } : {}),
+          addressCountry: "KR",
+        },
+      }
+      : {}),
     ...(market.phone ? { telephone: market.phone } : {}),
     ...(market.latitude !== null && market.longitude !== null
       ? {
@@ -96,6 +109,11 @@ export default async function MarketPage({ params }: MarketPageProps) {
       }
       : {}),
   };
+  const breadcrumbJsonLd = createBreadcrumbJsonLd([
+    ["오늘 장날", "/"],
+    ...(regionLanding ? [["장날", "/jangnal"], [`${regionLanding.shortName} 장날`, `/jangnal/${regionLanding.slug}`]] as [string, string][] : []),
+    [market.name],
+  ]);
 
   return (
     <div className={styles.page}>
@@ -112,6 +130,10 @@ export default async function MarketPage({ params }: MarketPageProps) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c") }}
         />
         <article className={styles.article}>
           <section className={styles.hero}>

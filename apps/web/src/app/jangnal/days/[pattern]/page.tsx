@@ -18,6 +18,7 @@ import {
 } from "../../../../lib/jangnal-landing";
 import { SITE_URL } from "../../../../lib/market-seo";
 import { formatScheduleDates } from "../../../../lib/market-view";
+import { OG_IMAGE } from "../../../../lib/site-config";
 
 export const dynamicParams = false;
 
@@ -41,7 +42,7 @@ export async function generateMetadata({ params }: PatternPageProps): Promise<Me
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, type: "website", locale: "ko_KR" },
+    openGraph: { images: [OG_IMAGE], title, description, url, type: "website", locale: "ko_KR" },
   };
 }
 

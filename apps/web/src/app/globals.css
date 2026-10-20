@@ -45,6 +45,9 @@
 }
 
 * { box-sizing: border-box; }
+
+/* UI 아이콘 한 벌(components/icon.tsx): 크기는 쓰는 곳에서, 선은 여기서만 정한다 */
+.icon { display: block; width: 24px; height: 24px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 html, body { min-height: 100%; overflow-x: hidden; }
 
 body {
@@ -240,7 +243,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .search-field:focus-within { border-color: var(--ink); box-shadow: none; }
-.search-field > svg { width: 20px; flex: 0 0 auto; fill: none; stroke: var(--muted); stroke-linecap: round; stroke-width: 1.8; }
+.search-field > svg { width: 20px; height: 20px; color: var(--muted); }
 .search-field input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; font-size: 15px; }
 .search-field input::placeholder { color: var(--muted); }
 .search-field input::-webkit-search-cancel-button { display: none; -webkit-appearance: none; }
@@ -258,7 +261,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .search-clear:hover, .detail-close:hover { background: var(--canvas); }
-.search-clear svg, .detail-close svg { width: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 1.8; }
+.search-clear svg, .detail-close svg { width: 18px; height: 18px; }
 .date-filter-row { display: flex; min-width: 0; align-items: center; gap: 12px; }
 .filter-pills { display: flex; min-width: 0; gap: 7px; }
 
@@ -360,7 +363,7 @@ a { color: inherit; text-decoration: none; }
 .inactive-market-results { border-top: 1px solid var(--line); }
 .inactive-market-results h2 { margin: 0; padding: 16px 18px 8px; color: var(--muted); font-size: 15px; }
 .market-date-empty { min-height: 155px; }
-.chevron { width: 17px; fill: none; stroke: var(--muted); stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.chevron { width: 18px; height: 18px; color: var(--muted); }
 
 .map-stage { position: relative; isolation: isolate; grid-area: map; min-width: 0; min-height: 320px; overflow: hidden; background: var(--line); }
 .map-canvas-shell { position: absolute; inset: 0; }
@@ -382,7 +385,7 @@ a { color: inherit; text-decoration: none; }
 
 .fallback-message { position: relative; width: min(370px, calc(100% - 40px)); border: 1px solid var(--line); padding: 27px; background: oklch(1 0 0 / 94%); text-align: center; box-shadow: none; }
 .fallback-icon { display: grid; width: 45px; height: 45px; margin: 0 auto 13px; place-items: center; border-radius: 50%; background: var(--persimmon-soft); color: var(--persimmon-dark); }
-.fallback-icon svg { width: 23px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+.fallback-icon svg { width: 24px; height: 24px; }
 .fallback-message strong { display: block; font-size: 18px; }
 .fallback-message p { margin: 8px 0 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
 .mobile-map-fallback-title, .mobile-map-fallback-body, .mobile-map-fallback-list { display: none; }
@@ -399,7 +402,7 @@ a { color: inherit; text-decoration: none; }
 .location-button { display: inline-flex; height: 40px; align-items: center; gap: 7px; border: 1px solid oklch(0.46 0.012 260 / 75%); border-radius: var(--r-s); padding: 0 12px; background: oklch(1 0 0 / 95%); color: var(--ink); font-size: 15px; font-weight: 700; box-shadow: none; backdrop-filter: blur(8px); }
 .location-button:hover:not(:disabled) { background: white; }
 .location-button:disabled { cursor: not-allowed; opacity: 0.52; }
-.location-button svg { width: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 1.8; }
+.location-button svg { width: 18px; height: 18px; }
 .location-message { margin: 0; border: 1px solid oklch(0.46 0.012 260 / 80%); border-radius: var(--r-s); padding: 8px 10px; background: oklch(1 0 0 / 95%); color: var(--muted); font-size: 15px; line-height: 1.45; box-shadow: none; }
 .location-message.is-error { color: var(--accent-ink); }
 .current-location-marker { display: grid; width: 24px; height: 24px; place-items: center; border: 2px solid white; border-radius: 50%; background: rgb(39 113 221 / 26%); box-shadow: none; }
@@ -567,7 +570,8 @@ a { color: inherit; text-decoration: none; }
   .mobile-app-bar { display: flex; min-height: calc(59px + env(safe-area-inset-top)); align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--line); padding: env(safe-area-inset-top) 12px 0 16px; background: var(--panel); }
   .mobile-app-bar-brand { display: inline-flex; min-width: 0; align-items: center; gap: 8px; font-size: 20px; font-weight: 700; }
   .mobile-app-bar-brand > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .mobile-app-bar-mark { display: grid; width: 32px; height: 32px; place-items: center; border-radius: var(--r-s); background: var(--accent); color: var(--surface); font-size: 18px; font-weight: 700; }
+  .mobile-app-bar-mark { display: grid; width: 32px; height: 32px; place-items: center; border-radius: var(--r-s); background: var(--accent); color: var(--surface); }
+  .mobile-app-bar-mark svg { width: 100%; height: 100%; }
   .mobile-app-bar-back { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; color: var(--ink); font-size: 24px; }
   .mobile-app-bar-back + .mobile-app-bar-brand { margin-left: -3px; }
   .mobile-app-bar-menu { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--ink); font-size: 20px; }
@@ -584,7 +588,7 @@ a { color: inherit; text-decoration: none; }
   .mobile-home-brand { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; }
   .mobile-home-brand .mobile-app-bar-mark { width: 33px; height: 33px; }
   .mobile-home-controls .search-field { min-width: 0; height: 44px; flex: 1 1 auto; gap: 7px; border-radius: var(--r-m); padding: 0 10px; }
-  .mobile-home-controls .search-field > svg { width: 18px; }
+  .mobile-home-controls .search-field > svg { width: 18px; height: 18px; }
   .mobile-home-controls .search-field input { font-size: 18px; }
   .mobile-home-controls .search-clear { width: 32px; height: 32px; }
   .mobile-home-controls .mobile-app-bar-menu { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--ink); font-size: 20px; }
@@ -615,6 +619,7 @@ a { color: inherit; text-decoration: none; }
   .mobile-market-sheet.is-results[data-snap="collapsed"] .mobile-market-sheet-handle { display: none; }
   .mobile-market-sheet-collapsed-button { display: flex; width: 100%; min-height: 64px; flex: 0 0 64px; align-items: center; justify-content: space-between; gap: 10px; border: 0; padding: 0 16px; background: transparent; text-align: left; }
   .mobile-market-sheet-collapsed-button strong { min-width: 0; overflow: hidden; font-size: 18px; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-market-sheet-collapsed-button > span .icon { width: 16px; height: 16px; }
   .mobile-market-sheet-collapsed-button > span { display: inline-flex; min-height: 44px; flex: 0 0 auto; align-items: center; gap: 5px; border-radius: var(--r-pill); padding: 0 12px; background: var(--persimmon-soft); color: var(--ink); font-size: 15px; font-weight: 700; white-space: nowrap; }
   .mobile-market-sheet[data-snap="half"] { height: 49%; }
   .mobile-market-sheet[data-snap="full"] { height: 88%; }
@@ -707,7 +712,7 @@ a { color: inherit; text-decoration: none; }
   .map-fallback { place-items: start center; }
   .map-fallback .fallback-message { margin-top: 18px; padding: 15px; }
   .map-fallback .fallback-icon { width: 32px; height: 32px; margin-bottom: 7px; }
-  .map-fallback .fallback-icon svg { width: 18px; }
+  .map-fallback .fallback-icon svg { width: 18px; height: 18px; }
   .map-fallback .fallback-message strong { font-size: 15px; }
   .map-fallback .fallback-message p { font-size: 15px; }
 
@@ -717,14 +722,14 @@ a { color: inherit; text-decoration: none; }
   .mobile-home-controls .market-filter-search-row { display: block; padding: 0 20px 14px; }
   .mobile-home-controls .search-field { display: none; }
   .mobile-search-launch { display: flex; width: 100%; height: 50px; align-items: center; gap: 11px; border: 1px solid var(--line); border-radius: var(--r-m); padding: 0 14px; background: var(--panel); color: var(--muted); text-align: left; font-size: 15px; }
-  .mobile-search-launch svg { width: 20px; height: 20px; flex: 0 0 auto; fill: none; stroke: var(--ink); stroke-width: 1.8; stroke-linecap: round; }
+  .mobile-search-launch svg { width: 20px; height: 20px; color: var(--ink); }
   .mobile-search-launch span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .mobile-home-controls .date-filter-row { display: block; position: relative; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 20px 16px; }
   .mobile-home-controls .filter-pills { display: flex; width: 100%; flex-wrap: nowrap; gap: 8px; overflow-x: auto; padding: 0; scrollbar-width: none; }
   .mobile-home-controls .filter-pills::-webkit-scrollbar { display: none; }
   .mobile-home-controls .filter-pill { display: inline-flex; height: 44px; min-height: 44px; flex: 0 0 auto; align-items: center; justify-content: center; gap: 4px; border-color: var(--line); padding: 0 15px; background: var(--panel); color: var(--ink); font-size: 15px; font-weight: 700; }
   .mobile-home-controls .filter-pill[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--panel); }
-  .mobile-home-controls .filter-pill svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+  .mobile-home-controls .filter-pill svg { width: 18px; height: 18px; }
   .mobile-home-controls .direct-date, .mobile-home-controls .direct-date.is-visible { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); opacity: 0; }
   .mobile-home-controls .direct-date.is-fallback { position: static; width: auto; height: 44px; overflow: visible; clip: auto; opacity: 1; }
   .mobile-discovery-context { margin: 0 -20px; border-bottom: 0; padding: 17px 20px 14px; }
@@ -759,7 +764,7 @@ a { color: inherit; text-decoration: none; }
   .mobile-search-screen { position: fixed; z-index: 120; top: 0; right: var(--app-side); bottom: 0; left: var(--app-side); display: flex; flex-direction: column; overflow: hidden; background: var(--panel); }
   .mobile-search-header { display: flex; min-height: calc(65px + env(safe-area-inset-top)); align-items: center; gap: 8px; border-bottom: 1px solid var(--line); padding: env(safe-area-inset-top) 16px 0; }
   .mobile-search-back { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; border: 0; background: transparent; }
-  .mobile-search-back svg, .mobile-search-input svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .mobile-search-back svg, .mobile-search-input svg { width: 20px; height: 20px; }
   .mobile-search-input { display: flex; min-width: 0; height: 46px; flex: 1; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: var(--r-m); padding: 0 10px; }
   .mobile-search-input:focus-within { border-color: var(--ink); }
   .mobile-search-input input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 18px; }
@@ -777,7 +782,7 @@ a { color: inherit; text-decoration: none; }
   .mobile-market-sheet.is-detail .mobile-market-sheet-heading { min-height: 65px; flex-basis: 65px; justify-content: flex-start; gap: 8px; padding: 0 16px; }
   .mobile-market-sheet.is-detail .mobile-market-sheet-heading h2 { font-family: inherit; font-size: 18px; letter-spacing: 0; }
   .mobile-market-sheet-back-button { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; border: 0; border-radius: 50%; background: transparent; }
-  .mobile-market-sheet-back-button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .mobile-market-sheet-back-button svg { width: 20px; height: 20px; }
   .mobile-market-sheet.is-detail .detail-header { padding-right: 0; }
   .mobile-market-sheet.is-detail .selected-date-card { margin-top: 18px; border-radius: var(--r-m); padding: 17px; }
   .mobile-market-sheet.is-detail .selected-date-card strong { font-size: 18px; }
@@ -789,7 +794,7 @@ a { color: inherit; text-decoration: none; }
   .map-fallback .fallback-grid, .map-fallback .desktop-map-fallback-title, .map-fallback .desktop-map-fallback-body { display: none; }
   .map-fallback .fallback-message { width: 100%; border: 0; padding: 20px 15px; background: transparent; box-shadow: none; }
   .map-fallback .fallback-icon { width: 36px; height: 36px; margin-bottom: 10px; background: transparent; }
-  .map-fallback .fallback-icon svg { width: 30px; }
+  .map-fallback .fallback-icon svg { width: 30px; height: 30px; }
   .map-fallback .mobile-map-fallback-title { display: block; font-size: 18px; }
   .map-fallback .mobile-map-fallback-body { display: block; font-size: 15px; }
   .mobile-map-fallback-list { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; margin-top: 16px; border: 1px solid var(--ink); border-radius: var(--r-m); padding: 0 12px; background: var(--panel); color: var(--ink); font-size: 15px; font-weight: 700; }

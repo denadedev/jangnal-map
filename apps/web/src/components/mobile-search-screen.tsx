@@ -7,6 +7,7 @@ import type { PublicMarket } from "../lib/market";
 import { getUiCopy } from "../lib/ui-copy";
 import { formatKoreanDate, formatMarketTiming, formatSchedulePattern } from "../lib/market-view";
 import { getMarketDates, type DateRange } from "../lib/schedule";
+import { Icon } from "./icon";
 
 interface MobileSearchScreenProps {
   locale: Locale;
@@ -53,12 +54,12 @@ export function MobileSearchScreen({ locale, query, matches, today, range, onQue
     }}>
       <div className="mobile-search-header">
         <button type="button" className="mobile-search-back" aria-label={locale === "en" ? "Back" : "뒤로"} onClick={onClose}>
-          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg>
+          <Icon name="back" />
         </button>
         <label className="mobile-search-input">
-          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m16 16 5 5" /></svg>
+          <Icon name="search" />
           <input ref={inputRef} type="search" aria-label={ui.searchLabel} placeholder={ui.searchPlaceholder} value={query} onChange={(event) => onQueryChange(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) onShowResults(); }} />
-          {query ? <button type="button" aria-label={ui.clearSearch} onClick={() => { onQueryChange(""); inputRef.current?.focus(); }}>×</button> : null}
+          {query ? <button type="button" aria-label={ui.clearSearch} onClick={() => { onQueryChange(""); inputRef.current?.focus(); }}><Icon name="close" /></button> : null}
         </label>
       </div>
       <div className="mobile-search-content">

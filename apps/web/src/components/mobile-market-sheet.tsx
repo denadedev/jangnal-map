@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
 import type { Locale } from "../lib/locale";
 import { getUiCopy } from "../lib/ui-copy";
+import { Icon } from "./icon";
 
 export type SheetSnap = "collapsed" | "half" | "full";
 export type SheetMode = "results" | "preview" | "detail";
@@ -178,14 +179,14 @@ export function MobileMarketSheet({
           onClick={() => onSnapChange("half")}
         >
           <strong>{title}</strong>
-          <span>{ui.openList} <span aria-hidden="true">↑</span></span>
+          <span>{ui.openList} <Icon name="up" /></span>
         </button>
       ) : (
         <div className="mobile-market-sheet-heading">
           {mode === "detail" ? (
             <>
               <button type="button" className="mobile-market-sheet-back-button" aria-label={locale === "en" ? "Back to exploration" : "탐색으로 돌아가기"} onClick={handleClose}>
-                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg>
+                <Icon name="back" />
               </button>
               <h2>{locale === "en" ? "Market information" : "시장 정보"}</h2>
             </>

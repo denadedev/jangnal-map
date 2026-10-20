@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function selectMarket(page: Page) {
   await page.goto("/?when=all");
-  await page.getByRole("navigation", { name: "주요 화면" }).getByRole("button", { name: "검색" }).click();
+  await page.locator(".mobile-search-launch").click();
   const search = page.getByRole("dialog", { name: "시장 검색" });
   await search.getByRole("searchbox", { name: "시장명 또는 지역 검색" }).fill("평택");
   await search.getByRole("button", { name: /전체 결과 보기/ }).click();

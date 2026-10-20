@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { SiteFooter } from "./site-footer";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 import type { PublicMarket } from "../lib/market";
 import { buildExplorerPath, type Locale } from "../lib/locale";
@@ -60,6 +60,11 @@ async function fetchMarkets(): Promise<PublicMarket[]> {
 }
 
 const emptyReviewedMarketIds: string[] = [];
+const sheetSnaps: SheetSnap[] = ["collapsed", "half", "full"];
+const nextSheetSnap = (snap: SheetSnap, direction: "up" | "down"): SheetSnap => {
+  const index = sheetSnaps.indexOf(snap);
+  return sheetSnaps[direction === "up" ? Math.min(index + 1, sheetSnaps.length - 1) : Math.max(index - 1, 0)];
+};
 type SelectionOrigin = { id: string; source: "map" | "list" };
 
 function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientId = "", initialState, reviewedMarketIds = emptyReviewedMarketIds, reviewedGuides = [] }: MarketExplorerProps) {
@@ -76,9 +81,9 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   const [mode, setMode] = useState<DateFilterMode>(resolvedInitial.mode ?? "week");
   const [directDate, setDirectDate] = useState(resolvedInitial.directDate ?? toIsoDate(today));
   const [selectedId, setSelectedId] = useState<string | null>(resolvedInitial.selectedId ?? null);
-  const [sheetSnap, setSheetSnap] = useState<SheetSnap>(resolvedInitial.selectedId ? "full" : "half");
+  const [sheetSnap, setSheetSnap] = useState<SheetSnap>(resolvedInitial.selectedId ? "full" : "collapsed");
   const [sheetMode, setSheetMode] = useState<SheetMode>(resolvedInitial.selectedId ? "detail" : "results");
-  const previousSheetSnap = useRef<SheetSnap>("half");
+  const previousSheetSnap = useRef<SheetSnap>("collapsed");
   const selectedOrigin = useRef<SelectionOrigin | null>(null);
   const resultScrollTop = useRef(0);
   const mobileSheetContentRef = useRef<HTMLDivElement | null>(null);
@@ -141,7 +146,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
 
   const focusResultControl = useCallback(() => {
     document.querySelector<HTMLButtonElement>(
-      '.mobile-primary-nav button[aria-current="page"], .mobile-view-switch button[aria-pressed="true"]',
+      '.mobile-view-switch button[aria-pressed="true"]',
     )?.focus();
   }, []);
 
@@ -194,7 +199,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     }
     setSelectedId(urlState.selectedId ?? null);
     setSheetMode(urlState.selectedId ? "detail" : "results");
-    setSheetSnap(urlState.selectedId ? "full" : "half");
+    setSheetSnap(urlState.selectedId ? "full" : "collapsed");
     setHasRestoredUrl(true);
   }, [locale, providedToday]);
 
@@ -321,6 +326,28 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     closeMarket();
   };
   const clearDateFilter = () => setMode("all");
+  const sheetDragStartY = useRef<number | null>(null);
+  const sheetWasDragged = useRef(false);
+  const handleSheetPointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    sheetDragStartY.current = event.clientY;
+    sheetWasDragged.current = false;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+  const handleSheetPointerUp = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (sheetDragStartY.current === null) return;
+    const delta = event.clientY - sheetDragStartY.current;
+    sheetDragStartY.current = null;
+    if (Math.abs(delta) < 36) return;
+    sheetWasDragged.current = true;
+    setSheetSnap((snap) => nextSheetSnap(snap, delta < 0 ? "up" : "down"));
+  };
+  const handleSheetHandleClick = () => {
+    if (sheetWasDragged.current) {
+      sheetWasDragged.current = false;
+      return;
+    }
+    setSheetSnap((snap) => snap === "collapsed" ? "half" : snap === "half" ? "full" : "collapsed");
+  };
 
   useEffect(() => {
     const handlePopState = () => {
@@ -427,26 +454,9 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
 
       <div
         className={`explorer-grid ${selectedMarket ? "has-selection" : ""}`}
-        ref={mobileResultsRef}
         data-mobile-view={sheetSnap === "full" ? "list" : "map"}
+        data-sheet-snap={sheetSnap}
       >
-        <div className="mobile-discovery-context">
-          {dateReady && locale === "ko" ? <p className="today-jangnal"><b className="jn">{todayPattern}</b><span>{today.getMonth() + 1}월 {today.getDate()}일, 오늘은 {todayPattern}장이 서요</span></p> : null}
-          <p>{query ? ui.searchResultsHeading : ui.marketDiscoveryHeading} · {rangeLabel}</p>
-          <h1>{query ? locale === "en" ? `Markets for “${query}”` : `“${query}” 시장 찾기` : ui.marketDiscoveryTitle}</h1>
-          <small>{ui.marketDiscoveryHelp}</small>
-          {reviewedGuides.length > 0 ? <a className="visit-guides-shortcut" href="#reviewed-market-guides-heading" onClick={(event) => {
-            event.preventDefault();
-            const heading = document.getElementById("reviewed-market-guides-heading");
-            heading?.scrollIntoView({ block: "start" });
-            heading?.focus({ preventScroll: true });
-          }}>시장별 방문 정보</a> : null}
-          <noscript><p>{locale === "en" ? "Enable JavaScript to use the map and date filters. Market guides remain available through the links below." : "지도와 날짜 검색은 자바스크립트가 필요합니다. 아래 시장별 방문 안내는 바로 읽을 수 있습니다."}</p></noscript>
-          <div className="mobile-view-switch" role="group" aria-label={ui.resultViewLabel}>
-            <button type="button" aria-pressed={sheetSnap !== "full"} onClick={() => setSheetSnap("collapsed")}>{ui.mapView}</button>
-            <button type="button" aria-pressed={sheetSnap === "full"} onClick={() => setSheetSnap("full")}>{ui.listView}</button>
-          </div>
-        </div>
         <MarketMap
           locale={locale}
           markets={filteredMarkets}
@@ -463,6 +473,50 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
           onFallbackList={() => setSheetSnap("full")}
         />
 
+        <noscript><style>{".explorer-grid .results-sheet { height: calc(100% - 112px); } .explorer-grid .results-sheet-body { overflow-y: auto; }"}</style></noscript>
+        <section className="results-sheet" aria-label={locale === "en" ? "Market list" : "시장 목록"}>
+        <div className="results-sheet-header">
+          <button
+            type="button"
+            className="results-sheet-handle"
+            aria-label={ui.sheetHandle}
+            aria-expanded={sheetSnap !== "collapsed"}
+            onPointerDown={handleSheetPointerDown}
+            onPointerUp={handleSheetPointerUp}
+            onClick={handleSheetHandleClick}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowUp") setSheetSnap(nextSheetSnap(sheetSnap, "up"));
+              else if (event.key === "ArrowDown") setSheetSnap(nextSheetSnap(sheetSnap, "down"));
+            }}
+          >
+            <span className="results-sheet-grip" aria-hidden="true" />
+          </button>
+          <div className="results-sheet-summary">
+            <p>
+              <strong>{!isPending && !isError && dateReady ? locale === "en" ? `${displayedMarkets.length} markets` : `시장 ${displayedMarkets.length}곳` : query ? ui.searchResultsHeading : ui.marketDiscoveryHeading}</strong>
+              <span>{rangeLabel}</span>
+            </p>
+            {dateReady && locale === "ko" ? <p className="today-jangnal"><b className="jn">{todayPattern}</b><span aria-hidden="true">오늘</span><span className="sr-only">{today.getMonth() + 1}월 {today.getDate()}일, 오늘은 {todayPattern}장이 서요</span></p> : null}
+          </div>
+          <div className="mobile-view-switch" role="group" aria-label={ui.resultViewLabel}>
+            <button type="button" aria-pressed={sheetSnap !== "full"} onClick={() => setSheetSnap("collapsed")}>{ui.mapView}</button>
+            <button type="button" aria-pressed={sheetSnap === "full"} onClick={() => setSheetSnap("full")}>{ui.listView}</button>
+          </div>
+        </div>
+        <div className="results-sheet-body" ref={mobileResultsRef}>
+        <div className="mobile-discovery-context">
+          <h1>{query ? locale === "en" ? `Markets for “${query}”` : `“${query}” 시장 찾기` : ui.marketDiscoveryTitle}</h1>
+          <small>{ui.marketDiscoveryHelp}</small>
+          {reviewedGuides.length > 0 ? <a className="visit-guides-shortcut" href="#reviewed-market-guides-heading" onClick={(event) => {
+            event.preventDefault();
+            setSheetSnap("full");
+            const heading = document.getElementById("reviewed-market-guides-heading");
+            heading?.scrollIntoView({ block: "start" });
+            heading?.focus({ preventScroll: true });
+          }}>시장별 방문 정보</a> : null}
+          <noscript><p>{locale === "en" ? "Enable JavaScript to use the map and date filters. Market guides remain available through the links below." : "지도와 날짜 검색은 자바스크립트가 필요합니다. 아래 시장별 방문 안내는 바로 읽을 수 있습니다."}</p></noscript>
+        </div>
+
         <section className="mobile-market-results" aria-label={locale === "en" ? "Market results" : "시장 결과"} data-map-status={mapStatus}>
           {!isPending && !isError && dateReady ? <div className="mobile-results-heading">
             <h2>{locale === "en" ? `${filteredMarkets.length} markets for these dates` : `${mode === "date" ? "선택일에 장이 서는 시장" : "조건에 맞는 시장"} ${filteredMarkets.length}곳`}</h2>
@@ -472,6 +526,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
           {reviewedGuides.length > 0 ? <ReviewedMarketGuides guides={reviewedGuides} /> : null}
         </section>
         <SiteFooter locale={locale} />
+        </div>
+        </section>
 
         {sheetMode === "detail" && selectedMarket ? (
           <MobileMarketSheet
@@ -503,14 +559,6 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
           </MobileMarketSheet>
         ) : null}
       </div>
-
-      {sheetMode === "results" ? (
-        <nav className="mobile-primary-nav" aria-label={locale === "en" ? "Main views" : "주요 화면"}>
-          <button type="button" aria-current={sheetSnap !== "full" ? "page" : undefined} onClick={() => setSheetSnap("collapsed")}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16m6-14v16" /></svg>{locale === "en" ? "Map" : "지도"}</button>
-          <button type="button" aria-current={sheetSnap === "full" ? "page" : undefined} onClick={() => setSheetSnap("full")}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>{locale === "en" ? "List" : "목록"}</button>
-          <button type="button" onClick={() => setIsSearchOpen(true)}><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m16 16 5 5" /></svg>{locale === "en" ? "Search" : "검색"}</button>
-        </nav>
-      ) : null}
 
     </main>
     {isSearchOpen ? <MobileSearchScreen

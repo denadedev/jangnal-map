@@ -26,12 +26,9 @@ export function MobileHomeControls({ languageSwitchHref, ...props }: MobileHomeC
   return (
     <>
       <div className="mobile-home-controls">
-        <div className="mobile-brand-row">
-          <a href={props.locale === "en" ? "/en" : "/"} aria-label={ui.homeLabel}>
-            <span className="mobile-app-bar-mark" aria-hidden="true">{props.locale === "en" ? "K" : "장"}</span>
-            <strong>{ui.brand}</strong>
-          </a>
-          <button
+        <MarketFilters
+          {...props}
+          mobileMenuControl={<button
             type="button"
             className="mobile-app-bar-menu"
             aria-label={ui.openMenu}
@@ -40,9 +37,8 @@ export function MobileHomeControls({ languageSwitchHref, ...props }: MobileHomeC
             onClick={() => setMenuOpen(true)}
           >
             <span aria-hidden="true">☰</span>
-          </button>
-        </div>
-        <MarketFilters {...props} />
+          </button>}
+        />
       </div>
       <MobileMenu {...installMenuProps} locale={props.locale} languageSwitchHref={languageSwitchHref} open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>

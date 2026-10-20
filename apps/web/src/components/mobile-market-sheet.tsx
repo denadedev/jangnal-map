@@ -75,7 +75,7 @@ export function MobileMarketSheet({
     if (mode !== "detail" || snap !== "full" || !sheetRef.current) return;
     const sheet = sheetRef.current;
     const previousActive = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const backgroundNodes = [".map-stage", ".mobile-market-results", ".mobile-primary-nav", ".market-filters", ".mobile-home-controls", ".mobile-app-bar"]
+    const backgroundNodes = [".map-stage", ".results-sheet", ".market-filters", ".mobile-home-controls", ".mobile-app-bar"]
       .map((selector) => document.querySelector<HTMLElement>(selector))
       .filter((element): element is HTMLElement => Boolean(element));
     backgroundNodes.forEach((element) => element.setAttribute("inert", ""));

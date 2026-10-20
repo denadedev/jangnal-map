@@ -32,7 +32,7 @@ test("English map searches Seoul and keeps the selected market in an English URL
 
   expect(response?.status()).toBe(200);
   await expect(page.locator(".mobile-search-launch")).toContainText("Seoul");
-  await page.getByRole("navigation", { name: "Main views" }).getByRole("button", { name: "Search" }).click();
+  await page.locator(".mobile-search-launch").click();
   await expect(page.getByRole("dialog", { name: "Market search" }).getByRole("searchbox", { name: "Search a region in English or a market name in Korean" })).toHaveValue("Seoul");
   await page.getByRole("dialog", { name: "Market search" }).getByRole("button", { name: "Back" }).click();
   await expect(page.getByRole("button", { name: "All markets" })).toHaveAttribute("aria-pressed", "true");

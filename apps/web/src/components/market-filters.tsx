@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Locale } from "../lib/locale";
 import { getUiCopy } from "../lib/ui-copy";
 import type { ReactNode } from "react";
+import { BrandMark, Icon } from "./icon";
 
 export type DateFilterMode = "all" | "today" | "week" | "weekend" | "date";
 
@@ -68,13 +69,11 @@ export function MarketFilters(_props: MarketFiltersProps) {
     <section className="market-filters" aria-label={ui.filterLabel}>
       <div className="market-filter-search-row">
         <a className="mobile-home-brand" href={locale === "en" ? "/en" : "/"} aria-label={ui.homeLabel}>
-          <span className="mobile-app-bar-mark" aria-hidden="true">{locale === "en" ? "K" : "장"}</span>
+          <span className="mobile-app-bar-mark" aria-hidden="true"><BrandMark /></span>
         </a>
         <label className="search-field">
           <span className="sr-only">{ui.searchLabel}</span>
-          <svg aria-hidden="true" viewBox="0 0 24 24">
-            <path d="m21 21-4.35-4.35m2.35-5.15a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" />
-          </svg>
+          <Icon name="search" />
           <input
             type="search"
             aria-label={ui.searchLabel}
@@ -84,14 +83,12 @@ export function MarketFilters(_props: MarketFiltersProps) {
           />
           {query ? (
             <button type="button" className="search-clear" aria-label={ui.clearSearch} onClick={() => onQueryChange("")}>
-              <svg aria-hidden="true" viewBox="0 0 24 24">
-                <path d="m7 7 10 10M17 7 7 17" />
-              </svg>
+              <Icon name="close" />
             </button>
           ) : null}
         </label>
         {onMobileSearchOpen ? <button type="button" className="mobile-search-launch" aria-label={ui.searchLabel} onClick={onMobileSearchOpen}>
-          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m16 16 5 5" /></svg>
+          <Icon name="search" />
           <span>{query || ui.searchPlaceholder}</span>
         </button> : null}
         {mobileMenuControl}
@@ -108,7 +105,7 @@ export function MarketFilters(_props: MarketFiltersProps) {
               aria-pressed={mode === item.value}
               onClick={() => selectMode(item.value)}
             >
-              {item.value === "date" ? <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4m10-4v4M3 10h18" /></svg> : null}
+              {item.value === "date" ? <Icon name="calendar" /> : null}
               {item.label}
             </button>
           ))}

@@ -6,6 +6,7 @@ import { MarketFilters, type MarketFiltersProps } from "./market-filters";
 import { MobileMenu } from "./mobile-menu";
 import { useInstallPrompt } from "./install-prompt";
 import { getUiCopy } from "../lib/ui-copy";
+import { Icon } from "./icon";
 
 type MobileHomeControlsProps = Omit<MarketFiltersProps, "mobileMenuControl"> & {
   languageSwitchHref?: string;
@@ -36,7 +37,7 @@ export function MobileHomeControls({ languageSwitchHref, ...props }: MobileHomeC
             aria-controls="mobile-menu-dialog"
             onClick={() => setMenuOpen(true)}
           >
-            <span aria-hidden="true">☰</span>
+            <Icon name="menu" />
           </button>}
         />
       </div>

@@ -5,6 +5,7 @@ import { formatDistance, formatMarketTiming, formatSchedulePattern, getDistanceK
 import type { Locale } from "../lib/locale";
 import { getUiCopy } from "../lib/ui-copy";
 import { JangnalTile } from "./jangnal-number";
+import { Icon } from "./icon";
 
 interface MarketListProps {
   locale?: Locale;
@@ -79,9 +80,7 @@ export function MarketList({ locale = "ko", getMarketHref, markets, inactiveMark
                   : locale === "en" ? "No market day in this period" : "선택한 기간에 장날이 없어요"}</em> : null}
             </span>
             <span className="list-when" aria-hidden="true">{formatMarketTiming(market, referenceDate, locale)}</span>
-            <svg className="chevron" aria-hidden="true" viewBox="0 0 24 24">
-              <path d="m9 6 6 6-6 6" />
-            </svg>
+            <Icon name="more" className="chevron" />
           </a>
         </li>
         );

@@ -6,12 +6,12 @@ describe("web app manifest", () => {
   it("provides a standalone mobile home-screen experience with install icons", () => {
     expect(manifest()).toEqual({
       name: "오늘 장날",
-      short_name: "장날 지도",
+      short_name: "오늘 장날",
       description: "전국 전통시장의 장날과 방문 정보를 한눈에 확인하세요.",
       start_url: "/",
       display: "standalone",
-      background_color: "#f6f1e8",
-      theme_color: "#d8502a",
+      background_color: "#f3f4f7",
+      theme_color: "#c1291f",
       lang: "ko-KR",
       icons: [
         {

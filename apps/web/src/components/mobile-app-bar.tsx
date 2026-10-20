@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useInstallPrompt } from "./install-prompt";
 import { MobileMenu } from "./mobile-menu";
 import type { MobileMenuProps } from "./mobile-menu";
+import { BrandMark, Icon } from "./icon";
 
 export interface MobileAppBarProps {
   title?: string;
@@ -33,10 +34,10 @@ export function MobileAppBar({ title = "오늘 장날", backHref, homeHref = "/"
     <>
       <header className="mobile-app-bar">
         {backHref ? (
-          <a className="mobile-app-bar-back" href={backHref} aria-label="이전 화면">←</a>
+          <a className="mobile-app-bar-back" href={backHref} aria-label="이전 화면"><Icon name="back" /></a>
         ) : null}
         <a className="mobile-app-bar-brand" href={homeHref} aria-label="오늘 장날 홈">
-          <span className="mobile-app-bar-mark" aria-hidden="true">장</span>
+          <span className="mobile-app-bar-mark" aria-hidden="true"><BrandMark /></span>
           <span>{title}</span>
         </a>
         <button
@@ -50,7 +51,7 @@ export function MobileAppBar({ title = "오늘 장날", backHref, homeHref = "/"
           aria-controls="mobile-menu-dialog"
           onClick={openMenu}
         >
-          <span aria-hidden="true">☰</span>
+          <Icon name="menu" />
         </button>
       </header>
       <MobileMenu {...resolvedMenuProps} open={menuOpen} onClose={() => setMenuOpen(false)} />

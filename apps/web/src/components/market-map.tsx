@@ -8,6 +8,7 @@ import { formatMarketTiming, type Coordinates } from "../lib/market-view";
 import { loadNaverMaps, type NaverLatLng, type NaverMapInstance, type NaverMarker } from "../lib/naver-maps";
 import type { Locale } from "../lib/locale";
 import { getUiCopy } from "../lib/ui-copy";
+import { Icon } from "./icon";
 
 interface MarketMapProps {
   locale?: Locale;
@@ -438,7 +439,7 @@ export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQu
           <div className="fallback-grid" aria-hidden="true" />
           <div className="fallback-message">
             <span className="fallback-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="m9 18-6 3V6l6-3 6 3 6-3v15l-6 3-6-3Zm0 0V3m6 18V6" /></svg>
+              <Icon name="map" />
             </span>
             <strong className="desktop-map-fallback-title">{ui.mapFallbackTitle}</strong>
             <strong className="mobile-map-fallback-title">{locale === "en" ? "Could not load the map" : "지도를 불러올 수 없어요"}</strong>
@@ -473,7 +474,7 @@ export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQu
           onClick={moveToCurrentLocation}
           aria-label={locale === "en" ? "Move to current location" : "현재 위치로 이동"}
         >
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M12 2v3m0 14v3M2 12h3m14 0h3" /></svg>
+          <Icon name="locate" />
           <span>{locationStatus === "loading" ? locale === "en" ? "Locating" : "위치 확인 중" : ui.currentLocation}</span>
         </button>
         {locationMessage ? <p className={`location-message is-${locationStatus}`} role="status">{locationMessage}</p> : null}

@@ -11,6 +11,7 @@ import { MarketDirectionsMenu } from "./market-directions-menu";
 import { MarketShareButton } from "./market-share-button";
 import { OnnuriSummary } from "./onnuri-summary";
 import { formatPatternDigits } from "./jangnal-number";
+import { Icon } from "./icon";
 
 interface MarketDetailProps {
   locale?: Locale;
@@ -94,7 +95,7 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
     <article className="market-detail" aria-label={locale === "en" ? `${market.name} details` : `${market.name} 상세정보`}>
       <div className="sheet-handle" aria-hidden="true" />
       <button type="button" className="detail-close" aria-label={ui.closeDetail} onClick={onClose}>
-        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17" /></svg>
+        <Icon name="close" />
       </button>
 
       <header className="detail-header">

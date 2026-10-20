@@ -133,7 +133,7 @@ describe("MarketExplorer", () => {
     const user = userEvent.setup();
     window.history.replaceState(null, "", "/?when=date&date=2026-10-02");
     render(<MarketExplorer today={new Date(2026, 8, 30)} mapClientId="" />);
-    await user.click(screen.getByRole("button", { name: "검색" }));
+    await user.click(screen.getByRole("button", { name: "시장명 또는 지역 검색" }));
     const search = await screen.findByRole("dialog", { name: "시장 검색" });
     await user.type(within(search).getByRole("searchbox"), "통복시장");
     await user.click(await within(search).findByRole("button", { name: /^통복시장/ }));
@@ -179,10 +179,10 @@ describe("MarketExplorer", () => {
 
     expect(container.querySelector(".mobile-market-sheet.is-results")).not.toBeInTheDocument();
     expect(container.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "map");
-    const navigation = screen.getByRole("navigation", { name: "주요 화면" });
-    await user.click(within(navigation).getByRole("button", { name: "목록" }));
+    const viewSwitch = screen.getByRole("group", { name: "결과 보기" });
+    await user.click(within(viewSwitch).getByRole("button", { name: "목록" }));
     expect(container.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "list");
-    await user.click(within(navigation).getByRole("button", { name: "지도" }));
+    await user.click(within(viewSwitch).getByRole("button", { name: "지도" }));
     expect(container.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "map");
   });
 
@@ -197,13 +197,13 @@ describe("MarketExplorer", () => {
     const { container } = render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
 
     expect(screen.getByRole("heading", { level: 1, name: "오늘, 어디 장이 설까요?" })).toBeInTheDocument();
-    expect(container.querySelector(".mobile-discovery-context")).toHaveTextContent("9/4–9/10");
-    const navigation = screen.getByRole("navigation", { name: "주요 화면" });
-    await user.click(within(navigation).getByRole("button", { name: "지도" }));
+    expect(container.querySelector(".results-sheet-summary")).toHaveTextContent("9/4–9/10");
+    const viewSwitch = screen.getByRole("group", { name: "결과 보기" });
+    await user.click(within(viewSwitch).getByRole("button", { name: "지도" }));
     expect(container.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "map");
-    await user.click(within(navigation).getByRole("button", { name: "목록" }));
+    await user.click(within(viewSwitch).getByRole("button", { name: "목록" }));
     expect(container.querySelector(".explorer-grid")).toHaveAttribute("data-mobile-view", "list");
-    await user.click(within(navigation).getByRole("button", { name: "검색" }));
+    await user.click(screen.getByRole("button", { name: "시장명 또는 지역 검색" }));
     expect(within(screen.getByRole("dialog", { name: "시장 검색" })).getByRole("searchbox", { name: "시장명 또는 지역 검색" })).toHaveFocus();
   });
 
@@ -231,7 +231,7 @@ describe("MarketExplorer", () => {
     })));
     const { container } = render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
-    expect(within(container.querySelector(".mobile-brand-row") as HTMLElement).getByRole("link", { name: "오늘 장날 홈" })).toBeInTheDocument();
+    expect(within(container.querySelector(".mobile-home-controls") as HTMLElement).getByRole("link", { name: "오늘 장날 홈" })).toBeInTheDocument();
     expect((await screen.findAllByText("운천전통시장")).length).toBeGreaterThan(0);
     expect(screen.getAllByText("4·9일장").length).toBeGreaterThan(0);
     expect(screen.getAllByText("5·10일장").length).toBeGreaterThan(0);
@@ -242,9 +242,11 @@ describe("MarketExplorer", () => {
   });
 
   it("shows the actual seven-day range beside the result count", async () => {
-    render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
+    const { container } = render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
 
-    expect(screen.getByText("오늘, 어디 장이 설까요?").closest(".mobile-discovery-context")).toHaveTextContent("9/4–9/10");
+    const summary = container.querySelector(".results-sheet-summary") as HTMLElement;
+    expect(summary).toHaveTextContent("9/4–9/10");
+    expect(await within(summary).findByText(/^시장 \d+곳$/)).toBeInTheDocument();
   });
 
   it("shows daily markets and omits directions when coordinates are missing", async () => {

@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 async function searchFor(page: Page, query: string) {
-  await page.getByRole("navigation", { name: "주요 화면" }).getByRole("button", { name: "검색" }).click();
+  await page.locator(".mobile-search-launch").click();
   const search = page.getByRole("dialog", { name: "시장 검색" });
   await search.getByRole("searchbox", { name: "시장명 또는 지역 검색" }).fill(query);
   await search.getByRole("button", { name: /전체 결과 보기/ }).click();
@@ -27,13 +27,14 @@ test("opens a reviewed market's standalone page from the detail title", async ({
   await expect(page.getByRole("heading", { level: 1, name: /북평민속시장/ })).toBeVisible();
 });
 
-test("switches map and list without covering either with a result sheet", async ({ page }) => {
+test("switches map and list inside the results sheet", async ({ page }) => {
   await page.goto("/?when=all");
-  const navigation = page.getByRole("navigation", { name: "주요 화면" });
-  await navigation.getByRole("button", { name: "목록" }).click();
-  await expect(page.locator(".map-stage")).toBeHidden();
+  const viewSwitch = page.getByRole("group", { name: "결과 보기" });
+  await viewSwitch.getByRole("button", { name: "목록" }).click();
+  await expect(page.locator(".explorer-grid")).toHaveAttribute("data-sheet-snap", "full");
   await expect(page.locator(".mobile-market-results")).toBeVisible();
-  await navigation.getByRole("button", { name: "지도" }).click();
+  await viewSwitch.getByRole("button", { name: "지도" }).click();
+  await expect(page.locator(".explorer-grid")).toHaveAttribute("data-sheet-snap", "collapsed");
   await expect(page.locator(".map-stage")).toBeVisible();
   await expect(page.locator(".mobile-market-sheet.is-results")).toHaveCount(0);
 });
@@ -75,8 +76,8 @@ test("Tab reaches visible controls in full-screen detail", async ({ page }) => {
 
 test("restores the result scroll position after closing detail", async ({ page }) => {
   await page.goto("/?when=all");
-  await page.getByRole("navigation", { name: "주요 화면" }).getByRole("button", { name: "목록" }).click();
-  const results = page.locator(".explorer-grid");
+  await page.getByRole("group", { name: "결과 보기" }).getByRole("button", { name: "목록" }).click();
+  const results = page.locator(".results-sheet-body");
   const marketLink = page.locator(".mobile-market-results").getByRole("link", { name: /통복시장/ }).first();
   await marketLink.scrollIntoViewIfNeeded();
   const before = await results.evaluate((element) => element.scrollTop);

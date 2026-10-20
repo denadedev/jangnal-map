@@ -7,10 +7,10 @@ test("uses the current mobile map, list, and search flow on desktop", async ({ p
   const shell = page.locator(".explorer-shell");
   await expect(page.locator(".app-header")).toBeHidden();
   await expect(page.locator(".mobile-market-results")).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "주요 화면" })).toBeVisible();
+  await expect(page.locator(".results-sheet")).toBeVisible();
   expect(await shell.boundingBox()).toMatchObject({ x: 425, width: 430 });
 
-  await page.getByRole("navigation", { name: "주요 화면" }).getByRole("button", { name: "검색" }).click();
+  await page.locator(".mobile-search-launch").click();
   const searchScreen = page.getByRole("dialog", { name: "시장 검색" });
   expect(await searchScreen.boundingBox()).toMatchObject({ x: 425, width: 430 });
   await searchScreen.getByRole("searchbox", { name: "시장명 또는 지역 검색" }).fill("통복시장");

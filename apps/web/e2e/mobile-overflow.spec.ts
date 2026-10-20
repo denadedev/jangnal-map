@@ -34,20 +34,17 @@ test("keeps mobile controls readable and tappable", async ({ page }) => {
     const search = document.querySelector<HTMLElement>(".mobile-search-launch");
     const filters = document.querySelector<HTMLElement>(".filter-pills");
     const dateFilterButtons = [...document.querySelectorAll<HTMLElement>(".filter-pill")];
-    const navigation = document.querySelector<HTMLElement>(".mobile-primary-nav");
     return {
       searchHeight: search?.getBoundingClientRect().height ?? 0,
       filterOverflow: filters ? getComputedStyle(filters).overflowX : "",
       chipHeights: dateFilterButtons.map((button) => button.getBoundingClientRect().height),
-      navButtonHeights: [...(navigation?.querySelectorAll("button") ?? [])].map((button) => button.getBoundingClientRect().height),
     };
   });
   expect(metrics.searchHeight).toBeGreaterThanOrEqual(44);
   expect(["auto", "scroll"]).toContain(metrics.filterOverflow);
   expect(metrics.chipHeights).toHaveLength(5);
-  expect(metrics.chipHeights.every((height) => height === 44)).toBe(true);
-  expect(metrics.navButtonHeights.every((height) => height >= 44)).toBe(true);
+  expect(metrics.chipHeights.every((height) => height === 40)).toBe(true);
 
-  await page.getByRole("navigation", { name: "주요 화면" }).getByRole("button", { name: "검색" }).click();
+  await page.locator(".mobile-search-launch").click();
   await expect(page.getByRole("dialog", { name: "시장 검색" }).getByRole("searchbox")).toHaveCSS("font-size", "16px");
 });

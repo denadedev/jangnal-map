@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import type { Locale } from "../lib/locale";
 import { getUiCopy } from "../lib/ui-copy";
+import type { InstallPlatform } from "./install-prompt";
+import { AppIcon } from "./install-ui";
 
 export interface MobileMenuProps {
   locale?: Locale;
@@ -10,9 +12,7 @@ export interface MobileMenuProps {
   open: boolean;
   onClose: () => void;
   installAction?: (() => void | Promise<void>) | null;
-  installPlatform?: "android" | "ios" | null;
-  iosGuide?: boolean;
-  onShowIosGuide?: () => void;
+  installPlatform?: InstallPlatform | null;
   onDismissInstall?: () => void;
 }
 
@@ -29,8 +29,6 @@ export function MobileMenu({
   onClose,
   installAction,
   installPlatform = null,
-  iosGuide = false,
-  onShowIosGuide,
   onDismissInstall,
 }: MobileMenuProps) {
   const ui = getUiCopy(locale);
@@ -97,6 +95,23 @@ export function MobileMenu({
           <strong>{ui.brand}</strong>
           <button type="button" className="mobile-menu-close" aria-label={ui.closeMenu} onClick={onClose}>×</button>
         </div>
+        {installPlatform ? (
+          <section className="mobile-menu-install" aria-label={ui.installTitle}>
+            <div className="mobile-menu-install-top">
+              <AppIcon size={48} />
+              <div>
+                <strong>{ui.installTitle}</strong>
+                <p>{ui.installDescription}</p>
+              </div>
+            </div>
+            <div className="mobile-menu-install-actions">
+              <button type="button" className="mobile-menu-install-action" onClick={() => void installAction?.()}>
+                {installPlatform === "android" ? ui.add : ui.addHow}
+              </button>
+              <button type="button" className="mobile-menu-dismiss" onClick={onDismissInstall}>{ui.dismissInstall}</button>
+            </div>
+          </section>
+        ) : null}
         <nav aria-label={ui.menu}>
           <a className="mobile-menu-link" href="/en">{locale === "en" ? "Market-day guide" : "English guide"}</a>
           {locale === "ko" ? <a className="mobile-menu-link" href="/jangnal">지역별 장날</a> : null}
@@ -108,19 +123,6 @@ export function MobileMenu({
           <a className="mobile-menu-link" href="/about#data-policy">{ui.dataPolicy}</a>
           <a className="mobile-menu-link" href={languageSwitchHref ?? (locale === "en" ? "/" : "/en/map")}>{locale === "en" ? "한국어" : "English map"}</a>
         </nav>
-        {installPlatform ? (
-          <div className="mobile-menu-install">
-            <strong>{ui.installTitle}</strong>
-            <p>{ui.installDescription}</p>
-            {iosGuide ? <p className="mobile-menu-install-guide">{ui.installIosGuide}</p> : null}
-            {installPlatform === "android" ? (
-              <button type="button" className="mobile-menu-install-action" onClick={() => void installAction?.()}>{ui.add}</button>
-            ) : (
-              <button type="button" className="mobile-menu-install-action" onClick={onShowIosGuide}>{ui.addHow}</button>
-            )}
-            <button type="button" className="mobile-menu-dismiss" onClick={onDismissInstall}>{ui.dismissInstall}</button>
-          </div>
-        ) : null}
       </div>
     </div>
   );

@@ -25,6 +25,7 @@ import { isLaunchRegion } from "../../../lib/jangnal-landing";
 import { formatSchedulePattern } from "../../../lib/market-view";
 import { getMarketDistrict, getMarketRegion } from "../../../lib/region";
 import styles from "./page.module.css";
+import { OG_IMAGE } from "../../../lib/site-config";
 
 export const dynamicParams = false;
 
@@ -54,6 +55,7 @@ export async function generateMetadata({ params }: MarketPageProps): Promise<Met
     alternates: { canonical: url },
     robots: isMarketIndexable(market) ? undefined : { index: false, follow: true },
     openGraph: {
+      images: [OG_IMAGE],
       title: seo.title,
       description: seo.description,
       url,

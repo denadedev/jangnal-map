@@ -31,6 +31,7 @@ describe("market detail route", () => {
     expect(metadata.title).toContain("장날 날짜");
     expect(metadata.alternates?.canonical).toBe(`${SITE_URL}/markets/${slug}`);
     expect(metadata.openGraph?.url).toBe(`${SITE_URL}/markets/${slug}`);
+    expect(metadata.openGraph?.images).toEqual([expect.objectContaining({ url: "/og-image.png", width: 1200, height: 630 })]);
     expect(metadata.description).toContain("장날은 매월");
   });
 

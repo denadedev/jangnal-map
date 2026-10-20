@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { MarketExplorer } from "../../../components/market-explorer";
 import { reviewedMarkets } from "../../../lib/market-editorial";
 import { isMarketIndexable } from "../../../lib/market-seo";
+import { OG_IMAGE } from "../../../lib/site-config";
 
 export const metadata: Metadata = {
   title: { absolute: "Explore Korean Market Days | K Market Day" },
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/en/map" },
   robots: { index: false, follow: true },
   openGraph: {
+    images: [OG_IMAGE],
     title: "Explore Korean Market Days | K Market Day",
     description: "Find traditional markets by region and date on a map of Korea.",
     url: "/en/map",

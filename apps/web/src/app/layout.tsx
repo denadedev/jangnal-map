@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { SITE_HOST, SITE_URL } from "../lib/site-config";
+import { OG_IMAGE, SITE_HOST, SITE_URL } from "../lib/site-config";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,6 +25,7 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: "/" },
   openGraph: {
+    images: [OG_IMAGE],
     title: "오늘 장날 | 전국 5일장·전통시장 일정 지도",
     description: "오늘·이번 주·주말에 열리는 전국 5일장과 전통시장을 지도에서 확인하세요.",
     url: "/",

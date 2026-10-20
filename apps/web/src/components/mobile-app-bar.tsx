@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { useInstallPrompt } from "./install-prompt";
+import { InstallGuideSheet } from "./install-ui";
 import { MobileMenu } from "./mobile-menu";
 import type { MobileMenuProps } from "./mobile-menu";
 import { BrandMark, Icon } from "./icon";
@@ -20,9 +21,10 @@ export function MobileAppBar({ title = "오늘 장날", backHref, homeHref = "/"
   const installPrompt = useInstallPrompt();
   const resolvedMenuProps = menuProps ?? {
     installPlatform: installPrompt.platform,
-    installAction: installPrompt.platform === "android" ? installPrompt.install : null,
-    iosGuide: installPrompt.iosGuide,
-    onShowIosGuide: installPrompt.showIosGuide,
+    installAction: () => {
+      setMenuOpen(false);
+      return installPrompt.start();
+    },
     onDismissInstall: installPrompt.dismiss,
   };
   const openMenu = () => {
@@ -55,6 +57,7 @@ export function MobileAppBar({ title = "오늘 장날", backHref, homeHref = "/"
         </button>
       </header>
       <MobileMenu {...resolvedMenuProps} open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <InstallGuideSheet install={installPrompt} />
     </>
   );
 }

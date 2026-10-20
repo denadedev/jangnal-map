@@ -143,12 +143,14 @@ a { color: inherit; text-decoration: none; }
 .mobile-menu-heading strong { font-size: 20px; }
 .mobile-menu-close { display: grid; width: 44px; height: 44px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--ink); font-size: 24px; }
 .mobile-menu-link { display: flex; min-height: 52px; align-items: center; border-bottom: 1px solid var(--soft-line); font-size: 15px; font-weight: 700; }
-.mobile-menu-install { margin-top: 20px; border-radius: var(--r-m); padding: 15px; background: var(--persimmon-soft); }
-.mobile-menu-install strong { display: block; color: var(--ink); font-size: 15px; }
-.mobile-menu-install p { margin: 5px 0 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
-.mobile-menu-install-guide { color: var(--ink) !important; font-weight: 700; }
-.mobile-menu-install-action { min-height: 42px; margin-top: 11px; border: 1px solid var(--ink); border-radius: var(--r-s); padding: 0 13px; background: var(--panel); color: var(--ink); font-size: 15px; font-weight: 700; }
-.mobile-menu-dismiss { display: block; min-height: 38px; margin-top: 5px; border: 0; padding: 0; background: transparent; color: var(--muted); font-size: 15px; text-decoration: underline; text-underline-offset: 3px; }
+.mobile-menu-install { margin: 12px 0 4px; border-radius: var(--r-m); padding: 16px; background: var(--accent-soft); }
+.mobile-menu-install-top { display: flex; align-items: center; gap: 12px; }
+.mobile-menu-install strong { display: block; color: var(--ink); font-size: 16px; line-height: 24px; }
+.mobile-menu-install p { margin: 0; color: var(--muted); font-size: 14px; line-height: 20px; }
+.mobile-menu-install-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.mobile-menu-install-action { min-height: 48px; flex: 1 1 auto; border: 0; border-radius: var(--r-m); padding: 0 16px; background: var(--accent); color: var(--surface); font-size: 16px; font-weight: 700; }
+.mobile-menu-install-action:hover { background: var(--accent-ink); }
+.mobile-menu-dismiss { min-height: 44px; flex: 0 0 auto; border: 0; border-radius: var(--r-m); padding: 0 10px; background: transparent; color: var(--muted); font-size: 14px; font-weight: 600; }
 
 .brand { display: inline-flex; align-items: center; gap: 11px; }
 .brand > span:last-child { display: flex; flex-direction: column; gap: 1px; }
@@ -919,3 +921,47 @@ a { color: inherit; text-decoration: none; }
   .explorer-grid[data-sheet-snap="collapsed"] .results-sheet-body { overflow: hidden; }
   .results-sheet .mobile-discovery-context { margin: 0; border-bottom: 1px solid var(--line); padding: 12px 0; background: transparent; }
 }
+
+/* 홈 화면 추가: 배너, 브라우저별 안내 시트, 첫 실행 토스트 */
+.install-app-icon { display: grid; flex: none; place-items: center; border-radius: 22%; background: var(--accent); color: var(--surface); overflow: hidden; }
+.install-app-icon svg { width: 100%; height: 100%; transform: scale(0.8); }
+
+.install-banner { position: fixed; z-index: 60; right: calc(var(--app-side) + 12px); bottom: calc(108px + env(safe-area-inset-bottom)); left: calc(var(--app-side) + 12px); display: none; min-height: 64px; align-items: center; gap: 10px; border-radius: var(--r-m); padding: 0 0 0 12px; background: var(--surface); box-shadow: var(--shadow-float); }
+.explorer-shell:has(.explorer-grid[data-sheet-snap="collapsed"]:not(.has-selection)) .install-banner { display: flex; }
+.install-banner p { min-width: 0; flex: 1 1 auto; margin: 0; color: var(--ink); font-size: 14px; font-weight: 700; line-height: 1.35; }
+.install-banner-add { min-width: 56px; height: 44px; flex: none; border: 0; border-radius: var(--r-m); padding: 0 12px; background: var(--accent); color: var(--surface); font-size: 14px; font-weight: 700; }
+.install-banner-add:hover { background: var(--accent-ink); }
+.install-banner-close { display: grid; width: 44px; height: 44px; flex: none; place-items: center; border: 0; border-radius: var(--r-m); background: transparent; color: var(--muted); }
+.install-banner-close .icon { width: 20px; height: 20px; }
+
+.install-guide-backdrop { position: fixed; z-index: 160; top: 0; right: var(--app-side); bottom: 0; left: var(--app-side); background: oklch(0.21 0.015 260 / 45%); }
+.install-guide-sheet { position: absolute; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); left: 8px; max-height: calc(100% - 72px); overflow-y: auto; border-radius: var(--r-l); padding: 8px 20px 20px; background: var(--surface); box-shadow: var(--shadow-float); }
+.install-guide-sheet.is-tip-bottom { bottom: calc(72px + env(safe-area-inset-bottom)); }
+.install-guide-grip { display: block; width: 36px; height: 4px; margin: 0 auto 12px; border-radius: 2px; background: var(--line); }
+.install-guide-sheet h2 { margin: 0; color: var(--ink); font-size: 24px; line-height: 1.35; text-wrap: balance; }
+.install-guide-sub { margin: 4px 0 0; color: var(--muted); font-size: 16px; line-height: 1.5; }
+.install-guide-steps { margin: 12px 0 0; padding: 0; list-style: none; }
+.install-guide-steps li { display: grid; grid-template-columns: 32px 1fr 56px; align-items: center; gap: 10px; border-top: 1px solid var(--line); padding: 10px 0; }
+.install-guide-num { display: grid; width: 32px; height: 32px; align-self: start; margin-top: 2px; place-items: center; border-radius: 50%; background: var(--ink); color: var(--surface); font-size: 16px; font-weight: 700; }
+.install-guide-step-title { margin: 0; color: var(--ink); font-size: 20px; font-weight: 700; line-height: 28px; }
+.install-guide-step-hint { margin: 2px 0 0; color: var(--muted); font-size: 16px; line-height: 24px; }
+.install-guide-ill { display: grid; width: 56px; height: 56px; place-items: center; border-radius: var(--r-m); background: var(--surface-2); color: var(--ink); }
+.install-guide-ill .icon { width: 28px; height: 28px; }
+.install-guide-ill b { font-size: 18px; }
+.install-guide-note { margin: 0; border-top: 1px solid var(--line); padding-top: 10px; color: var(--muted); font-size: 16px; line-height: 24px; }
+.install-guide-actions { display: flex; gap: 8px; margin-top: 16px; }
+.install-guide-close, .install-guide-copy { display: flex; width: 100%; height: 52px; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; border: 0; border-radius: var(--r-m); background: var(--surface-2); color: var(--ink); font-size: 16px; font-weight: 700; }
+.install-guide-actions .install-guide-close, .install-guide-actions .install-guide-copy { margin-top: 0; }
+.install-guide-copy { flex: 1 1 auto; border: 1px solid var(--line); background: var(--surface); }
+.install-guide-copy .icon { width: 20px; height: 20px; }
+.install-guide-close.is-compact { width: 96px; flex: none; }
+.install-guide-tip { position: absolute; margin: 0; border-radius: var(--r-m); padding: 10px 16px; background: var(--surface); color: var(--ink); font-size: 16px; font-weight: 700; line-height: 24px; }
+.install-guide-tip::after { position: absolute; width: 14px; height: 14px; border-radius: 3px; background: var(--surface); content: ""; transform: rotate(45deg); }
+.install-guide-tip.is-bottom { bottom: calc(12px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); }
+.install-guide-tip.is-bottom::after { bottom: -6px; left: 50%; margin-left: -7px; }
+.install-guide-tip.is-top { top: calc(12px + env(safe-area-inset-top)); right: 8px; }
+.install-guide-tip.is-top::after { top: -6px; right: 16px; }
+
+.install-welcome { position: fixed; z-index: 60; right: calc(var(--app-side) + 12px); bottom: calc(108px + env(safe-area-inset-bottom)); left: calc(var(--app-side) + 12px); display: flex; align-items: center; gap: 12px; border-radius: var(--r-m); padding: 14px 16px; background: var(--ink); color: var(--surface); box-shadow: var(--shadow-float); }
+.install-welcome b { display: block; font-size: 16px; line-height: 24px; }
+.install-welcome span { display: block; color: oklch(0.88 0.006 260); font-size: 14px; line-height: 20px; }

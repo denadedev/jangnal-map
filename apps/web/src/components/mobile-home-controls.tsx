@@ -5,6 +5,7 @@ import { useState } from "react";
 import { MarketFilters, type MarketFiltersProps } from "./market-filters";
 import { MobileMenu } from "./mobile-menu";
 import { useInstallPrompt } from "./install-prompt";
+import { InstallBanner, InstallGuideSheet, InstallWelcomeToast } from "./install-ui";
 import { getUiCopy } from "../lib/ui-copy";
 import { Icon } from "./icon";
 
@@ -18,9 +19,10 @@ export function MobileHomeControls({ languageSwitchHref, ...props }: MobileHomeC
   const installPrompt = useInstallPrompt();
   const installMenuProps = {
     installPlatform: installPrompt.platform,
-    installAction: installPrompt.platform === "android" ? installPrompt.install : null,
-    iosGuide: installPrompt.iosGuide,
-    onShowIosGuide: installPrompt.showIosGuide,
+    installAction: () => {
+      setMenuOpen(false);
+      return installPrompt.start();
+    },
     onDismissInstall: installPrompt.dismiss,
   };
 
@@ -42,6 +44,9 @@ export function MobileHomeControls({ languageSwitchHref, ...props }: MobileHomeC
         />
       </div>
       <MobileMenu {...installMenuProps} locale={props.locale} languageSwitchHref={languageSwitchHref} open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <InstallBanner locale={props.locale} install={installPrompt} />
+      <InstallGuideSheet locale={props.locale} install={installPrompt} />
+      <InstallWelcomeToast locale={props.locale} visible={installPrompt.welcomeVisible} />
     </>
   );
 }

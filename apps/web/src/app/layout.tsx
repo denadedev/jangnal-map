@@ -1,8 +1,13 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
+import { ServiceWorkerRegister } from "../components/service-worker-register";
 import { OG_IMAGE, SITE_HOST, SITE_URL } from "../lib/site-config";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  themeColor: "#c1291f",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -46,6 +51,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       </head>
       <body>
         {children}
+        <ServiceWorkerRegister />
         <script
           data-domains={SITE_HOST}
           data-exclude-search="true"

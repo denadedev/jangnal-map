@@ -34,6 +34,18 @@ export function InstallBanner({ locale = "ko", install }: { locale?: Locale; ins
 type GuideStep = { title: string; hint: string; icon?: IconName; label?: string };
 
 const getGuide = (platform: Exclude<InstallPlatform, "android">, ui: ReturnType<typeof getUiCopy>) => {
+  if (platform === "browser-menu") {
+    return {
+      title: ui.guideTitle,
+      sub: ui.guideMenuSub,
+      tip: "none" as const,
+      steps: [
+        { title: ui.guideMenuOpen, hint: ui.guideMenuOpenHint, icon: "menu" },
+        { title: ui.guideAddToHome, hint: ui.guideMenuAddHint, icon: "addSquare" },
+        { title: ui.guideMenuConfirm, hint: ui.guideConfirmHint, label: ui.guideConfirmIllustration },
+      ] satisfies GuideStep[],
+    };
+  }
   if (platform === "inapp") {
     return {
       title: ui.guideInAppTitle,
@@ -97,7 +109,7 @@ export function InstallGuideSheet({ locale = "ko", install }: { locale?: Locale;
     <div className="install-guide-backdrop" role="presentation" onMouseDown={(event) => {
       if (event.currentTarget === event.target) closeGuide();
     }}>
-      <p className={`install-guide-tip is-${guide.tip}`} aria-hidden="true">{ui.guideTip}</p>
+      {guide.tip === "none" ? null : <p className={`install-guide-tip is-${guide.tip}`} aria-hidden="true">{ui.guideTip}</p>}
       <section
         ref={sheetRef}
         className={`install-guide-sheet is-tip-${guide.tip}`}

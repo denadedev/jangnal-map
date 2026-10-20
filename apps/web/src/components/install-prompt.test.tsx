@@ -10,6 +10,7 @@ const IOS_SAFARI = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Apple
 const IOS_CHROME = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/140.0 Mobile/15E148 Safari/604.1";
 const IOS_KAKAOTALK = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 KAKAOTALK 25.8.0";
 const ANDROID_KAKAOTALK = "Mozilla/5.0 (Linux; Android 15; SM-S928N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Mobile Safari/537.36 KAKAOTALK/25.8.0 (INAPP)";
+const ANDROID_WHALE = "Mozilla/5.0 (Linux; Android 15; SM-S928N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Whale/4.33.332.18 Mobile Safari/537.36";
 const ANDROID_CHROME = "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Mobile Safari/537.36";
 
 const setMobileBrowser = (userAgent: string, standalone = false) => {
@@ -55,6 +56,9 @@ describe("detectGuidePlatform", () => {
     expect(detectGuidePlatform(ANDROID_KAKAOTALK, 5)).toBe("inapp");
     expect(detectGuidePlatform("Mozilla/5.0 (Linux; Android 15) NAVER(inapp; search; 2000; 12.0.0)", 5)).toBe("inapp");
     expect(detectGuidePlatform("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/18.0 Safari/605.1.15", 5)).toBe("ios-safari");
+    expect(detectGuidePlatform(ANDROID_WHALE, 5)).toBe("browser-menu");
+    expect(detectGuidePlatform("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Whale/3.2.0 Mobile/15E148 Safari/605.1", 5)).toBe("browser-menu");
+    expect(detectGuidePlatform("Mozilla/5.0 (Android 15; Mobile; rv:140.0) Gecko/140.0 Firefox/140.0", 5)).toBe("browser-menu");
     expect(detectGuidePlatform(ANDROID_CHROME, 5)).toBeNull();
   });
 });
@@ -118,6 +122,23 @@ describe("useInstallPrompt", () => {
 
     await user.click(screen.getByRole("button", { name: "추가 방법" }));
     expect(screen.getByRole("dialog", { name: "홈 화면에 추가하는 방법" })).toHaveTextContent("오른쪽 위, 주소창 맨 끝 모양");
+  });
+
+  it("guides Whale users through the browser menu until the browser offers its own install prompt", async () => {
+    const user = userEvent.setup();
+    setMobileBrowser(ANDROID_WHALE);
+    render(<InstallHarness />);
+
+    await user.click(screen.getByRole("button", { name: "추가 방법" }));
+    expect(screen.getByRole("dialog", { name: "홈 화면에 추가하는 방법" })).toHaveTextContent("브라우저 메뉴 열기");
+    await user.click(screen.getByRole("button", { name: "닫기" }));
+
+    const event = Object.assign(new Event("beforeinstallprompt", { cancelable: true }), {
+      prompt: vi.fn().mockResolvedValue(undefined),
+      userChoice: Promise.resolve({ outcome: "dismissed", platform: "web" }),
+    });
+    act(() => window.dispatchEvent(event));
+    expect(screen.getByRole("button", { name: "추가하기" })).toBeInTheDocument();
   });
 
   it("asks in-app browser users to open another browser first and copies the link", async () => {

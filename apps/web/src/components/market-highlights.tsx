@@ -231,7 +231,7 @@ function SubmissionSheet({ marketId, marketName, scheduleLabel, onClose }: {
             <div className={styles.field}>
               <label className={styles.label} htmlFor={descriptionId}>한 줄 설명 <span className={styles.tag}>선택</span></label>
               <textarea id={descriptionId} className={styles.textarea} maxLength={HIGHLIGHT_DESCRIPTION_MAX} placeholder="예: 3월에 많이 나오고 싸요" value={description} onChange={(event) => setDescription(event.target.value)} />
-              <div className={styles.hint}><span /><span className={styles.counter}>{description.length}/{HIGHLIGHT_DESCRIPTION_MAX}</span></div>
+              <div className={styles.hint}><span>이름·연락처 같은 개인정보는 적지 말아 주세요</span><span className={styles.counter}>{description.length}/{HIGHLIGHT_DESCRIPTION_MAX}</span></div>
             </div>
             <input className={styles.visuallyHidden} tabIndex={-1} autoComplete="off" aria-hidden="true" name="_gotcha" value={gotcha} onChange={(event) => setGotcha(event.target.value)} />
             <button type="submit" className={styles.primary} disabled={sending || !name.trim() || !category}>

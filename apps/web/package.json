@@ -7,12 +7,18 @@
     "build": "next build --webpack",
     "start": "next start",
     "test": "vitest run",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/db/cli/seed.ts",
+    "db:verify": "tsx src/db/cli/verify.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.87.1",
+    "drizzle-orm": "^0.45.4",
     "next": "16.3.4",
     "nodemailer": "^10.0.1",
+    "pg": "^8.23.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
@@ -23,10 +29,13 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "26.4.1",
+    "@types/pg": "^8.23.1",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
+    "drizzle-kit": "^0.31.11",
     "jsdom": "^26.1.0",
     "tailwindcss": "4.3.3",
+    "tsx": "^4.23.13",
     "typescript": "7.0.2",
     "vitest": "4.1.11"
   }

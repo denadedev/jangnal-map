@@ -21,6 +21,21 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: jangnal
+          POSTGRES_PASSWORD: jangnal-ci
+          POSTGRES_DB: jangnal
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jangnal"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     env:
       IMAGE: registry.spamfam.kr/jangnal-map/web:${{ github.sha }}
       MAP_CLIENT_ID: ${{ vars.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID || secrets.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID }}
@@ -46,6 +61,15 @@ jobs:
 
       - name: Run type checks
         run: pnpm typecheck
+
+      - name: Migrate, seed and verify the database
+        working-directory: apps/web
+        env:
+          DATABASE_URL: postgres://jangnal:jangnal-ci@127.0.0.1:5432/jangnal
+        run: |
+          pnpm db:migrate
+          pnpm db:seed
+          pnpm db:verify
 
       - name: Require map configuration for publishing
         if: github.ref == 'refs/heads/main'

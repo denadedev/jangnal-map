@@ -107,14 +107,12 @@ GitOps의 이미지 SHA를 검증된 이전 값으로 변경한다.
 | `CATALOG_SOURCE` | `json`(기본, `public/data` JSON) 또는 `db` |
 | `DATABASE_URL` | `CATALOG_SOURCE=db`일 때 읽을 PostgreSQL. 운영은 DB를 소유한 `jangnal` 계정 하나를 앱과 마이그레이션이 함께 쓴다 |
 | `REVALIDATE_TOKEN` | `POST /api/revalidate`의 Bearer 토큰. 없으면 그 엔드포인트는 404 |
-| `TURNSTILE_SITE_KEY` | 방문자 제보 시트의 Cloudflare Turnstile 사이트 키(공개 값, 런타임). 없으면 제보 버튼이 숨는다 |
-| `TURNSTILE_SECRET_KEY` | Turnstile 서버 검증 키 |
 | `SLACK_BOT_TOKEN` | 제보 승인 요청을 보내는 슬랙 봇 토큰 (`chat:write`) |
 | `SLACK_CHANNEL_ID` | 승인 요청을 보낼 채널 id |
 | `SLACK_SIGNING_SECRET` | `POST /api/slack/actions` 서명 검증용 |
 | `SLACK_APPROVER_IDS` | 승인·반려할 수 있는 슬랙 user id (쉼표로 구분) |
 
-`POST /api/submissions`는 `DATABASE_URL`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `TURNSTILE_SECRET_KEY`가 모두 있어야 받는다(없으면 503). 슬랙 앱의 Interactivity Request URL은 `https://kmarketday.com/api/slack/actions`다. 승인하면 스냅샷을 바로 다시 읽는다. 승인한 항목을 내리려면 `market_highlights`에서 지우고 `/api/revalidate`를 부른다.
+`POST /api/submissions`는 `DATABASE_URL`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`가 모두 있어야 받는다(없으면 503, 화면의 제보 버튼도 숨는다). 슬랙 앱의 Interactivity Request URL은 `https://kmarketday.com/api/slack/actions`다. 승인하면 스냅샷을 바로 다시 읽는다. 승인한 항목을 내리려면 `market_highlights`에서 지우고 `/api/revalidate`를 부른다.
 
 - 스냅샷은 프로세스 메모리에 1시간 둔다(레플리카 1개). 1시간이 지나면 기존 스냅샷으로 응답하면서 뒤에서 다시 읽고, 실패하면 기존 것을 계속 쓴다. 캐시가 빈 상태에서 DB를 못 읽으면 페이지는 500, `/api/health`·`/api/markets`는 503이다.
 - 시장 데이터를 쓰는 페이지는 요청 때 스냅샷으로 그린다. 빌드는 데이터를 읽지 않는다.

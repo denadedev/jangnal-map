@@ -12,29 +12,9 @@ import styles from "./market-highlights.module.css";
 const CATEGORY_ICONS: Record<HighlightCategoryCode, IconName> = { specialty: "sprout", food: "bowl", tip: "bulb", sight: "star" };
 const CATEGORIES = Object.keys(HIGHLIGHT_CATEGORY_LABELS) as HighlightCategoryCode[];
 
-type WindowWithExtras = Window & {
-  umami?: { track: (event: string, data?: Record<string, string>) => void };
-  turnstile?: {
-    render: (element: HTMLElement, options: Record<string, unknown>) => string;
-    reset: (widgetId: string) => void;
-    remove: (widgetId: string) => void;
-  };
-};
+type WindowWithUmami = Window & { umami?: { track: (event: string, data?: Record<string, string>) => void } };
 
-const track = (event: string, data?: Record<string, string>) => (window as WindowWithExtras).umami?.track(event, data);
-
-let turnstileScript: Promise<void> | undefined;
-function loadTurnstile(): Promise<void> {
-  turnstileScript ??= new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => { turnstileScript = undefined; reject(new Error("Turnstile failed to load")); };
-    document.head.appendChild(script);
-  });
-  return turnstileScript;
-}
+const track = (event: string, data?: Record<string, string>) => (window as WindowWithUmami).umami?.track(event, data);
 
 interface MarketHighlightsProps {
   marketId: string;
@@ -42,13 +22,13 @@ interface MarketHighlightsProps {
   scheduleLabel: string;
   /** 서버에서 그릴 때 넘긴다. 없으면 지도 패널처럼 열 때 읽어 온다. */
   initialHighlights?: MarketHighlight[];
-  /** 없으면 제보 버튼을 숨긴다. */
-  turnstileSiteKey?: string;
+  /** false면 제보 버튼을 숨긴다 (서버에 슬랙·DB 설정이 없을 때). */
+  submissionsEnabled?: boolean;
   headingLevel?: 2 | 3;
 }
 
 /** 시장 상세·지도 패널의 "방문자가 알려 준 것" 섹션과 제보 시트. */
-export function MarketHighlights({ marketId, marketName, scheduleLabel, initialHighlights, turnstileSiteKey, headingLevel = 2 }: MarketHighlightsProps) {
+export function MarketHighlights({ marketId, marketName, scheduleLabel, initialHighlights, submissionsEnabled = false, headingLevel = 2 }: MarketHighlightsProps) {
   const [loaded, setLoaded] = useState<{ marketId: string; highlights: MarketHighlight[] } | null>(
     initialHighlights ? { marketId, highlights: initialHighlights } : null,
   );
@@ -67,7 +47,7 @@ export function MarketHighlights({ marketId, marketName, scheduleLabel, initialH
   }, [initialHighlights, marketId]);
 
   const highlights = loaded?.marketId === marketId ? loaded.highlights : null;
-  if (!highlights || (highlights.length === 0 && !turnstileSiteKey)) return null;
+  if (!highlights || (highlights.length === 0 && !submissionsEnabled)) return null;
 
   const Heading = headingLevel === 2 ? "h2" : "h3";
   const Sub = headingLevel === 2 ? "h3" : "h4";
@@ -101,17 +81,16 @@ export function MarketHighlights({ marketId, marketName, scheduleLabel, initialH
       ) : (
         <p className={styles.empty}><strong>아직 올라온 이야기가 없어요.</strong>이 장에서 산 것, 먹은 것, 알아 두면 좋은 걸 한 줄로 알려 주세요.</p>
       )}
-      {turnstileSiteKey ? (
+      {submissionsEnabled ? (
         <button ref={openButtonRef} type="button" className={styles.tonal} onClick={() => { setSheetOpen(true); track("specialty_form_open"); }}>
           <Icon name="pen" />이 장에 대해 알려 주기
         </button>
       ) : null}
-      {sheetOpen && turnstileSiteKey ? (
+      {sheetOpen ? (
         <SubmissionSheet
           marketId={marketId}
           marketName={marketName}
           scheduleLabel={scheduleLabel}
-          siteKey={turnstileSiteKey}
           onClose={() => { setSheetOpen(false); openButtonRef.current?.focus(); }}
         />
       ) : null}
@@ -123,30 +102,25 @@ type SheetState =
   | { kind: "editing" }
   | { kind: "sending" }
   | { kind: "done"; name: string; category: HighlightCategoryCode }
-  | { kind: "error"; reason: "duplicate" | "retry" | "rate_limit" | "captcha" | "invalid"; message?: string };
+  | { kind: "error"; reason: "duplicate" | "retry" | "rate_limit" | "invalid"; message?: string };
 
 const BANNERS: Record<Exclude<Extract<SheetState, { kind: "error" }>["reason"], "invalid">, { title: string; body: string }> = {
   duplicate: { title: "이미 등록됐거나 검토 중인 내용이에요", body: "같은 시장에 같은 제보가 있어요. 다른 걸 알려 주시거나 이대로 닫아 주세요." },
   retry: { title: "잠시 후 다시 시도해 주세요", body: "지금은 보내지 못했어요. 입력한 내용은 그대로 남아 있어요." },
   rate_limit: { title: "잠시 후 다시 보내 주세요", body: "짧은 시간에 제보가 많이 왔어요. 입력한 내용은 그대로 남아 있어요." },
-  captcha: { title: "스팸 방지 확인을 다시 해 주세요", body: "확인이 만료됐어요. 아래에서 다시 확인한 뒤 보내 주세요." },
 };
 
-function SubmissionSheet({ marketId, marketName, scheduleLabel, siteKey, onClose }: {
+function SubmissionSheet({ marketId, marketName, scheduleLabel, onClose }: {
   marketId: string;
   marketName: string;
   scheduleLabel: string;
-  siteKey: string;
   onClose: () => void;
 }) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<HighlightCategoryCode | null>(null);
   const [description, setDescription] = useState("");
   const [gotcha, setGotcha] = useState("");
-  const [token, setToken] = useState("");
   const [state, setState] = useState<SheetState>({ kind: "editing" });
-  const widgetRef = useRef<HTMLDivElement>(null);
-  const widgetId = useRef<string | null>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
   const nameId = useId();
@@ -169,32 +143,11 @@ function SubmissionSheet({ marketId, marketName, scheduleLabel, siteKey, onClose
     return () => document.removeEventListener("keydown", handleEscape, true);
   }, [onClose]);
 
-  useEffect(() => {
-    let cancelled = false;
-    loadTurnstile().then(() => {
-      const turnstile = (window as WindowWithExtras).turnstile;
-      if (cancelled || !turnstile || !widgetRef.current) return;
-      widgetId.current = turnstile.render(widgetRef.current, {
-        sitekey: siteKey,
-        callback: (value: string) => setToken(value),
-        "expired-callback": () => setToken(""),
-        "error-callback": () => setToken(""),
-      });
-    }).catch(() => setState({ kind: "error", reason: "retry" }));
-    return () => {
-      cancelled = true;
-      if (widgetId.current) (window as WindowWithExtras).turnstile?.remove(widgetId.current);
-    };
-  }, [siteKey]);
 
-  const resetCaptcha = () => {
-    setToken("");
-    if (widgetId.current) (window as WindowWithExtras).turnstile?.reset(widgetId.current);
-  };
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!name.trim() || !category || !token || state.kind === "sending") return;
+    if (!name.trim() || !category || state.kind === "sending") return;
     setState({ kind: "sending" });
     let reason: Extract<SheetState, { kind: "error" }>["reason"] = "retry";
     let message: string | undefined;
@@ -202,7 +155,7 @@ function SubmissionSheet({ marketId, marketName, scheduleLabel, siteKey, onClose
       const response = await fetch("/api/submissions", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ market_id: marketId, name, category, description, turnstile_token: token, _gotcha: gotcha }),
+        body: JSON.stringify({ market_id: marketId, name, category, description, _gotcha: gotcha }),
       });
       if (response.ok) {
         track("specialty_submit_success", { category });
@@ -210,13 +163,12 @@ function SubmissionSheet({ marketId, marketName, scheduleLabel, siteKey, onClose
         return;
       }
       const body = await response.json().catch(() => ({})) as { reason?: string; message?: string };
-      if (body.reason === "duplicate" || body.reason === "rate_limit" || body.reason === "captcha" || body.reason === "invalid") reason = body.reason;
+      if (body.reason === "duplicate" || body.reason === "rate_limit" || body.reason === "invalid") reason = body.reason;
       message = body.message;
     } catch {
       reason = "retry";
     }
     track("specialty_submit_error", { reason: reason === "retry" ? "server" : reason });
-    resetCaptcha();
     setState({ kind: "error", reason, message });
   }
 
@@ -282,8 +234,7 @@ function SubmissionSheet({ marketId, marketName, scheduleLabel, siteKey, onClose
               <div className={styles.hint}><span /><span className={styles.counter}>{description.length}/{HIGHLIGHT_DESCRIPTION_MAX}</span></div>
             </div>
             <input className={styles.visuallyHidden} tabIndex={-1} autoComplete="off" aria-hidden="true" name="_gotcha" value={gotcha} onChange={(event) => setGotcha(event.target.value)} />
-            <div ref={widgetRef} className={styles.turnstile} />
-            <button type="submit" className={styles.primary} disabled={sending || !name.trim() || !category || !token}>
+            <button type="submit" className={styles.primary} disabled={sending || !name.trim() || !category}>
               {sending ? "보내는 중…" : state.kind === "error" && state.reason === "retry" ? "다시 보내기" : "보내기"}
             </button>
             <p className={styles.note}><Icon name="shield" />운영자가 확인한 뒤 올라가요</p>

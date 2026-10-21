@@ -4,7 +4,6 @@ import { getMarketPagePath, SITE_URL } from "./market-seo";
 import { clientIp, createRateLimiter } from "./rate-limit";
 import { allowedReportOrigins } from "./report-handler";
 import { postSubmissionMessage } from "./slack";
-import { verifyTurnstile } from "./turnstile";
 
 const json = (status: number, message: string, reason?: string) =>
   Response.json(reason ? { message, reason } : { message }, { status });
@@ -13,7 +12,6 @@ const DONE = "보내 주셔서 고마워요. 검토 후 반영돼요.";
 
 export interface SubmissionDeps {
   catalog: typeof loadCatalog;
-  verifyCaptcha: (token: string) => Promise<boolean>;
   notify: typeof postSubmissionMessage;
   allow: (key: string) => boolean;
   /** DB 작업. 테스트에서 바꿔 끼운다. */
@@ -34,14 +32,14 @@ async function dbStore() {
   };
 }
 
-const configured = () => ["DATABASE_URL", "SLACK_BOT_TOKEN", "SLACK_CHANNEL_ID", "TURNSTILE_SECRET_KEY"]
-  .every((name) => process.env[name]?.trim());
+/** 제보를 받을 설정이 모두 있는지. 화면도 이 값으로 제보 버튼을 보일지 정한다. */
+export const highlightSubmissionsEnabled = (): boolean => ["DATABASE_URL", "SLACK_BOT_TOKEN", "SLACK_CHANNEL_ID"]
+  .every((name) => Boolean(process.env[name]?.trim()));
 
 /** 시장 패널·상세 페이지의 "이 장에 대해 알려 주기". 검토 중으로 저장하고 슬랙에 승인 요청을 보낸다. */
 export function createHighlightSubmissionHandler(overrides: Partial<SubmissionDeps> = {}) {
   const deps: SubmissionDeps = {
     catalog: loadCatalog,
-    verifyCaptcha: verifyTurnstile,
     notify: postSubmissionMessage,
     allow: createRateLimiter(5, 10 * 60 * 1000),
     store: dbStore,
@@ -49,7 +47,7 @@ export function createHighlightSubmissionHandler(overrides: Partial<SubmissionDe
   };
 
   return async function POST(request: Request): Promise<Response> {
-    if (!configured()) return json(503, "지금은 제보를 받을 수 없어요.");
+    if (!highlightSubmissionsEnabled()) return json(503, "지금은 제보를 받을 수 없어요.");
     const origin = request.headers.get("origin");
     let allowedOrigins: string[];
     try {
@@ -80,9 +78,6 @@ export function createHighlightSubmissionHandler(overrides: Partial<SubmissionDe
     if (!market) return json(400, "시장을 다시 선택해 주세요.", "invalid");
 
     if (!deps.allow(clientIp(request))) return json(429, "잠시 뒤에 다시 보내 주세요.", "rate_limit");
-    if (!await deps.verifyCaptcha(typeof body.turnstile_token === "string" ? body.turnstile_token : "")) {
-      return json(400, "자동 입력 방지 확인을 다시 해 주세요.", "captcha");
-    }
 
     let submissionId: string;
     try {

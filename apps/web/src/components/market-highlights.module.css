@@ -47,7 +47,6 @@
 .chip:hover { background: var(--surface-2); }
 .chip[aria-checked="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
 .chip :global(.icon) { width: 18px; height: 18px; }
-.turnstile { margin-top: 20px; min-height: 65px; }
 .primary { width: 100%; min-height: 52px; margin-top: 20px; border: 0; border-radius: var(--r-m); background: var(--accent); color: var(--surface); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
 .primary:hover:not(:disabled) { background: var(--accent-ink); }
 .primary:disabled { opacity: 0.5; cursor: not-allowed; }

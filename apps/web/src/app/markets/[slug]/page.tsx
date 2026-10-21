@@ -10,6 +10,7 @@ import { MobileAppBar } from "../../../components/mobile-app-bar";
 import { OnnuriSummary } from "../../../components/onnuri-summary";
 import { MarketDirectionsMenu } from "../../../components/market-directions-menu";
 import { loadCatalog } from "../../../lib/catalog/load";
+import { highlightSubmissionsEnabled } from "../../../lib/highlight-submission-handler";
 import {
   createBreadcrumbJsonLd,
   createMarketSeoText,
@@ -171,7 +172,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
               marketName={market.name}
               scheduleLabel={formatSchedulePattern(market)}
               initialHighlights={catalog.findMarketHighlights(market.id)}
-              turnstileSiteKey={process.env.TURNSTILE_SITE_KEY}
+              submissionsEnabled={highlightSubmissionsEnabled()}
             />
           </div>
           {relatedMarkets.length > 0 ? (

@@ -27,7 +27,7 @@ describe("MarketHighlights", () => {
   });
 
   it("invites the first submission and opens the sheet", async () => {
-    render(<MarketHighlights {...props} initialHighlights={[]} turnstileSiteKey="site-key" />);
+    render(<MarketHighlights {...props} initialHighlights={[]} submissionsEnabled />);
     expect(screen.getByText("아직 올라온 이야기가 없어요.")).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "이 장에 대해 알려 주기" }));
@@ -38,8 +38,7 @@ describe("MarketHighlights", () => {
     await userEvent.type(within(dialog).getByLabelText(/무엇/), "미나리");
     await userEvent.click(within(dialog).getByRole("radio", { name: "특산물" }));
     expect(within(dialog).getByRole("radio", { name: "특산물" })).toHaveAttribute("aria-checked", "true");
-    // Turnstile 확인 전에는 보낼 수 없다.
-    expect(within(dialog).getByRole("button", { name: "보내기" })).toBeDisabled();
+    expect(within(dialog).getByRole("button", { name: "보내기" })).toBeEnabled();
 
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

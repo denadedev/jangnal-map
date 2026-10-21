@@ -25,8 +25,8 @@ interface MarketDetailProps {
   onVisitDateChange?: (date: string) => void;
   onClearDate?: () => void;
   onClose: () => void;
-  /** 방문자 제보 시트용. 없으면 제보 버튼을 숨긴다. */
-  turnstileSiteKey?: string;
+  /** 방문자 제보를 받을 수 있는지. false면 제보 버튼을 숨긴다. */
+  submissionsEnabled?: boolean;
 }
 
 const formatSourceDate = (value: string | null, locale: Locale): string => {
@@ -34,7 +34,7 @@ const formatSourceDate = (value: string | null, locale: Locale): string => {
   return locale === "en" ? value : value.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$1.$2.$3");
 };
 
-export function MarketDetail({ locale = "ko", mobile = false, market, detailPath, sharePath, today, selectedDate, onVisitDateChange, onClearDate, onClose, turnstileSiteKey }: MarketDetailProps) {
+export function MarketDetail({ locale = "ko", mobile = false, market, detailPath, sharePath, today, selectedDate, onVisitDateChange, onClearDate, onClose, submissionsEnabled }: MarketDetailProps) {
   const ui = getUiCopy(locale);
   const [monthOffset, setMonthOffset] = useState(0);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -217,7 +217,7 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
 
       {locale === "ko" ? (
         <div className="detail-section">
-          <MarketHighlights marketId={market.id} marketName={market.name} scheduleLabel={formatSchedulePattern(market)} turnstileSiteKey={turnstileSiteKey} headingLevel={3} />
+          <MarketHighlights marketId={market.id} marketName={market.name} scheduleLabel={formatSchedulePattern(market)} submissionsEnabled={submissionsEnabled} headingLevel={3} />
         </div>
       ) : null}
 

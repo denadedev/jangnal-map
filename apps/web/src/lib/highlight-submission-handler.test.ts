@@ -13,7 +13,7 @@ const request = (body: unknown, headers: Record<string, string> = {}) => new Req
   headers: { origin, "x-real-ip": "203.0.113.1", ...headers },
   body: typeof body === "string" ? body : JSON.stringify(body),
 });
-const valid = { market_id: market.id, name: "미나리", category: "specialty", description: "", turnstile_token: "token" };
+const valid = { market_id: market.id, name: "미나리", category: "specialty", description: "" };
 
 function setup(overrides: Partial<SubmissionDeps> = {}, store: Partial<Awaited<ReturnType<SubmissionDeps["store"]>>> = {}) {
   const insert = vi.fn(async () => "submission-1");
@@ -21,7 +21,6 @@ function setup(overrides: Partial<SubmissionDeps> = {}, store: Partial<Awaited<R
   const hasDuplicate = vi.fn(async () => false);
   const handler = createHighlightSubmissionHandler({
     catalog: async () => catalog,
-    verifyCaptcha: async (token) => token === "token",
     notify,
     allow: () => true,
     store: async () => ({ findMarketRowId: async () => "row-1", hasDuplicate, insert, ...store }),
@@ -32,7 +31,7 @@ function setup(overrides: Partial<SubmissionDeps> = {}, store: Partial<Awaited<R
 
 beforeEach(() => {
   vi.stubEnv("REPORT_ALLOWED_ORIGINS", origin);
-  for (const name of ["DATABASE_URL", "SLACK_BOT_TOKEN", "SLACK_CHANNEL_ID", "TURNSTILE_SECRET_KEY"]) vi.stubEnv(name, "set");
+  for (const name of ["DATABASE_URL", "SLACK_BOT_TOKEN", "SLACK_CHANNEL_ID"]) vi.stubEnv(name, "set");
 });
 afterEach(() => vi.unstubAllEnvs());
 
@@ -55,7 +54,7 @@ describe("POST /api/submissions", () => {
   });
 
   it("is closed until every secret is configured", async () => {
-    vi.stubEnv("TURNSTILE_SECRET_KEY", "");
+    vi.stubEnv("SLACK_BOT_TOKEN", "");
     const { handler, insert } = setup();
     expect((await handler(request(valid))).status).toBe(503);
     expect(insert).not.toHaveBeenCalled();
@@ -76,7 +75,6 @@ describe("POST /api/submissions", () => {
     [{ ...valid, name: "" }, 400, "invalid"],
     [{ ...valid, category: "맛집" }, 400, "invalid"],
     [{ ...valid, market_id: "market-missing" }, 400, "invalid"],
-    [{ ...valid, turnstile_token: "forged" }, 400, "captcha"],
   ])("rejects %j", async (body, status, reason) => {
     const { handler, insert } = setup();
     const response = await handler(request(body));

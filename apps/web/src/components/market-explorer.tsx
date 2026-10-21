@@ -34,7 +34,7 @@ interface MarketExplorerProps {
   initialState?: ExplorerInitialState;
   reviewedMarketIds?: string[];
   reviewedGuides?: ReviewedMarketGuide[];
-  turnstileSiteKey?: string;
+  submissionsEnabled?: boolean;
 }
 
 const validModes = new Set<DateFilterMode>(["all", "today", "week", "weekend", "date"]);
@@ -68,7 +68,7 @@ const nextSheetSnap = (snap: SheetSnap, direction: "up" | "down"): SheetSnap => 
 };
 type SelectionOrigin = { id: string; source: "map" | "list" };
 
-function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientId = "", initialState, reviewedMarketIds = emptyReviewedMarketIds, reviewedGuides = [], turnstileSiteKey }: MarketExplorerProps) {
+function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientId = "", initialState, reviewedMarketIds = emptyReviewedMarketIds, reviewedGuides = [], submissionsEnabled }: MarketExplorerProps) {
   const ui = getUiCopy(locale);
   const reviewedMarketIdSet = useMemo(() => new Set(reviewedMarketIds), [reviewedMarketIds]);
   const [today, setToday] = useState(() => providedToday ?? staticRenderDate);
@@ -556,7 +556,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
               onVisitDateChange={handleDirectDateChange}
               onClearDate={clearDateFilter}
               onClose={closeMarket}
-              turnstileSiteKey={turnstileSiteKey}
+              submissionsEnabled={submissionsEnabled}
             />
           </MobileMarketSheet>
         ) : null}

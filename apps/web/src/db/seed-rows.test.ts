@@ -80,10 +80,13 @@ describe("buildSeedRows", () => {
     expect(rows.marketGuideSources[0].sourceId).toBe(rows.sources[0].id);
   });
 
-  it("keeps specialties and tips in order under the guide", () => {
-    const { rows } = buildSeedRows([market({})], [guide({ visitTips: ["첫째", "둘째"] })]);
-    expect(rows.marketSpecialties.map(({ name, position, origin }) => [name, position, origin]))
-      .toEqual([["소머리국밥", 0, "editorial"], ["해산물", 1, "editorial"]]);
+  it("keeps tips in order and reports specialties without a category", () => {
+    const { rows, errors } = buildSeedRows([market({})], [guide({ visitTips: ["첫째", "둘째"] })]);
+    expect(rows.marketHighlights).toEqual([]);
+    expect(errors).toEqual([
+      "missing highlight category: market-0000000000000001 소머리국밥",
+      "missing highlight category: market-0000000000000001 해산물",
+    ]);
     expect(rows.marketGuideTips.map(({ body, position }) => [body, position])).toEqual([["첫째", 0], ["둘째", 1]]);
   });
 

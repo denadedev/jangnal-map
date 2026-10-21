@@ -15,6 +15,13 @@
       "when": 1792550075416,
       "tag": "0001_comments",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792586992172,
+      "tag": "0002_market_highlights",
+      "breakpoints": true
     }
   ]
 }

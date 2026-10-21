@@ -2,11 +2,25 @@ import { sortMarkets, type CatalogSnapshot } from "../lib/catalog/catalog";
 import type { MarketSchedule, PublicMarket } from "../lib/market";
 import type { MarketEditorialContent } from "../lib/market-editorial";
 import type { Db } from "./client";
-import { MARKET_STATUS_LABELS, MARKET_TYPE_LABELS, type MarketStatusCode, type MarketTypeCode } from "./codes";
+import {
+  HIGHLIGHT_CATEGORY_LABELS,
+  MARKET_STATUS_LABELS,
+  MARKET_TYPE_LABELS,
+  type HighlightCategoryCode,
+  type MarketStatusCode,
+  type MarketTypeCode,
+} from "./codes";
 import * as schema from "./schema";
 import type { SeedRows } from "./seed-rows";
 
 const byPosition = (a: { position: number }, b: { position: number }) => a.position - b.position;
+const categoryOrder = Object.keys(HIGHLIGHT_CATEGORY_LABELS) as HighlightCategoryCode[];
+type HighlightRow = SeedRows["marketHighlights"][number];
+// 카테고리 순, 그 안에서는 등록 순, 같은 때 넣은 행은 이름 순.
+const byHighlightOrder = (a: HighlightRow, b: HighlightRow) =>
+  categoryOrder.indexOf(a.category as HighlightCategoryCode) - categoryOrder.indexOf(b.category as HighlightCategoryCode)
+  || (a.createdAt?.getTime() ?? 0) - (b.createdAt?.getTime() ?? 0)
+  || a.name.localeCompare(b.name, "ko");
 // 5·10일장은 0을 10으로 보고 작은 끝자리부터 둔다 (기존 JSON과 같은 순서).
 const dayOrder = (day: number): number => (day === 0 ? 10 : day);
 
@@ -67,7 +81,8 @@ export function assembleSnapshot(rows: SeedRows): CatalogSnapshot {
 
   const tips = groupBy(rows.marketGuideTips, (tip) => tip.guideId);
   const guideSources = groupBy(rows.marketGuideSources, (entry) => entry.guideId);
-  const specialties = groupBy(rows.marketSpecialties, (specialty) => specialty.marketId);
+  // 사용자 제보(origin=user)는 검수 가이드와 따로 보여 줄 예정이라 여기에 넣지 않는다.
+  const specialties = groupBy(rows.marketHighlights.filter((highlight) => highlight.origin === "editorial"), (highlight) => highlight.marketId);
   const nearby = groupBy(rows.marketNearby, (entry) => entry.marketId);
   const editorial = rows.marketGuides.map((guide): MarketEditorialContent => ({
     marketId: clientIds.get(guide.marketId)!,
@@ -75,7 +90,7 @@ export function assembleSnapshot(rows: SeedRows): CatalogSnapshot {
     visitTips: (tips.get(guide.id) ?? []).sort(byPosition).map((tip) => tip.body),
     transportation: guide.transportation,
     parking: guide.parking,
-    specialties: (specialties.get(guide.marketId) ?? []).sort(byPosition).map((specialty) => specialty.name),
+    specialties: (specialties.get(guide.marketId) ?? []).sort(byHighlightOrder).map((highlight) => highlight.name),
     nearbyMarketIds: (nearby.get(guide.marketId) ?? []).sort(byPosition).map((entry) => clientIds.get(entry.nearbyMarketId)!),
     sources: (guideSources.get(guide.id) ?? []).sort(byPosition).map((entry) => ({ ...source(entry.sourceId), checkedAt: entry.checkedAt })),
     reviewedAt: guide.reviewedAt,
@@ -97,7 +112,7 @@ export async function readDbSnapshot(db: Db): Promise<CatalogSnapshot> {
     marketGuides: (await tx.select().from(schema.marketGuides)).filter((guide) => guide.status === "reviewed"),
     marketGuideTips: await tx.select().from(schema.marketGuideTips),
     marketGuideSources: await tx.select().from(schema.marketGuideSources),
-    marketSpecialties: await tx.select().from(schema.marketSpecialties),
+    marketHighlights: await tx.select().from(schema.marketHighlights),
     marketNearby: await tx.select().from(schema.marketNearby),
   }), { isolationLevel: "repeatable read", accessMode: "read only" });
   return assembleSnapshot(rows);

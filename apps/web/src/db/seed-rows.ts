@@ -5,6 +5,7 @@ import { validateMarketEditorial, type MarketEditorialContent } from "../lib/mar
 import { createMarketSlug } from "../lib/market-path";
 import { getMarketDistrict, getMarketRegion } from "../lib/region";
 import { marketStatusCode, marketTypeCode } from "./codes";
+import { editorialHighlightCategories } from "./editorial-highlight-categories";
 import type * as schema from "./schema";
 
 type Row<T extends { $inferInsert: unknown }> = T["$inferInsert"] & { id: string };
@@ -19,7 +20,7 @@ export interface SeedRows {
   marketGuides: Row<typeof schema.marketGuides>[];
   marketGuideTips: Row<typeof schema.marketGuideTips>[];
   marketGuideSources: Row<typeof schema.marketGuideSources>[];
-  marketSpecialties: Row<typeof schema.marketSpecialties>[];
+  marketHighlights: Row<typeof schema.marketHighlights>[];
   marketNearby: Row<typeof schema.marketNearby>[];
 }
 
@@ -38,7 +39,7 @@ export function buildSeedRows(
   const rows: SeedRows = {
     sources: [], marketDistricts: [], markets: [], marketSchedules: [], marketScheduleDays: [],
     marketOnnuriMerchantStats: [], marketGuides: [], marketGuideTips: [], marketGuideSources: [],
-    marketSpecialties: [], marketNearby: [],
+    marketHighlights: [], marketNearby: [],
   };
 
   // 같은 URL이 이름 여러 개로 쓰인 출처는 하나로 합친다. 시장 데이터에 쓰인 이름(지금 시장 상세에 보이는 이름)이 우선이고,
@@ -156,9 +157,11 @@ export function buildSeedRows(
     entry.sources.forEach((source, position) => rows.marketGuideSources.push({
       id: randomUUID(), guideId, sourceId: sourceIds.get(source.url)!, checkedAt: source.checkedAt, position,
     }));
-    entry.specialties.forEach((name, position) => rows.marketSpecialties.push({
-      id: randomUUID(), marketId, name, position, origin: "editorial",
-    }));
+    for (const name of entry.specialties) {
+      const category = editorialHighlightCategories[entry.marketId]?.[name];
+      if (!category) errors.push(`missing highlight category: ${entry.marketId} ${name}`);
+      else rows.marketHighlights.push({ id: randomUUID(), marketId, name, category, origin: "editorial" });
+    }
     entry.nearbyMarketIds.forEach((nearbyId, position) => {
       const nearbyMarketId = marketIds.get(nearbyId);
       if (nearbyMarketId) rows.marketNearby.push({ id: randomUUID(), marketId, nearbyMarketId, position });

@@ -14,7 +14,7 @@ const expectedCounts: Record<string, number> = {
   market_guides: marketEditorialEntries.length,
   market_guide_tips: marketEditorialEntries.reduce((sum, entry) => sum + entry.visitTips.length, 0),
   market_guide_sources: marketEditorialEntries.reduce((sum, entry) => sum + entry.sources.length, 0),
-  market_specialties: marketEditorialEntries.reduce((sum, entry) => sum + entry.specialties.length, 0),
+  market_highlights: marketEditorialEntries.reduce((sum, entry) => sum + entry.specialties.length, 0),
   market_nearby: marketEditorialEntries.reduce((sum, entry) => sum + entry.nearbyMarketIds.length, 0),
 };
 

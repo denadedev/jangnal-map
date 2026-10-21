@@ -70,6 +70,7 @@ jobs:
           pnpm db:migrate
           pnpm db:seed
           pnpm db:verify
+          pnpm db:parity
 
       - name: Require map configuration for publishing
         if: github.ref == 'refs/heads/main'
@@ -93,18 +94,26 @@ jobs:
 
       - name: Smoke test the image
         run: |
-          docker run --rm -d --name jangnal-ci -p 127.0.0.1:3100:3000 \
-            -e REPORT_ALLOWED_ORIGINS=http://127.0.0.1:3100 \
-            -e SMTP_USER=runtime-smoke@example.invalid \
-            -e SMTP_PASS=not-a-real-password \
-            -e REPORT_TO_EMAIL=runtime-smoke@example.invalid "$IMAGE"
-          trap 'docker stop jangnal-ci >/dev/null 2>&1 || true' EXIT
-          for attempt in $(seq 1 30); do
-            if curl --fail --silent http://127.0.0.1:3100/ >/dev/null; then break; fi
-            sleep 1
-          done
-          node apps/web/scripts/smoke-container.mjs
-          test "$(docker exec jangnal-ci id -u)" = 1000
+          trap 'docker stop jangnal-ci-json jangnal-ci-db >/dev/null 2>&1 || true' EXIT
+          # 같은 이미지를 JSON 모드(기본)와 DB 모드로 한 번씩 띄워 본다.
+          smoke() {
+            source=$1; shift
+            docker run --rm -d --name "jangnal-ci-$source" "$@" \
+              -e REPORT_ALLOWED_ORIGINS=http://127.0.0.1:3100 \
+              -e SMTP_USER=runtime-smoke@example.invalid \
+              -e SMTP_PASS=not-a-real-password \
+              -e REPORT_TO_EMAIL=runtime-smoke@example.invalid "$IMAGE"
+            for attempt in $(seq 1 30); do
+              if curl --fail --silent http://127.0.0.1:3100/api/health >/dev/null; then break; fi
+              sleep 1
+            done
+            node apps/web/scripts/smoke-container.mjs http://127.0.0.1:3100 "$source"
+            test "$(docker exec "jangnal-ci-$source" id -u)" = 1000
+            docker stop "jangnal-ci-$source" >/dev/null
+          }
+          smoke json -p 127.0.0.1:3100:3000
+          smoke db --network host -e PORT=3100 -e CATALOG_SOURCE=db \
+            -e DATABASE_URL=postgres://jangnal:jangnal-ci@127.0.0.1:5432/jangnal
 
       - name: Check latest main before publishing
         id: latest

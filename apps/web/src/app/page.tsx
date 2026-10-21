@@ -1,8 +1,8 @@
 import { MarketExplorer } from "../components/market-explorer";
-import { findMarketEditorial, reviewedMarkets } from "../lib/market-editorial";
+import { loadCatalog } from "../lib/catalog/load";
 import { formatSchedulePattern } from "../lib/market-view";
 import { getMarketPagePath } from "../lib/market-path";
-import { isMarketIndexable, SITE_URL } from "../lib/market-seo";
+import { SITE_URL } from "../lib/market-seo";
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
@@ -20,7 +20,11 @@ const featuredMarketIds = new Set([
   "market-2190eaf44c48bbd8", // 제주시민속오일시장
 ]);
 
-export default function HomePage() {
+// 요청 때 메모리의 시장 데이터 스냅샷으로 그린다. 빌드 때는 데이터를 읽지 않는다.
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const { reviewedMarkets, isMarketIndexable, findMarketEditorial } = await loadCatalog();
   const indexableReviewedMarkets = reviewedMarkets.filter(isMarketIndexable);
 
   return (

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { MobileAppBar } from "../../components/mobile-app-bar";
 import { SiteFooter } from "../../components/site-footer";
-import { reviewedMarkets } from "../../lib/market-editorial";
+import { loadCatalog } from "../../lib/catalog/load";
 import { getMarketPagePath } from "../../lib/market-path";
 import styles from "./page.module.css";
 import { OG_IMAGE } from "../../lib/site-config";
@@ -21,7 +21,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function OnnuriPage() {
+// 요청 때 메모리의 시장 데이터 스냅샷으로 그린다. 빌드 때는 데이터를 읽지 않는다.
+export const dynamic = "force-dynamic";
+
+export default async function OnnuriPage() {
+  const { reviewedMarkets } = await loadCatalog();
   return (
     <div className={styles.page}>
       <MobileAppBar title="온누리상품권" backHref="/" />

@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest";
 
 import nextConfig from "../../next.config";
-import { publicMarkets } from "../lib/market-catalog";
-import { findMarketEditorial, reviewedMarkets } from "../lib/market-editorial";
-import { getMarketPagePath, isMarketIndexable, SITE_URL } from "../lib/market-seo";
+import { createCatalog } from "../lib/catalog/catalog";
+import { loadJsonSnapshot } from "../lib/catalog/json-source";
+import { getMarketPagePath, SITE_URL } from "../lib/market-seo";
 import { metadata } from "./layout";
 import robots from "./robots";
 import sitemap from "./sitemap";
 
+const { findMarketEditorial, isMarketIndexable, reviewedMarkets } = createCatalog(loadJsonSnapshot());
+
 describe("SEO metadata routes", () => {
-  it("publishes exactly every indexable market with unique canonical URLs", () => {
-    const entries = sitemap();
+  it("publishes exactly every indexable market with unique canonical URLs", async () => {
+    const entries = (await sitemap());
     const urls = entries.map(({ url }) => url);
     const indexableUrls = reviewedMarkets
       .filter(isMarketIndexable)
@@ -28,24 +30,24 @@ describe("SEO metadata routes", () => {
     expect(urls).not.toContain(`${SITE_URL}/markets/삽교시장-09e8d20c`);
   });
 
-  it("publishes the canonical home page as the highest-priority sitemap entry", () => {
-    expect(sitemap()[0]).toEqual({
+  it("publishes the canonical home page as the highest-priority sitemap entry", async () => {
+    expect((await sitemap())[0]).toEqual({
       url: SITE_URL,
       changeFrequency: "daily",
       priority: 1,
     });
   });
 
-  it("publishes the 온누리상품권 검색 허브", () => {
-    expect(sitemap()).toContainEqual({
+  it("publishes the 온누리상품권 검색 허브", async () => {
+    expect((await sitemap())).toContainEqual({
       url: `${SITE_URL}/onnuri`,
       changeFrequency: "monthly",
       priority: 0.9,
     });
   });
 
-  it("uses durable catalog metadata for periodic and daily sitemap entries", () => {
-    const entries = sitemap();
+  it("uses durable catalog metadata for periodic and daily sitemap entries", async () => {
+    const entries = (await sitemap());
 
     expect(entries.find(({ url }) => url === `${SITE_URL}/markets/용인중앙시장-389b4a24`)).toMatchObject({
       lastModified: findMarketEditorial("market-389b4a24f06ccd11")?.reviewedAt,

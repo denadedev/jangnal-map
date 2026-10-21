@@ -8,33 +8,26 @@ import {
   DAY_PATTERNS,
   findDayPattern,
   formatPatternLabel,
-  getPatternMarkets,
   getPatternDays,
-  getRegionMarkets,
   groupByRegion,
-  launchRegions,
-  toMarketLink,
   type DayPattern,
 } from "../../../../lib/jangnal-landing";
+import { loadCatalog } from "../../../../lib/catalog/load";
 import { SITE_URL } from "../../../../lib/market-seo";
 import { formatScheduleDates } from "../../../../lib/market-view";
 import { OG_IMAGE } from "../../../../lib/site-config";
 
-export const dynamicParams = false;
+// 요청 때 메모리의 시장 데이터 스냅샷으로 그린다. 빌드 때는 데이터를 읽지 않는다.
+export const dynamic = "force-dynamic";
 
 type PatternPageProps = { params: Promise<{ pattern: string }> };
-
-
-export function generateStaticParams() {
-  return DAY_PATTERNS.map((pattern) => ({ pattern }));
-}
 
 export async function generateMetadata({ params }: PatternPageProps): Promise<Metadata> {
   const pattern = findDayPattern((await params).pattern);
   if (!pattern) return { robots: { index: false, follow: false } };
 
   const label = formatPatternLabel(pattern);
-  const count = getPatternMarkets(pattern).length;
+  const count = (await loadCatalog()).getPatternMarkets(pattern).length;
   const title = `${label} 장날 · 전국 5일장 ${count}곳 | 오늘 장날`;
   const description = `날짜 끝자리가 ${pattern.replace("-", "·")}인 날 열리는 전국 ${label} ${count}곳을 시·도별로 정리했습니다. 다음 장날 날짜를 확인하세요.`;
   const url = `${SITE_URL}/jangnal/days/${pattern}`;
@@ -50,6 +43,7 @@ export default async function PatternPage({ params }: PatternPageProps) {
   const pattern = findDayPattern((await params).pattern);
   if (!pattern) notFound();
 
+  const { getPatternMarkets, getRegionMarkets, launchRegions, toMarketLink } = await loadCatalog();
   const label = formatPatternLabel(pattern);
   const [first, second] = pattern.split("-");
   const markets = getPatternMarkets(pattern);

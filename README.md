@@ -78,7 +78,7 @@ NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=your_naver_maps_client_id
 
 ## 지역별 장날 페이지
 
-`/jangnal`은 전국 허브, `/jangnal/{시·도 영문 슬러그}`는 시·도 페이지, `/jangnal/days/{1-6|2-7|3-8|4-9|5-10}`은 날짜 끝자리별 페이지입니다. 시·도 페이지는 운영 중인 정기 장날 시장이 20곳 이상이고 `apps/web/public/data/region-editorial.json`에 지역 소개가 있는 시·도만 빌드합니다. 지역 소개는 `validateRegionEditorial` 테스트로 형식과 대표 시장의 소속 시·도를 검증합니다.
+`/jangnal`은 전국 허브, `/jangnal/{시·도 영문 슬러그}`는 시·도 페이지, `/jangnal/days/{1-6|2-7|3-8|4-9|5-10}`은 날짜 끝자리별 페이지입니다. 시·도 페이지는 운영 중인 정기 장날 시장이 20곳 이상인 시·도만 공개합니다. 지역 소개 글, 눈여겨볼 장 3곳(온누리 가맹점 수 순), 방문 팁은 저장하지 않고 `apps/web/src/lib/region-guide.ts`가 그 시·도의 시장 데이터로 만듭니다.
 
 오늘·이번 주말·이번 달 달력은 기존 시장 상세의 다음 장날처럼 브라우저에서 한국 날짜로 계산합니다. 미검수 시장에는 독립 URL을 만들지 않고 지도 선택 상태로 연결합니다. 기획은 [지역별 장날 랜딩 PRD](docs/product/2026-10-14-prd-region-landing.md)에 있습니다.
 

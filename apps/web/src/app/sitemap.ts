@@ -1,11 +1,14 @@
 import type { MetadataRoute } from "next";
 
-import { publicMarkets } from "../lib/market-catalog";
-import { DAY_PATTERNS, launchRegions } from "../lib/jangnal-landing";
-import { findMarketEditorial } from "../lib/market-editorial";
-import { getMarketPagePath, isMarketIndexable, SITE_URL } from "../lib/market-seo";
+import { loadCatalog } from "../lib/catalog/load";
+import { DAY_PATTERNS } from "../lib/jangnal-landing";
+import { getMarketPagePath, SITE_URL } from "../lib/market-seo";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// 요청 때 메모리의 시장 데이터 스냅샷으로 그린다. 빌드 때는 데이터를 읽지 않는다.
+export const dynamic = "force-dynamic";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const { markets, launchRegions, isMarketIndexable, findMarketEditorial } = await loadCatalog();
   return [
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
     { url: `${SITE_URL}/about`, changeFrequency: "monthly", priority: 0.8 },
@@ -16,7 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...DAY_PATTERNS.map((pattern) => ({ url: `${SITE_URL}/jangnal/days/${pattern}`, changeFrequency: "daily" as const, priority: 0.7 })),
     { url: `${SITE_URL}/privacy`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/terms`, changeFrequency: "yearly", priority: 0.3 },
-    ...publicMarkets.filter(isMarketIndexable).map((market) => ({
+    ...markets.filter(isMarketIndexable).map((market) => ({
       url: `${SITE_URL}${getMarketPagePath(market)}`,
       lastModified: [market.referenceDate ?? market.source.referenceDate ?? "", findMarketEditorial(market.id)!.reviewedAt].sort().at(-1),
       changeFrequency: "monthly" as const,

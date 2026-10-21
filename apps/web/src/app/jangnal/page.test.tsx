@@ -1,11 +1,11 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import JangnalHubPage, { metadata } from "./page";
+import JangnalHubPage, { generateMetadata } from "./page";
 
 describe("nationwide market-day hub", () => {
-  it("links launch regions and all five patterns", () => {
-    render(<JangnalHubPage />);
+  it("links launch regions and all five patterns", async () => {
+    render(await JangnalHubPage());
     const regions = screen.getByRole("region", { name: "시·도별 장날" });
     const regionLinks = within(regions).getAllByRole("link");
     expect(regionLinks).toHaveLength(8);
@@ -16,7 +16,7 @@ describe("nationwide market-day hub", () => {
     );
   });
 
-  it("has canonical metadata", () => {
-    expect(metadata.alternates?.canonical).toBe("https://kmarketday.com/jangnal");
+  it("has canonical metadata", async () => {
+    expect((await generateMetadata()).alternates?.canonical).toBe("https://kmarketday.com/jangnal");
   });
 });

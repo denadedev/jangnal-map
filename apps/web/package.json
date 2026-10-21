@@ -11,7 +11,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/db/cli/seed.ts",
-    "db:verify": "tsx src/db/cli/verify.ts"
+    "db:verify": "tsx src/db/cli/verify.ts",
+    "db:parity": "tsx src/db/cli/parity.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.87.1",

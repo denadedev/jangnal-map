@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.5.0] - 2026-10-21
+
+### Added
+
+- 화면이 시장 데이터를 `loadCatalog()` 스냅샷 한 곳에서 읽습니다. `CATALOG_SOURCE=db`로 띄우면 PostgreSQL에서, 기본값(`json`)이면 지금처럼 JSON에서 읽습니다. 운영은 아직 JSON 모드입니다.
+- `GET /api/markets`(지도용 전체 시장 목록), `GET /api/health`(readiness probe), `POST /api/revalidate`(토큰으로 스냅샷 즉시 다시 읽기)를 추가했습니다. 지도는 이제 `/data/markets.json` 대신 `/api/markets`를 읽습니다.
+- `pnpm db:parity`와 `scripts/compare-sites.mjs`로 DB 스냅샷과 JSON, 두 배포의 화면 글자를 비교합니다. CI는 시드 뒤 `db:parity`를 돌리고, 같은 이미지를 JSON 모드와 DB 모드로 한 번씩 스모크 테스트합니다.
+
+### Changed
+
+- 시·도 페이지 소개 글, 눈여겨볼 장, 방문 팁을 `region-editorial.json` 없이 시장 데이터로 만듭니다. 눈여겨볼 장은 온누리 가맹점 수 상위 3곳으로 바뀌었고, 시장 수가 같을 때 고르는 시·군과 끝자리는 이름순·끝자리순으로 정했습니다(전북·충북·전남 문장 일부가 달라짐). 하단 날짜는 "작성일" 대신 "자료 기준일"입니다.
+- 시장 목록 순서를 시·도 → 시·군·구 → 이름 순으로 정했습니다(DB에 순서 컬럼이 없어 두 출처를 같은 순서로 맞춤). 홈의 시장별 방문 정보와 온누리 페이지의 시장 순서가 바뀝니다.
+- 시장 데이터를 쓰는 페이지는 빌드 때 미리 만들지 않고 요청 때 그립니다.
+
 ## [0.4.4.0] - 2026-10-21
 
 ### Added

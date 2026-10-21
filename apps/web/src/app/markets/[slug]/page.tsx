@@ -8,26 +8,21 @@ import { SiteFooter } from "../../../components/site-footer";
 import { MobileAppBar } from "../../../components/mobile-app-bar";
 import { OnnuriSummary } from "../../../components/onnuri-summary";
 import { MarketDirectionsMenu } from "../../../components/market-directions-menu";
-import { publicMarkets } from "../../../lib/market-catalog";
-import { findMarketEditorial } from "../../../lib/market-editorial";
+import { loadCatalog } from "../../../lib/catalog/load";
 import {
   createBreadcrumbJsonLd,
   createMarketSeoText,
   createMarketScheduleAnswer,
-  createMarketSlug,
-  findRelatedMarkets,
-  findMarketBySlug,
   getMarketPagePath,
-  isMarketIndexable,
   SITE_URL,
 } from "../../../lib/market-seo";
-import { isLaunchRegion } from "../../../lib/jangnal-landing";
 import { formatSchedulePattern } from "../../../lib/market-view";
 import { getMarketDistrict, getMarketRegion } from "../../../lib/region";
 import styles from "./page.module.css";
 import { OG_IMAGE } from "../../../lib/site-config";
 
-export const dynamicParams = false;
+// 요청 때 메모리의 시장 데이터 스냅샷으로 그린다. 빌드 때는 데이터를 읽지 않는다.
+export const dynamic = "force-dynamic";
 
 type MarketPageProps = { params: Promise<{ slug: string }> };
 
@@ -35,15 +30,10 @@ const formatSourceDate = (value: string | null): string => value
   ? value.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$1.$2.$3")
   : "확인일 정보 없음";
 
-export function generateStaticParams() {
-  return publicMarkets
-    .filter(isMarketIndexable)
-    .map((market) => ({ slug: createMarketSlug(market) }));
-}
-
 export async function generateMetadata({ params }: MarketPageProps): Promise<Metadata> {
-  const market = findMarketBySlug((await params).slug);
-  if (!market || !isMarketIndexable(market)) return { robots: { index: false, follow: false } };
+  const catalog = await loadCatalog();
+  const market = catalog.findMarketBySlug((await params).slug);
+  if (!market || !catalog.isMarketIndexable(market)) return { robots: { index: false, follow: false } };
 
   const seo = createMarketSeoText(market);
   const path = getMarketPagePath(market);
@@ -53,7 +43,7 @@ export async function generateMetadata({ params }: MarketPageProps): Promise<Met
     title: seo.title,
     description: seo.description,
     alternates: { canonical: url },
-    robots: isMarketIndexable(market) ? undefined : { index: false, follow: true },
+    robots: catalog.isMarketIndexable(market) ? undefined : { index: false, follow: true },
     openGraph: {
       images: [OG_IMAGE],
       title: seo.title,
@@ -66,9 +56,10 @@ export async function generateMetadata({ params }: MarketPageProps): Promise<Met
 }
 
 export default async function MarketPage({ params }: MarketPageProps) {
-  const market = findMarketBySlug((await params).slug);
-  if (!market || !isMarketIndexable(market)) notFound();
-  const editorial = findMarketEditorial(market.id);
+  const catalog = await loadCatalog();
+  const market = catalog.findMarketBySlug((await params).slug);
+  if (!market || !catalog.isMarketIndexable(market)) notFound();
+  const editorial = catalog.findMarketEditorial(market.id);
   if (!editorial) notFound();
 
   const address = market.roadAddress ?? market.lotAddress ?? "주소 정보 없음";
@@ -79,9 +70,9 @@ export default async function MarketPage({ params }: MarketPageProps) {
     : market.schedule.kind === "daily"
       ? `${market.name} 영업일`
       : `${market.name} 전통시장 정보`;
-  const relatedMarkets = findRelatedMarkets(market);
+  const relatedMarkets = catalog.findRelatedMarkets(market);
   const region = getMarketRegion(market);
-  const regionLanding = market.schedule.kind === "digit-pair" && region && isLaunchRegion(region.slug) ? region : null;
+  const regionLanding = market.schedule.kind === "digit-pair" && region && catalog.isLaunchRegion(region.slug) ? region : null;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Place",

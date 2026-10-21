@@ -10,15 +10,13 @@ export const catalogSource = (): CatalogSource => (process.env.CATALOG_SOURCE ==
 
 async function readSnapshot(): Promise<CatalogSnapshot> {
   if (catalogSource() === "json") return loadJsonSnapshot();
-  const [{ createDb }, { readDbSnapshot }] = await Promise.all([import("../../db/client"), import("../../db/snapshot")]);
-  state.db ??= createDb().db;
-  return readDbSnapshot(state.db);
+  const [{ sharedDb }, { readDbSnapshot }] = await Promise.all([import("../../db/client"), import("../../db/snapshot")]);
+  return readDbSnapshot(sharedDb());
 }
 
 interface CatalogState {
   cached?: { catalog: Catalog; loadedAt: number };
   pending?: Promise<Catalog>;
-  db?: import("../../db/client").Db;
 }
 
 // 라우트 번들마다 모듈이 따로 올라와도 캐시는 프로세스에 하나만 둔다.

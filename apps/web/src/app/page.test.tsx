@@ -10,7 +10,7 @@ vi.mock("../lib/catalog/load", async () => {
   const { createCatalog } = await import("../lib/catalog/catalog");
   const { loadJsonSnapshot } = await import("../lib/catalog/json-source");
   const { markets, editorial } = loadJsonSnapshot();
-  const [indexable, second] = createCatalog({ markets, editorial }).reviewedMarkets;
+  const [indexable, second] = createCatalog({ markets, editorial, highlights: [] }).reviewedMarkets;
   const excluded = {
     ...second,
     scheduleRaw: "확인 중",
@@ -19,6 +19,7 @@ vi.mock("../lib/catalog/load", async () => {
   const catalog = createCatalog({
     markets: [indexable, excluded],
     editorial: editorial.filter(({ marketId }) => marketId === indexable.id || marketId === excluded.id),
+    highlights: [],
   });
 
   return { loadCatalog: async () => catalog };

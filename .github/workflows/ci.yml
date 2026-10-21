@@ -71,6 +71,7 @@ jobs:
           pnpm db:seed
           pnpm db:verify
           pnpm db:parity
+          pnpm exec vitest run src/db/highlights.test.ts --environment node
 
       - name: Require map configuration for publishing
         if: github.ref == 'refs/heads/main'

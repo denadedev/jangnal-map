@@ -26,6 +26,18 @@ describe("DB snapshot", () => {
     expect(fromDb.markets.every((market) => !/^[a-z-]+$/.test(market.marketType))).toBe(true);
   });
 
+  it("lists approved visitor items apart from the guide, by category then approval time", () => {
+    const market = rows.markets[0];
+    const at = (minute: number) => new Date(Date.UTC(2026, 9, 21, 0, minute));
+    const user = (name: string, category: string, minute: number) =>
+      ({ id: name, marketId: market.id, name, category, origin: "user", description: null, createdAt: at(minute) });
+    const fromDb = assembleSnapshot({ ...rows, marketHighlights: [...rows.marketHighlights, user("호떡", "food", 2), user("미나리", "specialty", 3), user("국밥", "food", 1)] });
+
+    expect(fromDb.highlights.map(({ name }) => name)).toEqual(["미나리", "국밥", "호떡"]);
+    expect(fromDb.highlights[0]).toEqual({ marketId: market.legacyId, name: "미나리", description: null, category: "specialty" });
+    expect(snapshotDifferences(fromDb, loadJsonSnapshot())).toEqual([]);
+  });
+
   it("reports a guide missing from the DB", () => {
     const draft = { ...rows, marketGuides: rows.marketGuides.slice(1) };
     const fromDb = assembleSnapshot(draft);

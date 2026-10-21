@@ -35,6 +35,7 @@ export default async function HomePage() {
       />
       <MarketExplorer
         mapClientId={process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID ?? ""}
+        turnstileSiteKey={process.env.TURNSTILE_SITE_KEY}
         reviewedMarketIds={indexableReviewedMarkets.map((market) => market.id)}
         reviewedGuides={indexableReviewedMarkets.map((market) => ({
           id: market.id,

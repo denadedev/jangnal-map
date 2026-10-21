@@ -1,6 +1,7 @@
 import { sortMarkets, type CatalogSnapshot } from "../lib/catalog/catalog";
 import type { MarketSchedule, PublicMarket } from "../lib/market";
 import type { MarketEditorialContent } from "../lib/market-editorial";
+import type { MarketHighlight } from "../lib/market-highlight";
 import type { Db } from "./client";
 import {
   HIGHLIGHT_CATEGORY_LABELS,
@@ -81,7 +82,7 @@ export function assembleSnapshot(rows: SeedRows): CatalogSnapshot {
 
   const tips = groupBy(rows.marketGuideTips, (tip) => tip.guideId);
   const guideSources = groupBy(rows.marketGuideSources, (entry) => entry.guideId);
-  // 사용자 제보(origin=user)는 검수 가이드와 따로 보여 줄 예정이라 여기에 넣지 않는다.
+  // 방문자 제보(origin=user)는 검수 가이드와 섹션을 나눠 highlights로 따로 준다.
   const specialties = groupBy(rows.marketHighlights.filter((highlight) => highlight.origin === "editorial"), (highlight) => highlight.marketId);
   const nearby = groupBy(rows.marketNearby, (entry) => entry.marketId);
   const editorial = rows.marketGuides.map((guide): MarketEditorialContent => ({
@@ -97,7 +98,15 @@ export function assembleSnapshot(rows: SeedRows): CatalogSnapshot {
     status: "reviewed",
   }));
 
-  return { markets: sortMarkets(markets), editorial };
+  const highlights = rows.marketHighlights.filter((highlight) => highlight.origin === "user").sort(byHighlightOrder)
+    .map((highlight): MarketHighlight => ({
+      marketId: clientIds.get(highlight.marketId)!,
+      name: highlight.name,
+      description: highlight.description ?? null,
+      category: highlight.category as HighlightCategoryCode,
+    }));
+
+  return { markets: sortMarkets(markets), editorial, highlights };
 }
 
 /** 공개된 가이드만 화면에 쓴다. 테이블마다 한 번씩, 모두 같은 읽기 트랜잭션에서 읽는다. */

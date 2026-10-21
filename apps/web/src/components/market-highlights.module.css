@@ -1,0 +1,69 @@
+/* "방문자가 알려 준 것" 섹션과 제보 시트. Open Design 시안(2026-10-21 방문자 제보) 기준. */
+/* 여백과 구분선은 감싸는 쪽(상세 페이지 .editorial-section, 지도 패널 .detail-section)이 정한다. */
+.section .title { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.source { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 5px 10px 5px 8px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--muted); font-size: 13px; font-weight: 500; }
+.source :global(.icon) { width: 16px; height: 16px; }
+.category { margin-top: 20px; }
+.categoryHead { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.section .categoryHead h3, .section .categoryHead h4 { margin: 0; font-size: 15px; font-weight: 700; }
+.categoryIcon { width: 32px; height: 32px; border-radius: var(--r-s); background: var(--surface-2); display: grid; place-items: center; }
+.categoryIcon :global(.icon) { width: 18px; height: 18px; }
+.count { color: var(--muted); font-size: 13px; }
+.items { list-style: none; margin: 0; padding: 0 0 0 42px; }
+.items li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.items li:last-child { border-bottom: 0; }
+.what { display: block; font-size: 16px; font-weight: 600; line-height: 1.4; }
+.description { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); line-height: 1.55; }
+.empty { margin: 14px 0 0; font-size: 15px; line-height: 1.6; color: var(--muted); }
+.empty strong { display: block; color: var(--ink); font-weight: 600; margin-bottom: 2px; }
+.tonal { width: 100%; min-height: 48px; margin-top: 16px; border: 0; border-radius: var(--r-m); background: var(--surface-2); color: var(--ink); font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+.tonal:hover { background: var(--line); }
+.tonal :global(.icon) { width: 20px; height: 20px; }
+
+.overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: flex-end; justify-content: center; }
+/* 시안의 --scrim(ink 42%). 이 시트에서만 쓰여 토큰으로 올리지 않았다. */
+.scrim { position: absolute; inset: 0; background: oklch(0.21 0.015 260 / 42%); }
+.sheet { position: relative; width: 100%; max-width: 430px; max-height: 94dvh; overflow: auto; background: var(--surface); border-radius: var(--r-l) var(--r-l) 0 0; box-shadow: var(--shadow-float); padding: 8px 20px calc(28px + env(safe-area-inset-bottom)); color: var(--ink); word-break: keep-all; }
+.grabber { width: 40px; height: 4px; border-radius: var(--r-pill); background: var(--line); margin: 0 auto 8px; }
+.sheetHead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.sheetHead h2 { margin: 10px 0 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.market { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 14px; color: var(--muted); }
+.market strong { color: var(--ink); font-weight: 600; }
+.market :global(.icon) { width: 18px; height: 18px; }
+.iconButton { width: 44px; height: 44px; margin-right: -10px; border: 0; background: transparent; border-radius: var(--r-pill); display: grid; place-items: center; cursor: pointer; color: var(--ink); }
+.iconButton:hover { background: var(--surface-2); }
+.field { margin-top: 20px; }
+.label { display: flex; align-items: baseline; gap: 6px; font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.tag { font-size: 12px; font-weight: 500; color: var(--muted); }
+.input, .textarea { width: 100%; border: 1px solid var(--muted); border-radius: var(--r-s); background: var(--surface); padding: 12px 14px; font: inherit; font-size: 16px; line-height: 1.5; color: var(--ink); }
+.input { height: 48px; }
+.textarea { min-height: 76px; resize: none; display: block; }
+.input:focus, .textarea:focus { outline: 2px solid var(--focus); outline-offset: 0; border-color: var(--focus); }
+.input::placeholder, .textarea::placeholder { color: var(--muted); }
+.hint { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; font-size: 13px; color: var(--muted); }
+.counter { margin-left: auto; font-variant-numeric: tabular-nums; }
+.chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.chip { min-height: 48px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--surface); color: var(--ink); display: flex; align-items: center; justify-content: center; gap: 6px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.chip:hover { background: var(--surface-2); }
+.chip[aria-checked="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+.chip :global(.icon) { width: 18px; height: 18px; }
+.turnstile { margin-top: 20px; min-height: 65px; }
+.primary { width: 100%; min-height: 52px; margin-top: 20px; border: 0; border-radius: var(--r-m); background: var(--accent); color: var(--surface); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+.primary:hover:not(:disabled) { background: var(--accent-ink); }
+.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.note { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+.note :global(.icon) { width: 16px; height: 16px; }
+.banner { display: flex; gap: 10px; margin-top: 16px; padding: 12px 14px; border-radius: var(--r-s); background: var(--warn-soft); color: var(--warn-ink); }
+.banner :global(.icon) { width: 20px; height: 20px; }
+.banner p { margin: 0; font-size: 14px; line-height: 1.5; }
+.banner strong { display: block; font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+.done { text-align: center; padding: 12px 4px 0; }
+.doneBadge { width: 56px; height: 56px; margin: 12px auto 14px; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent-ink); display: grid; place-items: center; }
+.doneBadge :global(.icon) { width: 28px; height: 28px; }
+.doneTitle { margin: 0; font-size: 22px; font-weight: 700; color: var(--ink); }
+.done p { margin: 8px 0 0; font-size: 15px; line-height: 1.6; color: var(--muted); }
+.done .doneTitle { color: var(--ink); }
+.sent { margin: 20px 0 0; padding: 14px 16px; border-radius: var(--r-m); background: var(--surface-2); text-align: left; display: flex; gap: 12px; align-items: center; }
+.sent .what { font-size: 16px; }
+.meta { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.visuallyHidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

@@ -28,7 +28,7 @@ const periodicEditorial = {
   marketId: periodicMarket.id, summary: "s", visitTips: ["t"], transportation: "t", parking: "p",
   specialties: [], nearbyMarketIds: [], sources: [], reviewedAt: "2026-10-01", status: "reviewed" as const,
 };
-const { findMarketBySlug, isMarketIndexable } = createCatalog({ markets: publicMarkets, editorial: [periodicEditorial] });
+const { findMarketBySlug, isMarketIndexable } = createCatalog({ markets: publicMarkets, editorial: [periodicEditorial], highlights: [] });
 
 describe("market SEO identity", () => {
   it("creates a readable slug with a stable ID suffix", () => {

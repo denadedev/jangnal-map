@@ -40,22 +40,26 @@ const emailErrorCode = (error: unknown): string => {
   return typeof code === "string" ? code : "UNKNOWN";
 };
 
+/** 제보를 받을 Origin 목록. 배포 설정만 믿고, 클라이언트가 보낸 forwarding 헤더는 보지 않는다. 설정이 잘못되면 던진다. */
+export function allowedReportOrigins(request: Request): string[] {
+  const hasConfiguredOrigins = Object.prototype.hasOwnProperty.call(process.env, "REPORT_ALLOWED_ORIGINS");
+  const configuredOrigins = process.env.REPORT_ALLOWED_ORIGINS?.trim();
+  const legacyOrigin = process.env.REPORT_ALLOWED_ORIGIN?.trim();
+  return configuredOrigins
+    ? parseReportOrigins(configuredOrigins)
+    : legacyOrigin
+      ? parseReportOrigins(legacyOrigin)
+      : hasConfiguredOrigins
+        ? parseReportOrigins(configuredOrigins ?? "")
+        : [new URL(request.url).origin];
+}
+
 export function createReportHandler(sendReport: SendReport = sendReportEmail) {
   return async function POST(request: Request): Promise<Response> {
     const origin = request.headers.get("origin");
-    // Use deployment configuration, never client-supplied forwarding headers.
-    const hasConfiguredOrigins = Object.prototype.hasOwnProperty.call(process.env, "REPORT_ALLOWED_ORIGINS");
-    const configuredOrigins = process.env.REPORT_ALLOWED_ORIGINS?.trim();
-    const legacyOrigin = process.env.REPORT_ALLOWED_ORIGIN?.trim();
     let allowedOrigins: string[];
     try {
-      allowedOrigins = configuredOrigins
-        ? parseReportOrigins(configuredOrigins)
-        : legacyOrigin
-          ? parseReportOrigins(legacyOrigin)
-          : hasConfiguredOrigins
-            ? parseReportOrigins(configuredOrigins ?? "")
-            : [new URL(request.url).origin];
+      allowedOrigins = allowedReportOrigins(request);
     } catch {
       console.error("Invalid report origin configuration");
       return json(500, "제보 설정을 확인해 주세요.");

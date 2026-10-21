@@ -114,7 +114,7 @@ jobs:
           smoke json -p 127.0.0.1:3100:3000
           smoke db --network host -e PORT=3100 -e CATALOG_SOURCE=db \
             -e DATABASE_URL=postgres://jangnal:jangnal-ci@127.0.0.1:5432/jangnal
-          # 배포 Job과 같은 명령으로 빈 DB에 마이그레이션을 두 번 적용한다 (두 번째는 건너뛰어야 한다).
+          # 배포 Job과 같은 명령을 빈 DB에 두 번 돌린다. 첫 번째는 마이그레이션과 시드, 두 번째는 둘 다 건너뛴다.
           export PGPASSWORD=jangnal-ci
           psql -h 127.0.0.1 -U jangnal -d jangnal -c 'create database jangnal_migrate'
           for run in 1 2; do
@@ -125,6 +125,7 @@ jobs:
           tables="select count(*) from information_schema.tables where table_schema = 'public'"
           test "$(psql -h 127.0.0.1 -U jangnal -d jangnal_migrate -tAc "$tables")" = \
             "$(psql -h 127.0.0.1 -U jangnal -d jangnal -tAc "$tables")"
+          test "$(psql -h 127.0.0.1 -U jangnal -d jangnal_migrate -tAc 'select count(*) from markets')" = 1393
 
       - name: Check latest main before publishing
         id: latest

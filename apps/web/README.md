@@ -105,7 +105,7 @@ GitOps의 이미지 SHA를 검증된 이전 값으로 변경한다.
 | 환경변수 | 뜻 |
 |---|---|
 | `CATALOG_SOURCE` | `json`(기본, `public/data` JSON) 또는 `db` |
-| `DATABASE_URL` | `CATALOG_SOURCE=db`일 때 읽을 PostgreSQL. 앱 계정은 읽기 권한이면 된다 |
+| `DATABASE_URL` | `CATALOG_SOURCE=db`일 때 읽을 PostgreSQL. 운영은 DB를 소유한 `jangnal` 계정 하나를 앱과 마이그레이션이 함께 쓴다 |
 | `REVALIDATE_TOKEN` | `POST /api/revalidate`의 Bearer 토큰. 없으면 그 엔드포인트는 404 |
 
 - 스냅샷은 프로세스 메모리에 1시간 둔다(레플리카 1개). 1시간이 지나면 기존 스냅샷으로 응답하면서 뒤에서 다시 읽고, 실패하면 기존 것을 계속 쓴다. 캐시가 빈 상태에서 DB를 못 읽으면 페이지는 500, `/api/health`·`/api/markets`는 503이다.
@@ -127,7 +127,7 @@ pnpm db:parity    # 화면이 읽는 DB 스냅샷이 JSON 스냅샷과 같은지
 node scripts/compare-sites.mjs https://<JSON 모드 배포> https://<DB 모드 배포>
 ```
 
-- 운영 배포에서는 GitOps의 PreSync Job(`migrate-job.yaml`)이 같은 이미지로 `node apps/web/migrate.mjs`를 실행해 마이그레이션을 적용한다. Job은 테이블 소유 계정의 `DATABASE_URL`을 `jangnal-migrate-env` Secret에서 읽고, 앱은 읽기 전용 계정을 `jangnal-web-env`에서 읽는다. 실패하면 Argo CD 동기화가 멈추고 기존 Pod가 계속 응답한다. 시드는 처음 한 번 `pnpm db:seed`로 직접 넣는다.
+- 운영 배포에서는 GitOps의 PreSync Job(`migrate-job.yaml`)이 같은 이미지로 `node apps/web/migrate.mjs`를 실행해 마이그레이션을 적용하고, DB가 비어 있으면 `public/data` JSON 시드도 넣는다(데이터가 있으면 건너뜀). Job은 앱과 같은 `jangnal-web-env` Secret의 `DATABASE_URL`을 읽는다. 실패하면 Argo CD 동기화가 멈추고 기존 Pod가 계속 응답한다.
 - 스키마는 `src/db/schema.ts`, 코드값과 화면 이름은 `src/db/codes.ts`에서 관리한다. DB에는 enum 대신 코드값 text를 저장한다.
 - `updated_at`은 DB 트리거 없이 Drizzle `$onUpdate`가 갱신한다. 그래서 DB 수정은 모두 Drizzle을 거친다.
 - 스키마를 바꾸면 `pnpm db:generate`로 마이그레이션을 만들고, 새 테이블·컬럼의 comment는 SQL 마이그레이션에 함께 넣는다.

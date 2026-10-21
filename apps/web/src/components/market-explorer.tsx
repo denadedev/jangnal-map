@@ -52,7 +52,7 @@ const readUrlState = (today: Date): ExplorerInitialState => {
 };
 
 async function fetchMarkets(): Promise<PublicMarket[]> {
-  const response = await fetch("/data/markets.json");
+  const response = await fetch("/api/markets");
   if (!response.ok) throw new Error("시장 데이터를 불러오지 못했습니다.");
   const data: unknown = await response.json();
   if (!Array.isArray(data)) throw new Error("시장 데이터 형식이 올바르지 않습니다.");

@@ -3,21 +3,29 @@ import type { Metadata } from "next";
 import { PatternTag } from "../../components/jangnal-market-row";
 import { DataBasis, Faq, LandingHero, LandingShell, LinkRow, landingStyles as styles } from "../../components/jangnal-page-parts";
 import { HubToday } from "../../components/jangnal-today";
-import { DAY_PATTERNS, getPatternMarkets, getRegionMarkets, launchRegions, periodicMarkets, toMarketLink } from "../../lib/jangnal-landing";
+import { loadCatalog } from "../../lib/catalog/load";
+import { DAY_PATTERNS } from "../../lib/jangnal-landing";
 import { SITE_URL } from "../../lib/market-seo";
 import { OG_IMAGE } from "../../lib/site-config";
 
 const title = "전국 장날 · 오늘 열리는 5일장 | 오늘 장날";
-const description = `전국 5일장 ${periodicMarkets.length}곳을 시·도별, 날짜 끝자리별로 정리했습니다. 오늘과 이번 주말 열리는 장날을 확인하세요.`;
 
-export const metadata: Metadata = {
-  title,
-  description,
-  alternates: { canonical: `${SITE_URL}/jangnal` },
-  openGraph: { images: [OG_IMAGE], title, description, url: `${SITE_URL}/jangnal`, type: "website", locale: "ko_KR" },
-};
+// 요청 때 메모리의 시장 데이터 스냅샷으로 그린다. 빌드 때는 데이터를 읽지 않는다.
+export const dynamic = "force-dynamic";
 
-export default function JangnalHubPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const { periodicMarkets } = await loadCatalog();
+  const description = `전국 5일장 ${periodicMarkets.length}곳을 시·도별, 날짜 끝자리별로 정리했습니다. 오늘과 이번 주말 열리는 장날을 확인하세요.`;
+  return {
+    title,
+    description,
+    alternates: { canonical: `${SITE_URL}/jangnal` },
+    openGraph: { images: [OG_IMAGE], title, description, url: `${SITE_URL}/jangnal`, type: "website", locale: "ko_KR" },
+  };
+}
+
+export default async function JangnalHubPage() {
+  const { periodicMarkets, launchRegions, getRegionMarkets, getPatternMarkets, toMarketLink } = await loadCatalog();
   const regions = launchRegions();
 
   return (

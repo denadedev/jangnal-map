@@ -2,10 +2,12 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import { publicMarkets } from "../../../lib/market-catalog";
-import { reviewedMarkets } from "../../../lib/market-editorial";
-import { createMarketSlug, findRelatedMarkets, SITE_URL } from "../../../lib/market-seo";
-import MarketPage, { generateMetadata, generateStaticParams } from "./page";
+import { createCatalog } from "../../../lib/catalog/catalog";
+import { loadJsonSnapshot } from "../../../lib/catalog/json-source";
+import { createMarketSlug, SITE_URL } from "../../../lib/market-seo";
+import MarketPage, { generateMetadata } from "./page";
+
+const { markets: publicMarkets, reviewedMarkets, findRelatedMarkets, isMarketIndexable } = createCatalog(loadJsonSnapshot());
 
 describe("market detail route", () => {
   it("publishes the corrected Seogwipo dates and their separate source", async () => {
@@ -14,12 +16,13 @@ describe("market detail route", () => {
     expect(screen.getByRole("region", { name: "장날 정정 근거" })).toHaveTextContent("제주관광공사");
   });
 
-  it("prebuilds raw path parameters for every public market", async () => {
-    const params = await generateStaticParams();
+  it("publishes a page for every reviewed public market", async () => {
+    const slugs = publicMarkets.filter(isMarketIndexable).map(createMarketSlug);
 
-    expect(params).toHaveLength(55);
-    expect(new Set(params.map(({ slug }) => slug))).toHaveLength(55);
-    expect(params).toContainEqual({ slug: "용인중앙시장-389b4a24" });
+    expect(slugs).toHaveLength(55);
+    expect(new Set(slugs)).toHaveLength(55);
+    expect(slugs).toContain("용인중앙시장-389b4a24");
+    await expect(MarketPage({ params: Promise.resolve({ slug: "없는-시장-00000000" }) })).rejects.toThrow();
   });
 
   it("returns canonical schedule metadata without an exact date", async () => {

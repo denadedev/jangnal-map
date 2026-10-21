@@ -11,8 +11,8 @@ describe("온누리상품권 허브", () => {
     expect(metadata.description).toContain("전체·디지털·지류 가맹점 수");
   });
 
-  it("간결한 이용안내와 공식 가맹점 찾기 링크를 제공한다", () => {
-    render(<OnnuriPage />);
+  it("간결한 이용안내와 공식 가맹점 찾기 링크를 제공한다", async () => {
+    render(await OnnuriPage());
 
     expect(screen.getByRole("heading", { level: 1, name: "온누리상품권 이용안내" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 3, name: "디지털형과 지류형" })).toBeInTheDocument();

@@ -2,13 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import type { PublicMarket } from "./market";
 import { publicMarkets } from "./market-catalog";
-import {
-  findMarketEditorial,
-  marketEditorialEntries,
-  reviewedMarketIds,
-  reviewedMarkets,
-  validateMarketEditorial,
-} from "./market-editorial";
+import { createCatalog } from "./catalog/catalog";
+import { loadJsonSnapshot } from "./catalog/json-source";
+import { marketEditorialEntries, validateMarketEditorial } from "./market-editorial";
+
+const { findMarketEditorial, reviewedMarketIds, reviewedMarkets } = createCatalog(loadJsonSnapshot());
 
 describe("market editorial catalog", () => {
   it("contains the first reviewed market batch", () => {

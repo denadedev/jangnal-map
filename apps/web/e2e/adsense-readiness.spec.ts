@@ -33,7 +33,7 @@ test("offers meaningful guides and navigation without JavaScript", async ({ brow
 test("distinguishes loading, failure and real empty search results", async ({ page }) => {
   let release: () => void = () => {};
   const pending = new Promise<void>((resolve) => { release = resolve; });
-  await page.route("**/data/markets.json", async (route) => {
+  await page.route("**/api/markets", async (route) => {
     await pending;
     await route.abort();
   });
@@ -44,7 +44,7 @@ test("distinguishes loading, failure and real empty search results", async ({ pa
   release();
   await expect(results.getByRole("button", { name: "다시 시도" })).toBeVisible();
   await expect(results).not.toContainText("시장 0곳");
-  await page.unroute("**/data/markets.json");
+  await page.unroute("**/api/markets");
   await results.getByRole("button", { name: "다시 시도" }).click();
   await expect(results.locator(".market-list a").first()).toBeVisible();
   await page.goto("/?q=없는시장테스트문자열");

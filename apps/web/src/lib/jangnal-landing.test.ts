@@ -8,13 +8,14 @@ import {
   getMonthCalendar,
   getNextOpenDate,
   getPatternForDate,
-  getPatternMarkets,
   getPatternOf,
-  getRegionMarkets,
   groupByDistrict,
   groupByRegion,
-  periodicMarkets,
 } from "./jangnal-landing";
+import { createCatalog } from "./catalog/catalog";
+import { loadJsonSnapshot } from "./catalog/json-source";
+
+const { getPatternMarkets, getRegionMarkets, periodicMarkets } = createCatalog(loadJsonSnapshot());
 
 describe("jangnal landing data", () => {
   it("matches 5-10 to days [5, 0] regardless of order", () => {

@@ -2,13 +2,13 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { SITE_URL } from "../../../../lib/market-seo";
-import PatternPage, { generateMetadata, generateStaticParams } from "./page";
+import PatternPage, { generateMetadata } from "./page";
 
 const params = (pattern: string) => ({ params: Promise.resolve({ pattern }) });
 
 describe("market-day pattern route", () => {
-  it("prebuilds five patterns", () => {
-    expect(generateStaticParams()).toEqual(["1-6", "2-7", "3-8", "4-9", "5-10"].map((pattern) => ({ pattern })));
+  it("404s an unknown pattern", async () => {
+    await expect(PatternPage(params("1-7"))).rejects.toThrow();
   });
 
   it("describes the pattern and lists 87 markets by province", async () => {

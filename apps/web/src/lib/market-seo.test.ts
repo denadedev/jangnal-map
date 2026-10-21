@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import type { PublicMarket } from "./market";
 import { publicMarkets } from "./market-catalog";
-import { createMarketScheduleAnswer, createMarketSeoText, createMarketSlug, findMarketBySlug, getMarketPagePath, isMarketIndexable } from "./market-seo";
+import { createCatalog } from "./catalog/catalog";
+import { createMarketScheduleAnswer, createMarketSeoText, createMarketSlug, getMarketPagePath } from "./market-seo";
 
 const periodicMarket: PublicMarket = {
   id: "market-389b4a24f06ccd11",
@@ -22,6 +23,12 @@ const periodicMarket: PublicMarket = {
   onnuri: null,
   source: { name: "공공데이터포털", url: "https://www.data.go.kr/", referenceDate: "2025-11-10" },
 };
+
+const periodicEditorial = {
+  marketId: periodicMarket.id, summary: "s", visitTips: ["t"], transportation: "t", parking: "p",
+  specialties: [], nearbyMarketIds: [], sources: [], reviewedAt: "2026-10-01", status: "reviewed" as const,
+};
+const { findMarketBySlug, isMarketIndexable } = createCatalog({ markets: publicMarkets, editorial: [periodicEditorial] });
 
 describe("market SEO identity", () => {
   it("creates a readable slug with a stable ID suffix", () => {

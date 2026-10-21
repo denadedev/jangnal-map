@@ -1,4 +1,4 @@
-import { publicMarkets } from "./market-catalog";
+import { loadCatalog } from "./catalog/load";
 import { sendReportEmail } from "./report-email";
 import {
   MARKET_REPORT_TYPES,
@@ -100,7 +100,7 @@ export function createReportHandler(sendReport: SendReport = sendReportEmail) {
     if (Object.keys(validationErrors).length > 0) return json(400, "제보 내용을 확인해 주세요.");
 
     const market = scope === "market"
-      ? publicMarkets.find((item) => item.id === value(body.market_id)) ?? null
+      ? (await loadCatalog()).findMarketById(value(body.market_id)) ?? null
       : null;
     if (scope === "market" && !market) return json(400, "시장을 다시 선택해 주세요.");
 

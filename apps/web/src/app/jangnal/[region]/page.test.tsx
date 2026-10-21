@@ -3,13 +3,15 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { SITE_URL } from "../../../lib/market-seo";
-import RegionPage, { generateMetadata, generateStaticParams } from "./page";
+import { createCatalog } from "../../../lib/catalog/catalog";
+import { loadJsonSnapshot } from "../../../lib/catalog/json-source";
+import RegionPage, { generateMetadata } from "./page";
 
 const params = (region: string) => ({ params: Promise.resolve({ region }) });
 
 describe("region landing route", () => {
-  it("prebuilds the eight launch regions", () => {
-    expect(generateStaticParams().map(({ region }) => region).sort()).toEqual(
+  it("publishes the eight launch regions", async () => {
+    expect(createCatalog(loadJsonSnapshot()).launchRegions().map(({ slug }) => slug).sort()).toEqual(
       ["chungbuk", "chungnam", "gangwon", "gyeongbuk", "gyeonggi", "gyeongnam", "jeonbuk", "jeonnam"],
     );
   });

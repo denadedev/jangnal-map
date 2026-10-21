@@ -179,12 +179,12 @@ test("English empty results can be cleared", async ({ page }) => {
 });
 
 test("English data loading error offers a working retry", async ({ page }) => {
-  await page.route("**/data/markets.json", (route) => route.fulfill({ status: 500, body: "unavailable" }));
+  await page.route("**/api/markets", (route) => route.fulfill({ status: 500, body: "unavailable" }));
   await page.goto("/en/map");
   await page.locator(".mobile-view-switch").getByRole("button", { name: "List" }).click();
   const results = page.locator(".mobile-market-results");
   await expect(results.getByRole("heading", { name: "Could not load market information" })).toBeVisible();
-  await page.unroute("**/data/markets.json");
+  await page.unroute("**/api/markets");
   await results.getByRole("button", { name: "Try again" }).click();
   await expect(results.getByRole("heading", { name: "Could not load market information" })).toHaveCount(0);
 });

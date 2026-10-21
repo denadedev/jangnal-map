@@ -1,7 +1,6 @@
 import editorialData from "../../public/data/market-editorial.json";
 
 import type { PublicMarket } from "./market";
-import { publicMarkets } from "./market-catalog";
 
 export interface MarketEditorialSource {
   name: string;
@@ -66,11 +65,3 @@ export function validateMarketEditorial(
 }
 
 export const marketEditorialEntries = editorialData as MarketEditorialContent[];
-const editorialById = new Map(marketEditorialEntries.map((entry) => [entry.marketId, entry]));
-
-export const reviewedMarketIds = new Set(editorialById.keys());
-export const reviewedMarkets = publicMarkets.filter((market) => reviewedMarketIds.has(market.id));
-
-export function findMarketEditorial(marketId: string): MarketEditorialContent | undefined {
-  return editorialById.get(marketId);
-}

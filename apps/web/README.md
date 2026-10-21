@@ -100,7 +100,19 @@ GitOps의 이미지 SHA를 검증된 이전 값으로 변경한다.
 
 ## 시장 데이터 DB (PostgreSQL, Drizzle)
 
-시장 데이터를 JSON에서 PostgreSQL로 옮기는 중이다. 지금 화면은 아직 JSON을 읽고, DB는 스키마와 시드만 있다.
+시장 데이터를 JSON에서 PostgreSQL로 옮기는 중이다. 화면은 `loadCatalog()`(`src/lib/catalog/`)로 시장 데이터 스냅샷을 읽고, 스냅샷의 출처는 환경변수로 고른다.
+
+| 환경변수 | 뜻 |
+|---|---|
+| `CATALOG_SOURCE` | `json`(기본, `public/data` JSON) 또는 `db` |
+| `DATABASE_URL` | `CATALOG_SOURCE=db`일 때 읽을 PostgreSQL. 앱 계정은 읽기 권한이면 된다 |
+| `REVALIDATE_TOKEN` | `POST /api/revalidate`의 Bearer 토큰. 없으면 그 엔드포인트는 404 |
+
+- 스냅샷은 프로세스 메모리에 1시간 둔다(레플리카 1개). 1시간이 지나면 기존 스냅샷으로 응답하면서 뒤에서 다시 읽고, 실패하면 기존 것을 계속 쓴다. 캐시가 빈 상태에서 DB를 못 읽으면 페이지는 500, `/api/health`·`/api/markets`는 503이다.
+- 시장 데이터를 쓰는 페이지는 요청 때 스냅샷으로 그린다. 빌드는 데이터를 읽지 않는다.
+- DB를 고친 뒤 바로 반영: `curl -X POST -H "Authorization: Bearer $REVALIDATE_TOKEN" https://kmarketday.com/api/revalidate`
+- K3s readiness probe는 `GET /api/health`(`{"status":"ok","source":"db","markets":1393}`).
+- 지도는 `GET /api/markets`를 읽는다. 응답 모양은 예전 `/data/markets.json`과 같고 `Cache-Control: public, s-maxage=3600, stale-while-revalidate=86400`이다.
 스키마 설계와 결정 사항은 프로젝트 문서 `2026-10-21-db-schema-draft.md`, 이전 계획은 `2026-10-21-prd-db-migration.md`를 따른다.
 
 ```bash
@@ -109,6 +121,10 @@ export DATABASE_URL=postgres://<user>:<password>@<host>:5432/<db>
 pnpm db:migrate   # drizzle/ 마이그레이션 적용 (테이블 + comment)
 pnpm db:seed      # 빈 DB에 public/data JSON을 넣는다. 검사 실패나 기존 데이터가 있으면 아무것도 넣지 않는다
 pnpm db:verify    # 행 수가 JSON과 같은지, uuid 단일 PK·comment·트리거/enum/배열 없음 규칙을 지키는지 확인
+pnpm db:parity    # 화면이 읽는 DB 스냅샷이 JSON 스냅샷과 같은지 확인 (합쳐진 출처 이름은 DB 쪽에 맞춰 비교)
+
+# 두 배포가 같은 내용을 내는지 비교 (사이트맵의 모든 페이지 글자 + 시장 목록)
+node scripts/compare-sites.mjs https://<JSON 모드 배포> https://<DB 모드 배포>
 ```
 
 - 스키마는 `src/db/schema.ts`, 코드값과 화면 이름은 `src/db/codes.ts`에서 관리한다. DB에는 enum 대신 코드값 text를 저장한다.

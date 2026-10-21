@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { MobileAppBar } from "../../components/mobile-app-bar";
 import { SiteFooter } from "../../components/site-footer";
 import { ReportForm } from "../../components/report-form";
-import { publicMarkets } from "../../lib/market-catalog";
+import { loadCatalog } from "../../lib/catalog/load";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export default async function ReportPage({ searchParams }: ReportPageProps) {
   const params = await searchParams;
   const isMarketReport = params.kind === "market";
   const market = isMarketReport
-    ? publicMarkets.find((item) => item.id === params.market) ?? null
+    ? (await loadCatalog()).findMarketById(params.market ?? "") ?? null
     : null;
 
   if (isMarketReport && !market) {

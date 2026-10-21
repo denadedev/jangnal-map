@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 
 import { MarketExplorer } from "../../../components/market-explorer";
-import { reviewedMarkets } from "../../../lib/market-editorial";
-import { isMarketIndexable } from "../../../lib/market-seo";
+import { loadCatalog } from "../../../lib/catalog/load";
 import { OG_IMAGE } from "../../../lib/site-config";
 
 export const metadata: Metadata = {
@@ -21,7 +20,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function EnglishMarketMapPage() {
+// 요청 때 메모리의 시장 데이터 스냅샷으로 그린다. 빌드 때는 데이터를 읽지 않는다.
+export const dynamic = "force-dynamic";
+
+export default async function EnglishMarketMapPage() {
+  const { reviewedMarkets, isMarketIndexable } = await loadCatalog();
   return (
     <div lang="en">
       <MarketExplorer

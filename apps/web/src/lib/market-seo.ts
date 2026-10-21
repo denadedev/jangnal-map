@@ -1,35 +1,9 @@
 import type { PublicMarket } from "./market";
 import { formatScheduleDates, formatSchedulePattern } from "./market-view";
-import { publicMarkets } from "./market-catalog";
-import { reviewedMarketIds } from "./market-editorial";
-import { createMarketSlug } from "./market-path";
 import { SITE_URL } from "./site-config";
 
 export { createMarketSlug, getMarketPagePath } from "./market-path";
 export { SITE_URL } from "./site-config";
-
-const marketsBySlug = new Map(publicMarkets.map((market) => [createMarketSlug(market), market] as const));
-
-export function findMarketBySlug(slug: string): PublicMarket | undefined {
-  try {
-    return marketsBySlug.get(decodeURIComponent(slug));
-  } catch {
-    return undefined;
-  }
-}
-
-export function isMarketIndexable(market: PublicMarket): boolean {
-  return market.status === "운영" && market.schedule.kind !== "unknown" && reviewedMarketIds.has(market.id);
-}
-
-export function findRelatedMarkets(market: PublicMarket, limit = 6): PublicMarket[] {
-  const region = getRegion(market);
-  if (!region) return [];
-
-  return publicMarkets
-    .filter((candidate) => candidate.id !== market.id && isMarketIndexable(candidate) && getRegion(candidate) === region)
-    .slice(0, limit);
-}
 
 export function createBreadcrumbJsonLd(items: [name: string, path?: string][]) {
   return {

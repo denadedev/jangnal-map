@@ -3,6 +3,7 @@ import { loadCatalog } from "../lib/catalog/load";
 import { formatSchedulePattern } from "../lib/market-view";
 import { getMarketPagePath } from "../lib/market-path";
 import { SITE_URL } from "../lib/market-seo";
+import { highlightSubmissionsEnabled } from "../lib/highlight-submission-handler";
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
@@ -35,6 +36,7 @@ export default async function HomePage() {
       />
       <MarketExplorer
         mapClientId={process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID ?? ""}
+        submissionsEnabled={highlightSubmissionsEnabled()}
         reviewedMarketIds={indexableReviewedMarkets.map((market) => market.id)}
         reviewedGuides={indexableReviewedMarkets.map((market) => ({
           id: market.id,

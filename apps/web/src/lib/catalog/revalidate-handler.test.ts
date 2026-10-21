@@ -7,7 +7,7 @@ const request = (token?: string) => new Request("http://localhost/api/revalidate
   method: "POST",
   headers: token ? { Authorization: `Bearer ${token}` } : {},
 });
-const catalog = createCatalog({ markets: [], editorial: [] });
+const catalog = createCatalog({ markets: [], editorial: [], highlights: [] });
 
 describe("revalidate endpoint", () => {
   afterEach(() => vi.unstubAllEnvs());

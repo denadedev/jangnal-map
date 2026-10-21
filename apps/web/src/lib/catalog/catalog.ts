@@ -1,5 +1,6 @@
 import type { PublicMarket } from "../market";
 import type { MarketEditorialContent } from "../market-editorial";
+import type { MarketHighlight } from "../market-highlight";
 import { getMarketBrowsePath, createMarketSlug } from "../market-path";
 import { getMarketDistrict, getMarketRegion, REGIONS, type Region, type RegionSlug } from "../region";
 import { buildRegionGuide } from "../region-guide";
@@ -9,6 +10,8 @@ import { getPatternOf, type DayPattern, type MarketLink } from "../jangnal-dates
 export interface CatalogSnapshot {
   markets: PublicMarket[];
   editorial: MarketEditorialContent[];
+  /** 승인된 방문자 제보. 카테고리 순, 그 안에서 승인 순. */
+  highlights: MarketHighlight[];
 }
 
 export const LAUNCH_MIN_MARKETS = 20;
@@ -30,11 +33,13 @@ export function sortMarkets(markets: readonly PublicMarket[]): PublicMarket[] {
 const addressPrefix = (market: PublicMarket): string =>
   (market.roadAddress ?? market.lotAddress ?? "").split(/\s+/).slice(0, 2).join(" ");
 
-export function createCatalog({ markets, editorial }: CatalogSnapshot) {
+export function createCatalog({ markets, editorial, highlights }: CatalogSnapshot) {
   const editorialById = new Map(editorial.map((entry) => [entry.marketId, entry]));
   const marketsById = new Map(markets.map((market) => [market.id, market]));
   const marketsBySlug = new Map(markets.map((market) => [createMarketSlug(market), market]));
   const reviewedMarketIds: ReadonlySet<string> = new Set(editorialById.keys());
+  const highlightsByMarket = new Map<string, MarketHighlight[]>();
+  for (const highlight of highlights) highlightsByMarket.set(highlight.marketId, [...(highlightsByMarket.get(highlight.marketId) ?? []), highlight]);
 
   const isMarketIndexable = (market: PublicMarket): boolean =>
     market.status === "운영" && market.schedule.kind !== "unknown" && reviewedMarketIds.has(market.id);
@@ -61,6 +66,7 @@ export function createCatalog({ markets, editorial }: CatalogSnapshot) {
       }
     },
     findMarketEditorial: (marketId: string): MarketEditorialContent | undefined => editorialById.get(marketId),
+    findMarketHighlights: (marketId: string): MarketHighlight[] => highlightsByMarket.get(marketId) ?? [],
     isMarketIndexable,
     findRelatedMarkets(market: PublicMarket, limit = 6): PublicMarket[] {
       const prefix = addressPrefix(market);

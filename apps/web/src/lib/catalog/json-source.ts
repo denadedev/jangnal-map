@@ -3,5 +3,6 @@ import { marketEditorialEntries } from "../market-editorial";
 import { sortMarkets, type CatalogSnapshot } from "./catalog";
 
 export function loadJsonSnapshot(): CatalogSnapshot {
-  return { markets: sortMarkets(publicMarkets), editorial: marketEditorialEntries };
+  // JSON에는 방문자 제보가 없다.
+  return { markets: sortMarkets(publicMarkets), editorial: marketEditorialEntries, highlights: [] };
 }

@@ -8,6 +8,7 @@ vi.mock("./json-source", () => ({ loadJsonSnapshot: () => snapshots.next.shift()
 const snapshot = (count: number): CatalogSnapshot => ({
   markets: Array.from({ length: count }, (_, index) => ({ id: `m${index}`, name: `시장${index}` }) as CatalogSnapshot["markets"][number]),
   editorial: [],
+  highlights: [],
 });
 const HOUR = 60 * 60 * 1000;
 

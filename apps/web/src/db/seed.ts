@@ -32,7 +32,7 @@ export async function seedIfEmpty(db: Db): Promise<SeedResult> {
     await insert(schema.marketGuides, rows.marketGuides);
     await insert(schema.marketGuideTips, rows.marketGuideTips);
     await insert(schema.marketGuideSources, rows.marketGuideSources);
-    await insert(schema.marketSpecialties, rows.marketSpecialties);
+    await insert(schema.marketHighlights, rows.marketHighlights);
     await insert(schema.marketNearby, rows.marketNearby);
   });
 

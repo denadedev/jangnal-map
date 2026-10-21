@@ -17,8 +17,15 @@ export type MarketStatusCode = keyof typeof MARKET_STATUS_LABELS;
 export const SCHEDULE_KINDS = ["daily", "digit-pair", "unknown"] as const;
 export type ScheduleKindCode = (typeof SCHEDULE_KINDS)[number];
 
-export const SPECIALTY_ORIGINS = ["editorial", "user"] as const;
-export type SpecialtyOriginCode = (typeof SPECIALTY_ORIGINS)[number];
+export const HIGHLIGHT_ORIGINS = ["editorial", "user"] as const;
+export type HighlightOriginCode = (typeof HIGHLIGHT_ORIGINS)[number];
+
+// 화면에 이 순서로 보인다.
+export const HIGHLIGHT_CATEGORY_LABELS = { specialty: "특산물", food: "먹거리", tip: "이용 팁", sight: "볼거리·체험" } as const;
+export type HighlightCategoryCode = keyof typeof HIGHLIGHT_CATEGORY_LABELS;
+
+export const SUBMISSION_STATUSES = ["pending", "approved", "rejected"] as const;
+export type SubmissionStatusCode = (typeof SUBMISSION_STATUSES)[number];
 
 export const GUIDE_STATUSES = ["draft", "reviewed"] as const;
 export type GuideStatusCode = (typeof GUIDE_STATUSES)[number];

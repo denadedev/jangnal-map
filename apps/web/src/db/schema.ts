@@ -4,6 +4,7 @@ import {
   check,
   date,
   doublePrecision,
+  foreignKey,
   index,
   integer,
   pgTable,
@@ -129,16 +130,36 @@ export const marketGuideSources = pgTable("market_guide_sources", {
   check("market_guide_sources_position_range", sql`${t.position} >= 0`),
 ]);
 
-export const marketSpecialties = pgTable("market_specialties", {
+export const marketHighlights = pgTable("market_highlights", {
   ...base,
   marketId: uuid("market_id").notNull().references(() => markets.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  position: position(),
+  description: text("description"),
+  category: text("category").notNull(),
   origin: text("origin").notNull().default("editorial"),
 }, (t) => [
-  unique("market_specialties_market_id_name_key").on(t.marketId, t.name),
-  unique("market_specialties_market_id_position_key").on(t.marketId, t.position),
-  check("market_specialties_position_range", sql`${t.position} >= 0`),
+  unique("market_highlights_market_id_name_key").on(t.marketId, t.name),
+  check("market_highlights_description_length", sql`char_length(${t.description}) <= 100`),
+]);
+
+export const marketHighlightSubmissions = pgTable("market_highlight_submissions", {
+  ...base,
+  marketId: uuid("market_id").notNull().references(() => markets.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").notNull(),
+  status: text("status").notNull().default("pending"),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
+  decidedBy: text("decided_by"),
+  highlightId: uuid("highlight_id").unique(),
+}, (t) => [
+  // 기본 이름은 63자를 넘어 PostgreSQL이 잘라 버려서 직접 짓는다.
+  foreignKey({ name: "market_highlight_submissions_highlight_id_fk", columns: [t.highlightId], foreignColumns: [marketHighlights.id] }).onDelete("set null"),
+  index("market_highlight_submissions_market_id_idx").on(t.marketId),
+  index("market_highlight_submissions_status_created_at_idx").on(t.status, t.createdAt),
+  check("market_highlight_submissions_name_length", sql`char_length(${t.name}) between 1 and 30`),
+  check("market_highlight_submissions_description_length", sql`char_length(${t.description}) <= 100`),
+  check("market_highlight_submissions_decided_pair", sql`(${t.decidedAt} is null) = (${t.decidedBy} is null)`),
 ]);
 
 export const marketNearby = pgTable("market_nearby", {
@@ -164,6 +185,7 @@ export const tableNames = [
   "market_guides",
   "market_guide_tips",
   "market_guide_sources",
-  "market_specialties",
+  "market_highlights",
+  "market_highlight_submissions",
   "market_nearby",
 ] as const;

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.6.0] - 2026-10-21
+
+### Added
+
+- 방문자 제보: 지도 패널과 시장 상세의 "방문자가 알려 준 것"에서 무엇(30자), 카테고리(특산물·먹거리·이용 팁·볼거리·체험), 한 줄 설명(100자)을 보낸다. IP당 10분 5건, 허니팟, 중복 검사를 거쳐 검토 중으로 저장하고 슬랙에 승인 요청을 보낸다.
+- 슬랙 승인(`POST /api/slack/actions`): 카테고리 셀렉트와 [승인] [반려]. 승인하면 `market_highlights`에 `origin=user`로 넣고 스냅샷을 바로 다시 읽는다.
+
+### Changed
+
+- `market_specialties`를 `market_highlights`로 바꿨다(데이터 유지). `position`을 빼고 `category`·`description`을 더했으며, 검수 품목 163개에 카테고리를 채웠다. 검수 가이드의 "대표 품목" 순서는 카테고리 순이 된다.
+- 제보 대기열 테이블 `market_highlight_submissions`를 더했다.
+
 ## [0.4.5.2] - 2026-10-21
 
 ### Changed

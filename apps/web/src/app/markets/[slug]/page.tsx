@@ -4,11 +4,13 @@ import { notFound } from "next/navigation";
 import { MarketNextDate } from "../../../components/market-next-date";
 import { MarketShareButton } from "../../../components/market-share-button";
 import { MarketEditorialSections } from "../../../components/market-editorial-sections";
+import { MarketHighlights } from "../../../components/market-highlights";
 import { SiteFooter } from "../../../components/site-footer";
 import { MobileAppBar } from "../../../components/mobile-app-bar";
 import { OnnuriSummary } from "../../../components/onnuri-summary";
 import { MarketDirectionsMenu } from "../../../components/market-directions-menu";
 import { loadCatalog } from "../../../lib/catalog/load";
+import { highlightSubmissionsEnabled } from "../../../lib/highlight-submission-handler";
 import {
   createBreadcrumbJsonLd,
   createMarketSeoText,
@@ -164,6 +166,15 @@ export default async function MarketPage({ params }: MarketPageProps) {
             <OnnuriSummary marketName={market.name} summary={market.onnuri} headingLevel={2} />
           </div>
           <MarketEditorialSections editorial={editorial} />
+          <div className="editorial-section">
+            <MarketHighlights
+              marketId={market.id}
+              marketName={market.name}
+              scheduleLabel={formatSchedulePattern(market)}
+              initialHighlights={catalog.findMarketHighlights(market.id)}
+              submissionsEnabled={highlightSubmissionsEnabled()}
+            />
+          </div>
           {relatedMarkets.length > 0 ? (
             <section className={styles.section} aria-labelledby="related-markets-heading">
               <h2 id="related-markets-heading">같은 지역 장날</h2>

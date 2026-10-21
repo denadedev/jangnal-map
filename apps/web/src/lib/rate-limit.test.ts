@@ -13,9 +13,9 @@ describe("createRateLimiter", () => {
 });
 
 describe("clientIp", () => {
-  it("prefers the proxy's X-Real-Ip, then the last X-Forwarded-For hop", () => {
-    expect(clientIp(new Request("http://x", { headers: { "x-real-ip": "1.1.1.1", "x-forwarded-for": "9.9.9.9" } }))).toBe("1.1.1.1");
-    expect(clientIp(new Request("http://x", { headers: { "x-forwarded-for": "9.9.9.9, 2.2.2.2" } }))).toBe("2.2.2.2");
+  it("takes the first X-Forwarded-For hop, then X-Real-Ip", () => {
+    expect(clientIp(new Request("http://x", { headers: { "x-real-ip": "10.0.0.5", "x-forwarded-for": "9.9.9.9, 10.0.0.5" } }))).toBe("9.9.9.9");
+    expect(clientIp(new Request("http://x", { headers: { "x-real-ip": "1.1.1.1" } }))).toBe("1.1.1.1");
     expect(clientIp(new Request("http://x"))).toBe("unknown");
   });
 });

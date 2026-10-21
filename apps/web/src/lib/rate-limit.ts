@@ -15,12 +15,11 @@ export function createRateLimiter(limit: number, windowMs: number) {
 }
 
 /**
- * 요청한 사람의 IP. 인그레스(Traefik)가 X-Real-Ip를 덮어쓰고 X-Forwarded-For 끝에 붙이므로 그 값을 쓴다.
+ * 요청한 사람의 IP. 앞단 프록시(NPM Plus → Traefik)를 지나며 X-Forwarded-For 맨 앞에 남은 값을 쓰고, 없으면 X-Real-Ip를 쓴다.
+ * 맨 앞 값은 클라이언트가 꾸밀 수 있지만, 꾸며서 얻는 것은 자기 제한을 피하는 것뿐이다(중복 검사와 운영자 승인은 그대로).
  * 둘 다 없으면 모든 요청을 한 키로 센다.
  */
 export function clientIp(request: Request): string {
-  const realIp = request.headers.get("x-real-ip")?.trim();
-  if (realIp) return realIp;
   const forwarded = request.headers.get("x-forwarded-for")?.split(",").map((entry) => entry.trim()).filter(Boolean);
-  return forwarded?.at(-1) ?? "unknown";
+  return forwarded?.[0] ?? request.headers.get("x-real-ip")?.trim() ?? "unknown";
 }

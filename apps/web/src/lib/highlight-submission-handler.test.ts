@@ -10,7 +10,7 @@ const origin = "https://kmarketday.com";
 
 const request = (body: unknown, headers: Record<string, string> = {}) => new Request(`${origin}/api/submissions`, {
   method: "POST",
-  headers: { origin, "x-real-ip": "203.0.113.1", ...headers },
+  headers: { origin, "x-forwarded-for": "203.0.113.1, 10.0.0.5", ...headers },
   body: typeof body === "string" ? body : JSON.stringify(body),
 });
 const valid = { market_id: market.id, name: "미나리", category: "specialty", description: "" };

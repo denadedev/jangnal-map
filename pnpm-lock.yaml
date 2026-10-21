@@ -62,6 +62,9 @@ importers:
       drizzle-kit:
         specifier: ^0.31.11
         version: 0.31.11
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
       jsdom:
         specifier: ^26.1.0
         version: 26.1.0

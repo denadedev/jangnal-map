@@ -127,6 +127,7 @@ pnpm db:parity    # 화면이 읽는 DB 스냅샷이 JSON 스냅샷과 같은지
 node scripts/compare-sites.mjs https://<JSON 모드 배포> https://<DB 모드 배포>
 ```
 
+- 운영 배포에서는 GitOps의 PreSync Job(`migrate-job.yaml`)이 같은 이미지로 `node apps/web/migrate.mjs`를 실행해 마이그레이션을 적용한다. Job은 테이블 소유 계정의 `DATABASE_URL`을 `jangnal-migrate-env` Secret에서 읽고, 앱은 읽기 전용 계정을 `jangnal-web-env`에서 읽는다. 실패하면 Argo CD 동기화가 멈추고 기존 Pod가 계속 응답한다. 시드는 처음 한 번 `pnpm db:seed`로 직접 넣는다.
 - 스키마는 `src/db/schema.ts`, 코드값과 화면 이름은 `src/db/codes.ts`에서 관리한다. DB에는 enum 대신 코드값 text를 저장한다.
 - `updated_at`은 DB 트리거 없이 Drizzle `$onUpdate`가 갱신한다. 그래서 DB 수정은 모두 Drizzle을 거친다.
 - 스키마를 바꾸면 `pnpm db:generate`로 마이그레이션을 만들고, 새 테이블·컬럼의 comment는 SQL 마이그레이션에 함께 넣는다.

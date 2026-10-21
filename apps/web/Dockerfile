@@ -16,6 +16,9 @@ ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
 COPY --from=build --chown=node:node /app/apps/web/.next/standalone ./
 COPY --from=build --chown=node:node /app/apps/web/public ./apps/web/public
 COPY --from=build --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
+# 배포 때 마이그레이션 Job이 같은 이미지로 `node apps/web/migrate.mjs`를 실행한다.
+COPY --from=build --chown=node:node /app/apps/web/.next/migrate.mjs ./apps/web/migrate.mjs
+COPY --from=build --chown=node:node /app/apps/web/drizzle ./apps/web/drizzle
 USER 1000:1000
 EXPOSE 3000
 CMD ["node", "apps/web/server.js"]

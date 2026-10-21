@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.5.1] - 2026-10-21
+
+### Added
+
+- 이미지에 마이그레이션 실행 파일(`apps/web/migrate.mjs`)과 `drizzle/` 폴더를 넣었습니다. GitOps의 PreSync Job이 배포 직전에 `node apps/web/migrate.mjs`로 마이그레이션을 적용합니다. 이미 적용한 파일은 건너뜁니다.
+- CI가 이미지의 마이그레이션을 빈 DB에 두 번 적용해 보고, GitOps 갱신 때 마이그레이션 Job(`migrate-job.yaml`)이 있으면 Deployment와 같은 이미지 SHA로 함께 바꿉니다.
+
 ## [0.4.5.0] - 2026-10-21
 
 ### Added

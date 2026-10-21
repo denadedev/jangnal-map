@@ -97,3 +97,20 @@ GitOps의 이미지 SHA를 검증된 이전 값으로 변경한다.
   `vercel.json`은 제거했으며 과거 GitHub Release는 이력으로 보존한다.
 
 참고: [Next.js standalone 출력](https://nextjs.org/docs/app/api-reference/config/next-config-js/output).
+
+## 시장 데이터 DB (PostgreSQL, Drizzle)
+
+시장 데이터를 JSON에서 PostgreSQL로 옮기는 중이다. 지금 화면은 아직 JSON을 읽고, DB는 스키마와 시드만 있다.
+스키마 설계와 결정 사항은 프로젝트 문서 `2026-10-21-db-schema-draft.md`, 이전 계획은 `2026-10-21-prd-db-migration.md`를 따른다.
+
+```bash
+cd apps/web
+export DATABASE_URL=postgres://<user>:<password>@<host>:5432/<db>
+pnpm db:migrate   # drizzle/ 마이그레이션 적용 (테이블 + comment)
+pnpm db:seed      # 빈 DB에 public/data JSON을 넣는다. 검사 실패나 기존 데이터가 있으면 아무것도 넣지 않는다
+pnpm db:verify    # 행 수가 JSON과 같은지, uuid 단일 PK·comment·트리거/enum/배열 없음 규칙을 지키는지 확인
+```
+
+- 스키마는 `src/db/schema.ts`, 코드값과 화면 이름은 `src/db/codes.ts`에서 관리한다. DB에는 enum 대신 코드값 text를 저장한다.
+- `updated_at`은 DB 트리거 없이 Drizzle `$onUpdate`가 갱신한다. 그래서 DB 수정은 모두 Drizzle을 거친다.
+- 스키마를 바꾸면 `pnpm db:generate`로 마이그레이션을 만들고, 새 테이블·컬럼의 comment는 SQL 마이그레이션에 함께 넣는다.

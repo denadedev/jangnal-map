@@ -190,9 +190,20 @@ jobs:
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
 
+      # docker push는 새 러너에서 Harbor에 이미 있는 레이어도 다시 올린다. 같은 빌더 캐시로 buildx가
+      # 직접 올리면 레이어 digest를 미리 알아 Harbor에 있는 레이어는 건너뛴다. 빌드는 캐시에서 바로 끝난다.
       - name: Push the image
         if: steps.latest.outputs.publish == 'true'
-        run: docker push "$IMAGE"
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.IMAGE }}
+          build-args: |
+            NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=${{ env.MAP_CLIENT_ID }}
+          cache-from: type=gha
 
     outputs:
       published: ${{ steps.latest.outputs.publish }}

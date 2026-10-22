@@ -15,4 +15,13 @@ describe("localized explorer URLs", () => {
     expect(getMapPath("ko")).toBe("/");
     expect(buildExplorerPath("ko", { query: "", mode: "today", marketId: null })).toBe("/");
   });
+
+  it("keeps a linked market set", () => {
+    expect(buildExplorerPath("ko", {
+      query: "",
+      mode: "today",
+      marketId: "b",
+      marketSet: ["a", "b"],
+    })).toBe("/?markets=a%2Cb&market=b");
+  });
 });

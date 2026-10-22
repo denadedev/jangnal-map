@@ -86,6 +86,17 @@ describe("MapParticipateButton", () => {
     await userEvent.click(screen.getByRole("button", { name: "단골 장 꿀팁 남기기" }));
     expect(screen.getByText("시장 이름이나 지역으로 찾아 주세요")).toBeInTheDocument();
   });
+
+  it("lists the linked markets first and counts submissions as map_set", async () => {
+    render(<MapParticipateButton markets={markets} today={today} currentLocation={null} suggested={{ markets: [markets[1]], label: "스레드에서 본 시장" }} />);
+    await userEvent.click(screen.getByRole("button", { name: "오늘 장 꿀팁 한 줄 남기기" }));
+
+    const picker = screen.getByRole("dialog", { name: "어느 장이었나요?" });
+    expect(within(picker).getByText("스레드에서 본 시장 1곳 · 다른 장은 검색해 주세요")).toBeInTheDocument();
+    expect(within(picker).queryByText("정선아리랑시장")).not.toBeInTheDocument();
+    await userEvent.click(within(picker).getByRole("button", { name: /정선 임계시장/ }));
+    expect(umami.track).toHaveBeenCalledWith("specialty_form_open", { source: "map_set" });
+  });
 });
 
 describe("MarketPicker", () => {

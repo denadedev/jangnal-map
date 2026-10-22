@@ -555,6 +555,34 @@ describe("MarketExplorer", () => {
       expect(window.location.search).toBe("");
     });
 
+    it("offers a way back to the linked markets for a few seconds after leaving", async () => {
+      const user = userEvent.setup();
+      window.history.replaceState(null, "", "/?markets=tongbok,uncheon&utm_source=threads");
+      render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
+
+      await user.click(await screen.findByRole("button", { name: /스레드에서 본 시장 2곳/ }));
+      expect(screen.getByText("전체 시장을 보여 드려요")).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "스레드 시장만 다시 보기" }));
+      expect(await screen.findByRole("button", { name: /스레드에서 본 시장 2곳/ })).toBeInTheDocument();
+      await waitFor(() => expect(new URLSearchParams(window.location.search).get("markets")).toBe("tongbok,uncheon"));
+    });
+
+    it("hides the way back after six seconds", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      try {
+        const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+        window.history.replaceState(null, "", "/?markets=tongbok&utm_source=threads");
+        render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
+
+        await user.click(await screen.findByRole("button", { name: /스레드에서 본 시장 1곳/ }));
+        expect(screen.getByRole("button", { name: "스레드 시장만 다시 보기" })).toBeInTheDocument();
+        act(() => { vi.advanceTimersByTime(6_000); });
+        expect(screen.queryByRole("button", { name: "스레드 시장만 다시 보기" })).not.toBeInTheDocument();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it("leaves the set when a date chip is picked", async () => {
       const user = userEvent.setup();
       window.history.replaceState(null, "", "/?markets=tongbok&utm_source=threads");

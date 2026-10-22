@@ -97,6 +97,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   const [mapStatus, setMapStatus] = useState<"idle" | "loading" | "ready" | "error">(mapClientId ? "idle" : "error");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [marketSet, setMarketSet] = useState<MarketSetLink | null>(null);
+  // 칩으로 묶음을 푼 직전 묶음. 잠깐 "다시 보기"를 띄워 실수로 누른 사람이 돌아갈 수 있게 한다.
+  const [restorableSet, setRestorableSet] = useState<MarketSetLink | null>(null);
   const marketSetViewTrackedRef = useRef(false);
   const returnToSearchRef = useRef(false);
   useLayoutEffect(() => {
@@ -245,9 +247,23 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
 
   const exitMarketSet = useCallback((via: "button" | "search" | "date") => {
     track("market-set-exit", { via });
+    setRestorableSet(via === "button" ? marketSet : null);
     setMarketSet(null);
     setMode("today");
-  }, []);
+  }, [marketSet]);
+
+  const restoreMarketSet = () => {
+    if (!restorableSet) return;
+    track("market-set-restore", { source: restorableSet.source });
+    setMarketSet(restorableSet);
+    setRestorableSet(null);
+  };
+
+  useEffect(() => {
+    if (!restorableSet) return;
+    const timer = window.setTimeout(() => setRestorableSet(null), 6_000);
+    return () => window.clearTimeout(timer);
+  }, [restorableSet]);
 
   // 검색하면 묶음을 풀고 전체 시장에서 찾는다.
   useEffect(() => {
@@ -464,7 +480,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       >
         <MarketMap
           locale={locale}
-          overlay={(submissionsEnabled || setActive) && locale === "ko" && dateReady && !isPending && !isError && !query.trim() && sheetSnap !== "full" && !selectedMarket
+          overlay={(submissionsEnabled || setActive || restorableSet) && locale === "ko" && dateReady && !isPending && !isError && !query.trim() && sheetSnap !== "full" && !selectedMarket
             ? <>
               {submissionsEnabled ? <MapParticipateButton
                 markets={markets}
@@ -477,6 +493,13 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
                   <span><span>{setLabel} {setMarkets.length}곳만 보는 중</span><strong>전국 시장 모두 보기</strong></span>
                   <span className="market-set-chip-go" aria-hidden="true"><Icon name="close" /></span>
                 </button>
+              ) : restorableSet ? (
+                <div className="market-set-toast" role="status">
+                  <p>전체 시장을 보여 드려요</p>
+                  <button type="button" onClick={restoreMarketSet}>
+                    {restorableSet.source === "threads" ? "스레드 시장만 다시 보기" : "골라 둔 시장만 다시 보기"}
+                  </button>
+                </div>
               ) : null}
             </>
             : null}

@@ -151,6 +151,8 @@ export function MarketMap({ locale = "ko", overlay, fitMarkets, markets, searchM
   useEffect(() => {
     const map = mapRef.current;
     const naver = window.naver;
+    // 묶음이 풀리면 기억을 지워, 다시 보기로 돌아왔을 때 또 맞춘다.
+    if (!fitKey) fittedKeyRef.current = "";
     if (status !== "ready" || !map || !naver || !fitKey || fittedKeyRef.current === fitKey) return;
     fittedKeyRef.current = fitKey;
     const located = (fitMarkets ?? []).filter((market) => market.latitude !== null && market.longitude !== null);

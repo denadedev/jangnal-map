@@ -412,6 +412,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         onMobileSearchOpen={() => setIsSearchOpen(true)}
         onModeChange={setMode}
         onQueryChange={setQuery}
+        participate={submissionsEnabled && locale === "ko" && dateReady && !isPending && !isError ? { markets, today, currentLocation } : null}
       />
       {locale === "en" ? <p className="english-map-note">Market names and addresses are in Korean. Dates use Korea time (KST). <a href="/en">How market days work</a></p> : null}
       {urlNotice ? <p className="english-map-note" role="status">{urlNotice}</p> : null}

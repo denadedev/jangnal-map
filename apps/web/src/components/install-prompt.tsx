@@ -88,7 +88,7 @@ export interface InstallPromptState {
   /** 안드로이드는 설치 창을, 그 밖에는 따라 할 안내 시트를 연다. */
   start: () => Promise<void>;
   closeGuide: () => void;
-  dismiss: (source: "banner" | "menu") => void;
+  dismiss: (source: "banner") => void;
 }
 
 export function useInstallPrompt(): InstallPromptState {
@@ -150,7 +150,7 @@ export function useInstallPrompt(): InstallPromptState {
 
   const closeGuide = useCallback(() => setGuideOpen(false), []);
 
-  const dismiss = (source: "banner" | "menu") => {
+  const dismiss = (source: "banner") => {
     trackEvent("install-dismiss", { platform: platform ?? "", source });
     writeStorage(window.localStorage, DISMISS_STORAGE_KEY, String(Date.now()));
     setPlatform(null);

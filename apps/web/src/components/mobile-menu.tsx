@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { formatPatternLabel, getPatternForDate } from "../lib/jangnal-dates";
+import { getKoreaCalendarDate } from "../lib/korea-date";
 import type { Locale } from "../lib/locale";
 import { getUiCopy } from "../lib/ui-copy";
-import type { InstallPlatform } from "./install-prompt";
+import { Icon } from "./icon";
+import { trackEvent } from "./install-prompt";
 import { AppIcon } from "./install-ui";
 
 export interface MobileMenuProps {
@@ -11,10 +14,11 @@ export interface MobileMenuProps {
   languageSwitchHref?: string;
   open: boolean;
   onClose: () => void;
-  installAction?: (() => void | Promise<void>) | null;
-  installPlatform?: InstallPlatform | null;
-  onDismissInstall?: () => void;
+  /** 있으면 "다녀온 장 이야기 들려주기"를 보여 준다. 시장 목록이 있는 홈 지도에서만 넘긴다. */
+  onParticipate?: () => void;
 }
+
+const TOAST_DURATION_MS = 2400;
 
 const getFocusable = (container: HTMLElement): HTMLElement[] => Array.from(
   container.querySelectorAll<HTMLElement>(
@@ -27,12 +31,17 @@ export function MobileMenu({
   languageSwitchHref,
   open,
   onClose,
-  installAction,
-  installPlatform = null,
-  onDismissInstall,
+  onParticipate,
 }: MobileMenuProps) {
   const ui = getUiCopy(locale);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const [toast, setToast] = useState<{ message: string; isError: boolean } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), TOAST_DURATION_MS);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
 
   useEffect(() => {
     if (!open || !dialogRef.current) return;
@@ -78,6 +87,35 @@ export function MobileMenu({
 
   if (!open) return null;
 
+  // 메뉴는 연 뒤에만 그려져 서버 렌더와 날짜가 어긋나지 않는다.
+  const today = getKoreaCalendarDate(new Date());
+  const todayDigits = formatPatternLabel(getPatternForDate(today)).replace("일장", "");
+  const dateLabel = new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ko-KR", { month: "long", day: "numeric", weekday: "long" }).format(today);
+  const otherLanguageHref = languageSwitchHref ?? (locale === "en" ? "/" : "/en/map");
+
+  const share = async () => {
+    const url = `${window.location.origin}${locale === "en" ? "/en/map" : "/"}`;
+    const text = locale === "en"
+      ? `${ui.menuToday} a ${todayDigits} ${ui.menuTodaySuffix}. ${ui.menuShareText}`
+      : `${ui.menuToday} ${todayDigits}${ui.menuTodaySuffix}이에요. ${ui.menuShareText}`;
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ title: ui.brand, text, url });
+        trackEvent("menu-share", { method: "native" });
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      trackEvent("menu-share", { method: "copy" });
+      setToast({ message: ui.copySucceeded, isError: false });
+    } catch {
+      setToast({ message: ui.copyFailed, isError: true });
+    }
+  };
+
   return (
     <div className="mobile-menu-backdrop" role="presentation" onMouseDown={(event) => {
       if (event.currentTarget === event.target) onClose();
@@ -92,37 +130,48 @@ export function MobileMenu({
         tabIndex={-1}
       >
         <div className="mobile-menu-heading">
-          <strong>{ui.brand}</strong>
-          <button type="button" className="mobile-menu-close" aria-label={ui.closeMenu} onClick={onClose}>×</button>
+          <span className="mobile-menu-brand"><AppIcon size={36} /><strong>{ui.brand}</strong></span>
+          <button type="button" className="mobile-menu-close" aria-label={ui.closeMenu} onClick={onClose}><Icon name="close" /></button>
         </div>
-        {installPlatform ? (
-          <section className="mobile-menu-install" aria-label={ui.installTitle}>
-            <div className="mobile-menu-install-top">
-              <AppIcon size={48} />
-              <div>
-                <strong>{ui.installTitle}</strong>
-                <p>{ui.installDescription}</p>
-              </div>
+        <div className="mobile-menu-today">
+          <p>{dateLabel}</p>
+          <p className="mobile-menu-today-line">
+            {ui.menuToday} <span className="jn mobile-menu-today-digits">{todayDigits}</span> {ui.menuTodaySuffix}
+          </p>
+        </div>
+        <div className="mobile-menu-body">
+          <button type="button" className="mobile-menu-share" onClick={() => void share()}>
+            <Icon name="share" />{ui.menuShare}
+          </button>
+          <nav aria-label={ui.menu}>
+            <div className="mobile-menu-group">
+              {locale === "ko"
+                ? <a className="mobile-menu-link" href="/jangnal"><Icon name="pin" /><span>지역별 장날</span><Icon name="more" className="mobile-menu-chevron" /></a>
+                : <a className="mobile-menu-link" href="/en"><Icon name="map" /><span>Market-day guide</span><Icon name="more" className="mobile-menu-chevron" /></a>}
+              <a className="mobile-menu-link" href="/onnuri"><Icon name="ticket" /><span>{ui.onnuri}</span><Icon name="more" className="mobile-menu-chevron" /></a>
             </div>
-            <div className="mobile-menu-install-actions">
-              <button type="button" className="mobile-menu-install-action" onClick={() => void installAction?.()}>
-                {installPlatform === "android" ? ui.add : ui.addHow}
-              </button>
-              <button type="button" className="mobile-menu-dismiss" onClick={onDismissInstall}>{ui.dismissInstall}</button>
+            <div className="mobile-menu-group">
+              {onParticipate ? (
+                <button type="button" className="mobile-menu-link" onClick={onParticipate}><Icon name="chat" /><span>{ui.menuStory}</span><Icon name="more" className="mobile-menu-chevron" /></button>
+              ) : null}
+              <a className="mobile-menu-link" href="/report?kind=service"><Icon name="flag" /><span>{ui.report}</span><Icon name="more" className="mobile-menu-chevron" /></a>
             </div>
-          </section>
-        ) : null}
-        <nav aria-label={ui.menu}>
-          <a className="mobile-menu-link" href="/en">{locale === "en" ? "Market-day guide" : "English guide"}</a>
-          {locale === "ko" ? <a className="mobile-menu-link" href="/jangnal">지역별 장날</a> : null}
-          <a className="mobile-menu-link" href="/onnuri">{ui.onnuri}</a>
-          <a className="mobile-menu-link" href="/report?kind=service">{ui.report}</a>
-          <a className="mobile-menu-link" href="/privacy">{ui.privacy}</a>
-          <a className="mobile-menu-link" href="/terms">{ui.terms}</a>
-          <a className="mobile-menu-link" href="/about">{ui.about}</a>
-          <a className="mobile-menu-link" href="/about#data-policy">{ui.dataPolicy}</a>
-          <a className="mobile-menu-link" href={languageSwitchHref ?? (locale === "en" ? "/" : "/en/map")}>{locale === "en" ? "한국어" : "English map"}</a>
-        </nav>
+          </nav>
+        </div>
+        <div className="mobile-menu-foot">
+          <nav className="mobile-menu-policy" aria-label={ui.about}>
+            <a href="/about">{ui.about}</a>
+            <a href="/terms">{ui.terms}</a>
+            <a href="/about#data-policy">{ui.dataPolicy}</a>
+            <a href="/privacy">{ui.privacy}</a>
+          </nav>
+          <div className="mobile-menu-language" role="group" aria-label={ui.language}>
+            {locale === "ko"
+              ? <><span aria-current="true">한국어</span><a href={otherLanguageHref} lang="en">English</a></>
+              : <><a href={otherLanguageHref} lang="ko">한국어</a><span aria-current="true">English</span></>}
+          </div>
+        </div>
+        {toast ? <p className="mobile-menu-toast" role={toast.isError ? "alert" : "status"}>{toast.isError ? null : <Icon name="check" />}{toast.message}</p> : null}
       </div>
     </div>
   );

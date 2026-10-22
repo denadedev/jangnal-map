@@ -15,7 +15,7 @@ import { MobileHomeControls } from "./mobile-home-controls";
 import { MobileMarketSheet, type SheetMode, type SheetSnap } from "./mobile-market-sheet";
 import { MobileSearchScreen } from "./mobile-search-screen";
 import { MarketDetail } from "./market-detail";
-import { findNearbyMarkets, TodayHighlightPrompt } from "./today-highlight-prompt";
+import { findNearbyMarkets, MapParticipateButton, TodayHighlightPrompt } from "./today-highlight-prompt";
 import type { DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
 import { MarketMap } from "./market-map";
@@ -423,6 +423,9 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       >
         <MarketMap
           locale={locale}
+          overlay={submissionsEnabled && locale === "ko" && dateReady && !isPending && !isError && !query.trim() && sheetSnap !== "full" && !selectedMarket
+            ? <MapParticipateButton markets={markets} today={today} currentLocation={currentLocation} />
+            : null}
           markets={filteredMarkets}
           searchMarkets={queryMatches}
           searchQuery={query}

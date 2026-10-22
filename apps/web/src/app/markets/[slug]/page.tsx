@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { MarketNextDate } from "../../../components/market-next-date";
 import { MarketShareButton } from "../../../components/market-share-button";
 import { MarketEditorialSections } from "../../../components/market-editorial-sections";
-import { MarketHighlights } from "../../../components/market-highlights";
+import { MarketHighlights, MarketHighlightsTeaser } from "../../../components/market-highlights";
 import { SiteFooter } from "../../../components/site-footer";
 import { MobileAppBar } from "../../../components/mobile-app-bar";
 import { OnnuriSummary } from "../../../components/onnuri-summary";
@@ -73,6 +73,9 @@ export default async function MarketPage({ params }: MarketPageProps) {
       ? `${market.name} 영업일`
       : `${market.name} 전통시장 정보`;
   const relatedMarkets = catalog.findRelatedMarkets(market);
+  const highlights = catalog.findMarketHighlights(market.id);
+  const submissionsEnabled = highlightSubmissionsEnabled();
+  const nearbyMarkets = relatedMarkets.slice(0, 3).map((related) => ({ id: related.id, name: related.name, scheduleLabel: formatSchedulePattern(related) }));
   const region = getMarketRegion(market);
   const regionLanding = market.schedule.kind === "digit-pair" && region && catalog.isLaunchRegion(region.slug) ? region : null;
   const jsonLd = {
@@ -144,6 +147,13 @@ export default async function MarketPage({ params }: MarketPageProps) {
           </section>
           <div className={`${styles.section} ${styles.nextDate}`}>
             <MarketNextDate market={market} />
+            <MarketHighlightsTeaser
+              market={market}
+              scheduleLabel={formatSchedulePattern(market)}
+              initialHighlights={highlights}
+              submissionsEnabled={submissionsEnabled}
+              nearbyMarkets={nearbyMarkets}
+            />
           </div>
           <section className={styles.section}>
             <h2>방문 정보</h2>
@@ -171,8 +181,9 @@ export default async function MarketPage({ params }: MarketPageProps) {
               marketId={market.id}
               marketName={market.name}
               scheduleLabel={formatSchedulePattern(market)}
-              initialHighlights={catalog.findMarketHighlights(market.id)}
-              submissionsEnabled={highlightSubmissionsEnabled()}
+              initialHighlights={highlights}
+              submissionsEnabled={submissionsEnabled}
+              nearbyMarkets={nearbyMarkets}
             />
           </div>
           {relatedMarkets.length > 0 ? (

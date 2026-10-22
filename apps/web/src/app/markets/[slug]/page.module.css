@@ -14,9 +14,9 @@
 .section h2 { margin: 0 0 18px; font-size: 18px; }
 .scheduleAnswer { margin: 0; font-size: 15px; line-height: 1.7; }
 .nextDate > section { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.nextDate p { margin: 0; color: var(--muted); font-size: 15px; }
-.nextDate strong { display: block; margin-top: 6px; font-size: 24px; }
-.nextDate span { flex: 0 0 auto; border-radius: var(--r-pill); padding: 8px 11px; background: var(--persimmon); color: white; font-size: 15px; font-weight: 700; }
+.nextDate > section p { margin: 0; color: var(--muted); font-size: 15px; }
+.nextDate > section strong { display: block; margin-top: 6px; font-size: 24px; }
+.nextDate > section span { flex: 0 0 auto; border-radius: var(--r-pill); padding: 8px 11px; background: var(--persimmon); color: white; font-size: 15px; font-weight: 700; }
 .info { display: grid; gap: 12px; margin: 0; }
 .info div { display: grid; grid-template-columns: 72px 1fr; gap: 12px; font-size: 15px; line-height: 1.55; }
 .info dt { color: var(--muted); }

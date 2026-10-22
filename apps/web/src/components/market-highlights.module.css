@@ -14,8 +14,39 @@
 .items li:last-child { border-bottom: 0; }
 .what { display: block; font-size: 16px; font-weight: 600; line-height: 1.4; }
 .description { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); line-height: 1.55; }
-.empty { margin: 14px 0 0; font-size: 15px; line-height: 1.6; color: var(--muted); }
-.empty strong { display: block; color: var(--ink); font-weight: 600; margin-bottom: 2px; }
+/* 제보 유도 (Open Design 2026-10-22 제보 진입점 시안). 빈 상태는 질문 + 카테고리 칩, 있으면 조용한 칩 줄. */
+.question { margin: 14px 0 0; font-size: 16px; font-weight: 600; line-height: 1.5; }
+.questionHint { margin: 2px 0 0; font-size: 14px; line-height: 1.55; color: var(--muted); }
+.entryChips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+.entryChip { min-height: 48px; padding: 0 12px 0 16px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--surface); color: var(--ink); display: flex; align-items: center; gap: 8px; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; text-align: left; white-space: nowrap; }
+.entryChip:hover { background: var(--surface-2); border-color: var(--muted); }
+.entryChip :global(.icon) { width: 20px; height: 20px; flex: none; }
+.entryChip span { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.chevron { width: 16px; height: 16px; flex: none; color: var(--muted); }
+.writeButton { min-height: 44px; margin-top: 12px; padding: 0 16px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--surface); color: var(--ink); display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.writeButton:hover { background: var(--surface-2); }
+.writeButton :global(.icon) { width: 16px; height: 16px; }
+.more { margin-top: 24px; }
+.moreLabel { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.quietChips, .contextChips { display: flex; flex-wrap: wrap; gap: 8px; }
+.quietChip { min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.quietChip:hover { background: var(--surface-2); border-color: var(--muted); }
+
+/* 다음 장날 아래 한 줄 티저. 버튼이 아닌 행처럼 보여 장날 카드의 무게를 빼앗지 않는다. */
+.teaser { width: 100%; min-height: 44px; margin: 8px 0 0; padding: 0 4px; border: 0; border-radius: var(--r-s); background: transparent; color: var(--ink); display: flex; align-items: center; gap: 8px; font: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; }
+.teaser:hover { background: var(--surface-2); }
+.teaser > :global(.icon):first-child { width: 20px; height: 20px; flex: none; color: var(--muted); }
+.teaser > span { flex: 1; }
+.teaserSep { color: var(--muted); font-weight: 400; }
+/* 장날 당일·다음 날 카드. 당일만 인주색으로 강조한다. */
+.context { position: relative; margin: 12px 0 0; padding: 16px; border-radius: var(--r-m); background: var(--accent-soft); }
+.contextQuiet { background: var(--surface-2); }
+.contextClose { position: absolute; top: 4px; right: 4px; width: 44px; height: 44px; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+.contextClose:hover { background: var(--surface); }
+.contextClose :global(.icon) { width: 20px; height: 20px; }
+.contextTitle { margin: 0; font-size: 16px; font-weight: 700; color: var(--accent-ink); }
+.contextQuiet .contextTitle { color: var(--ink); }
+.contextBody { margin: 4px 44px 12px 0; font-size: 14px; line-height: 1.5; color: var(--ink); }
 .tonal { width: 100%; min-height: 48px; margin-top: 16px; border: 0; border-radius: var(--r-m); background: var(--surface-2); color: var(--ink); font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
 .tonal:hover { background: var(--line); }
 .tonal :global(.icon) { width: 20px; height: 20px; }
@@ -65,4 +96,31 @@
 .sent { margin: 20px 0 0; padding: 14px 16px; border-radius: var(--r-m); background: var(--surface-2); text-align: left; display: flex; gap: 12px; align-items: center; }
 .sent .what { font-size: 16px; }
 .meta { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.swap { min-height: 32px; margin-left: 4px; padding: 0 6px; border: 0; border-radius: var(--r-s); background: transparent; color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.swap:hover { background: var(--surface-2); }
+.followUp { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+.followUpTitle { margin: 0; font-size: 16px; font-weight: 700; }
+.followUpHint { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
+.followUp ul { list-style: none; margin: 8px 0 0; padding: 0; }
+.followUpRow { width: 100%; min-height: 60px; padding: 0 4px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); display: flex; align-items: center; gap: 12px; font: inherit; text-align: left; cursor: pointer; }
+.followUpRow:hover { background: var(--surface-2); }
+.followUpRow > span { flex: 1; display: flex; flex-direction: column; }
+.followUpRow strong { font-size: 16px; font-weight: 600; }
+.followUpRow strong + span { font-size: 14px; color: var(--muted); }
+
+/* 메인 지도 결과 시트의 "오늘 열린 장" 카드와 장 고르기 시트 */
+.todayCard { position: relative; margin: 16px 0 0; padding: 16px; border-radius: var(--r-m); background: var(--accent-soft); }
+.todayCard .contextTitle { color: var(--ink); }
+.todayAction { min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--surface); color: var(--ink); display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.todayAction:hover { background: var(--surface-2); }
+.todayAction :global(.icon) { width: 16px; height: 16px; }
+.pickerSearch { margin-top: 16px; }
+.pickerList { list-style: none; margin: 8px 0 0; padding: 0; }
+.pickerRow { width: 100%; min-height: 64px; padding: 8px 4px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); display: flex; align-items: center; gap: 12px; font: inherit; text-align: left; cursor: pointer; }
+.pickerRow:hover { background: var(--surface-2); }
+.pickerTile { width: 48px; height: 48px; flex: none; border-radius: var(--r-s); background: var(--accent); color: var(--surface); display: grid; place-items: center; font-size: 20px; }
+.pickerRow > span:nth-child(2) { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pickerRow strong { font-size: 16px; font-weight: 600; }
+.pickerRow strong + span { font-size: 14px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pickerEmpty { margin: 16px 0 0; font-size: 14px; color: var(--muted); }
 .visuallyHidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

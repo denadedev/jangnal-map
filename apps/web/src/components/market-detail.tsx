@@ -8,7 +8,7 @@ import { getDday, formatKoreanDate, formatMarketType, formatSchedulePattern, toI
 import { getMarketDates, getNextMarketDate } from "../lib/schedule";
 import { getUiCopy } from "../lib/ui-copy";
 import { MarketDirectionsMenu } from "./market-directions-menu";
-import { MarketHighlights } from "./market-highlights";
+import { MarketHighlights, MarketHighlightsTeaser, type HighlightMarketRef } from "./market-highlights";
 import { MarketShareButton } from "./market-share-button";
 import { OnnuriSummary } from "./onnuri-summary";
 import { formatPatternDigits } from "./jangnal-number";
@@ -27,6 +27,8 @@ interface MarketDetailProps {
   onClose: () => void;
   /** 방문자 제보를 받을 수 있는지. false면 제보 버튼을 숨긴다. */
   submissionsEnabled?: boolean;
+  /** 제보를 마친 뒤 이어서 제보하도록 보여 줄 같은 지역 시장. */
+  nearbyMarkets?: HighlightMarketRef[];
 }
 
 const formatSourceDate = (value: string | null, locale: Locale): string => {
@@ -34,7 +36,7 @@ const formatSourceDate = (value: string | null, locale: Locale): string => {
   return locale === "en" ? value : value.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$1.$2.$3");
 };
 
-export function MarketDetail({ locale = "ko", mobile = false, market, detailPath, sharePath, today, selectedDate, onVisitDateChange, onClearDate, onClose, submissionsEnabled }: MarketDetailProps) {
+export function MarketDetail({ locale = "ko", mobile = false, market, detailPath, sharePath, today, selectedDate, onVisitDateChange, onClearDate, onClose, submissionsEnabled, nearbyMarkets }: MarketDetailProps) {
   const ui = getUiCopy(locale);
   const [monthOffset, setMonthOffset] = useState(0);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -158,6 +160,8 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
       {market.schedule.kind === "daily" ? <p className="next-date-reference">{locale === "en" ? "Public data lists a daily schedule. Check individual stall opening days and regular market closures before visiting." : "공공데이터에 등록된 상설 일정입니다. 점포별 영업일과 정기휴무는 방문 전 확인하세요."}</p> : null}
       {market.schedule.kind === "digit-pair" ? <p className="next-date-reference">{locale === "en" ? `From today (${formatKoreanDate(today, locale)}). This is separate from your selected visit date.` : `오늘 ${formatKoreanDate(today)} 기준이에요. 선택한 방문 날짜와는 다른 기준이에요.`}{nextDate && onVisitDateChange ? <button type="button" className="mobile-visit-date-button" onClick={() => onVisitDateChange(toIsoDate(nextDate))}>{locale === "en" ? "Use this market day" : "이 장날을 방문 날짜로"}</button> : null}</p> : null}
 
+      {locale === "ko" ? <MarketHighlightsTeaser market={market} scheduleLabel={formatSchedulePattern(market)} submissionsEnabled={submissionsEnabled} nearbyMarkets={nearbyMarkets} /> : null}
+
       <section className="source-summary" aria-label={locale === "en" ? "Market day source" : "장날 정보의 근거"}>
         <strong>{locale === "en" ? "Market day source" : "장날 정보의 근거"}</strong>
         <a href={market.scheduleSource?.url ?? market.source.url} target="_blank" rel="noreferrer" lang="ko">{market.scheduleSource?.name ?? market.source.name}</a>
@@ -217,7 +221,7 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
 
       {locale === "ko" ? (
         <div className="detail-section">
-          <MarketHighlights marketId={market.id} marketName={market.name} scheduleLabel={formatSchedulePattern(market)} submissionsEnabled={submissionsEnabled} headingLevel={3} />
+          <MarketHighlights marketId={market.id} marketName={market.name} scheduleLabel={formatSchedulePattern(market)} submissionsEnabled={submissionsEnabled} nearbyMarkets={nearbyMarkets} headingLevel={3} />
         </div>
       ) : null}
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.7.0] - 2026-10-22
+
+### Added
+
+- 방문자 제보 진입점을 화면 위쪽과 메인 지도로 넓혔다. 시장 상세와 지도 패널의 다음 장날 바로 아래에 한 줄 티저("이 장 이야기를 처음 남겨 주세요", 제보가 있으면 "방문자 이야기 N개 · 보기")를 두고, 5일장의 장날 당일과 다음 날에는 "오늘 장날이에요 / 어제 장날 다녀오셨나요?" 카드로 바꾼다. 카드를 닫으면 그 장날 동안 다시 뜨지 않는다.
+- 메인 지도 결과 시트에 "오늘 열린 장 다녀오셨나요?" 카드를 더했다. 누르면 오늘 장이 서는 5일장 목록(검색 가능, 위치를 허용하면 가까운 순)에서 장을 고르고 바로 제보 시트로 이어진다. 닫으면 그날은 숨긴다.
+- 제보를 보낸 뒤 같은 시·군·구의 다른 장을 최대 3곳 보여 주고, 누르면 그 장 제보를 이어서 쓴다.
+- Umami: `specialty_form_open`·`specialty_submit_success`·`specialty_submit_error`에 진입점 `source`(section, section_chip, more_chip, teaser, context, followup, map_today)를 붙였다. `highlight_teaser_read`, `highlight_context_dismiss`, `highlight_today_card_open`, `highlight_today_card_dismiss`를 새로 보낸다.
+
+### Changed
+
+- "방문자가 알려 준 것"의 빈 상태를 "이 장에서 꼭 사야 하는 건 뭐예요?" 질문과 카테고리 칩 4개로 바꿨다. 칩을 누르면 그 카테고리가 고른 상태로 시트가 열리고, "무엇" 예시도 카테고리에 맞게 바뀐다. 제보가 있는 시장은 목록 아래에 "더 알려 주기" 칩 줄을 둔다.
+
 ## [0.4.6.0] - 2026-10-21
 
 ### Added

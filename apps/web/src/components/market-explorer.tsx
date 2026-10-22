@@ -15,6 +15,7 @@ import { MobileHomeControls } from "./mobile-home-controls";
 import { MobileMarketSheet, type SheetMode, type SheetSnap } from "./mobile-market-sheet";
 import { MobileSearchScreen } from "./mobile-search-screen";
 import { MarketDetail } from "./market-detail";
+import { findNearbyMarkets, TodayHighlightPrompt } from "./today-highlight-prompt";
 import type { DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
 import { MarketMap } from "./market-map";
@@ -517,6 +518,9 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
           }}>시장별 방문 정보</a> : null}
           <noscript><p>{locale === "en" ? "Enable JavaScript to use the map and date filters. Market guides remain available through the links below." : "지도와 날짜 검색은 자바스크립트가 필요합니다. 아래 시장별 방문 안내는 바로 읽을 수 있습니다."}</p></noscript>
         </div>
+        {submissionsEnabled && locale === "ko" && dateReady && !isPending && !isError ? (
+          <TodayHighlightPrompt markets={markets} today={today} currentLocation={currentLocation} />
+        ) : null}
 
         <section className="mobile-market-results" aria-label={locale === "en" ? "Market results" : "시장 결과"} data-map-status={mapStatus}>
           {!isPending && !isError && dateReady ? <div className="mobile-results-heading">
@@ -557,6 +561,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
               onClearDate={clearDateFilter}
               onClose={closeMarket}
               submissionsEnabled={submissionsEnabled}
+              nearbyMarkets={findNearbyMarkets(selectedMarket, markets)}
             />
           </MobileMarketSheet>
         ) : null}

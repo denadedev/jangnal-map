@@ -23,7 +23,7 @@ export function MobileHomeControls({ languageSwitchHref, ...props }: MobileHomeC
       setMenuOpen(false);
       return installPrompt.start();
     },
-    onDismissInstall: installPrompt.dismiss,
+    onDismissInstall: () => installPrompt.dismiss("menu"),
   };
 
   return (

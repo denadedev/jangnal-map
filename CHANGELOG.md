@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.9.1] - 2026-10-22
+
+### Added
+
+- 홈 화면 아이콘으로 앱을 처음 연 순간 Umami 이벤트 `pwa-first-launch`(`os`: ios·android·other)를 보낸다. 홈 화면 앱은 브라우저와 저장소를 따로 써서 이 이벤트가 곧 새 설치 수이고, 설치 완료 신호가 없는 아이폰 설치 수를 셀 수 있게 된다.
+- 설치 배너의 ×나 메뉴의 "14일 동안 닫기"를 누르면 `install-dismiss`(`platform`, `source`: banner·menu) 이벤트를 보낸다.
+
 ## [0.4.9.0] - 2026-10-22
 
 ### Changed

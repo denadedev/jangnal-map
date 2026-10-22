@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -85,6 +85,27 @@ describe("MapParticipateButton", () => {
     render(<MapParticipateButton markets={markets} today={new Date(2026, 9, 24)} currentLocation={null} />);
     await userEvent.click(screen.getByRole("button", { name: "단골 장 꿀팁 남기기" }));
     expect(screen.getByText("시장 이름이나 지역으로 찾아 주세요")).toBeInTheDocument();
+  });
+});
+
+describe("MarketPicker", () => {
+  it("fits the sheet to the visible area when the keyboard opens", async () => {
+    const visual = Object.assign(new EventTarget(), { offsetTop: 0, height: 800 });
+    Object.defineProperty(window, "visualViewport", { value: visual, configurable: true });
+    try {
+      render(<MapParticipateButton markets={markets} today={today} currentLocation={null} />);
+      await userEvent.click(screen.getByRole("button", { name: "오늘 장 꿀팁 한 줄 남기기" }));
+      const overlay = screen.getByRole("dialog", { name: "어느 장이었나요?" }).parentElement!;
+      expect(overlay.style.height).toBe("800px");
+
+      visual.height = 420;
+      visual.offsetTop = 120;
+      act(() => { visual.dispatchEvent(new Event("resize")); });
+      expect(overlay.style.height).toBe("420px");
+      expect(overlay.style.top).toBe("120px");
+    } finally {
+      Reflect.deleteProperty(window, "visualViewport");
+    }
   });
 });
 

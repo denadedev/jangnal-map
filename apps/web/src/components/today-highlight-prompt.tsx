@@ -129,7 +129,7 @@ function MarketPicker({ markets, todayMarkets, onPick, onClose }: { markets: Pub
     : todayMarkets;
 
   return (
-    <SheetOverlay labelledBy={titleId} onClose={onClose}>
+    <SheetOverlay labelledBy={titleId} onClose={onClose} className={styles.pickerSheet}>
       <div className={styles.sheetHead}>
         <div>
           <h2 id={titleId}>어느 장이었나요?</h2>

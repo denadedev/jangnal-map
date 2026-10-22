@@ -9,6 +9,7 @@ import { buildExplorerPath, type Locale } from "../lib/locale";
 import { getMarketBrowsePath, getMarketPagePath } from "../lib/market-path";
 import { filterMarkets, getDateRange, sortMarketsByDistance, type Coordinates } from "../lib/market-view";
 import { getKoreaCalendarDate, msUntilNextKoreaMidnight } from "../lib/korea-date";
+import { parseMarketSetLink, type MarketSetLink } from "../lib/market-set";
 import { resolveRegionAlias } from "../lib/region-aliases";
 import { getUiCopy } from "../lib/ui-copy";
 import { MobileHomeControls } from "./mobile-home-controls";
@@ -16,9 +17,11 @@ import { MobileMarketSheet, type SheetMode, type SheetSnap } from "./mobile-mark
 import { MobileSearchScreen } from "./mobile-search-screen";
 import { MarketDetail } from "./market-detail";
 import { findNearbyMarkets, MapParticipateButton, TodayHighlightPrompt } from "./today-highlight-prompt";
+import { track } from "./market-highlights";
 import type { DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
 import { MarketMap } from "./market-map";
+import { Icon } from "./icon";
 import { ReviewedMarketGuides, type ReviewedMarketGuide } from "./reviewed-market-guides";
 
 export interface ExplorerInitialState {
@@ -93,6 +96,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   const [urlNotice, setUrlNotice] = useState("");
   const [mapStatus, setMapStatus] = useState<"idle" | "loading" | "ready" | "error">(mapClientId ? "idle" : "error");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [marketSet, setMarketSet] = useState<MarketSetLink | null>(null);
+  const marketSetViewTrackedRef = useRef(false);
   const returnToSearchRef = useRef(false);
   useLayoutEffect(() => {
     if (sheetMode !== "results" && mobileSheetContentRef.current) mobileSheetContentRef.current.scrollTop = 0;
@@ -104,8 +109,14 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     retry: false,
   });
 
-  const range = useMemo(() => getDateRange(mode, today), [mode, today]);
+  // 링크로 받은 시장 묶음. 한국어 지도에서, 검색어가 없을 때만 쓴다.
+  const setMarkets = useMemo(() => marketSet
+    ? marketSet.ids.map((id) => markets.find((market) => market.id === id)).filter((market): market is PublicMarket => Boolean(market))
+    : [], [marketSet, markets]);
+  const setActive = setMarkets.length > 0;
+  const range = useMemo(() => setActive ? null : getDateRange(mode, today), [mode, setActive, today]);
   const referenceDate = range?.start ?? today;
+  const marketSetPath = marketSet?.ids ?? null;
   const includeDaily = Boolean(query.trim()) || mode === "all";
   const regionPrefixes = locale === "en" ? resolveRegionAlias(query) : null;
   const queryMatches = useMemo(
@@ -113,8 +124,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     [markets, query, regionPrefixes],
   );
   const filteredMarkets = useMemo(
-    () => filterMarkets(markets, query, range, { includeDaily, regionPrefixes }),
-    [includeDaily, markets, query, range, regionPrefixes],
+    () => setActive ? setMarkets : filterMarkets(markets, query, range, { includeDaily, regionPrefixes }),
+    [includeDaily, markets, query, range, regionPrefixes, setActive, setMarkets],
   );
   const inactiveMarkets = useMemo(
     () => query.trim() ? queryMatches.filter((market) => !filteredMarkets.includes(market)) : [],
@@ -130,7 +141,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   );
   const displayedMarkets = query.trim() ? queryMatches : filteredMarkets;
   const dateReady = hasRestoredUrl || Boolean(providedToday);
-  const rangeLabel = !dateReady ? ui.today : range
+  const setLabel = marketSet?.source === "threads" ? "스레드에서 본 시장" : "골라 둔 시장";
+  const rangeLabel = !dateReady ? ui.today : setActive ? setLabel : range
     ? `${range.start.getMonth() + 1}/${range.start.getDate()}${range.start.getTime() === range.end.getTime() ? "" : `–${range.end.getMonth() + 1}/${range.end.getDate()}`}`
     : ui.allMarkets;
   const selectedMarket = markets.find((market) => market.id === selectedId) ?? null;
@@ -183,6 +195,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     const urlState = readUrlState();
     setQuery(urlState.query ?? "");
     setMode(urlState.mode ?? "today");
+    setMarketSet(urlState.query || locale !== "ko" ? null : parseMarketSetLink(new URLSearchParams(window.location.search)));
     setSelectedId(urlState.selectedId ?? null);
     setSheetMode(urlState.selectedId ? "detail" : "results");
     setSheetSnap(urlState.selectedId ? "full" : "collapsed");
@@ -215,8 +228,31 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       delete nextState.mobileMarketFromSearch;
       delete nextState.marketSelectionFromResults;
     }
-    window.history.replaceState(nextState, "", buildExplorerPath(locale, { query, mode, marketId: selectedId }));
-  }, [hasRestoredUrl, locale, mode, query, selectedId]);
+    window.history.replaceState(nextState, "", buildExplorerPath(locale, { query, mode, marketId: selectedId, marketSet: marketSetPath }));
+  }, [hasRestoredUrl, locale, marketSetPath, mode, query, selectedId]);
+
+  // 링크의 시장이 하나도 없으면 평소 지도로. 있으면 링크로 들어온 화면을 한 번 센다.
+  useEffect(() => {
+    if (isPending || isError || !marketSet) return;
+    if (setMarkets.length === 0) {
+      setMarketSet(null);
+      return;
+    }
+    if (marketSetViewTrackedRef.current) return;
+    marketSetViewTrackedRef.current = true;
+    track("market-set-view", { count: String(setMarkets.length), source: marketSet.source });
+  }, [isError, isPending, marketSet, setMarkets.length]);
+
+  const exitMarketSet = useCallback((via: "button" | "search" | "date") => {
+    track("market-set-exit", { via });
+    setMarketSet(null);
+    setMode("today");
+  }, []);
+
+  // 검색하면 묶음을 풀고 전체 시장에서 찾는다.
+  useEffect(() => {
+    if (marketSet && query.trim()) exitMarketSet("search");
+  }, [exitMarketSet, marketSet, query]);
 
   const restoreResultContext = useCallback(() => {
     if (returnToSearchRef.current) {
@@ -274,12 +310,13 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       marketSelectionFromResults: replacingSelection
         ? Boolean(window.history.state?.marketSelectionFromResults)
         : true,
-    }, "", buildExplorerPath(locale, { query, mode, marketId: market.id }));
+    }, "", buildExplorerPath(locale, { query, mode, marketId: market.id, marketSet: marketSetPath }));
+    if (setActive && marketSet) track("market-set-open", { market: market.id, source: marketSet.source });
     setSelectedId(market.id);
     setSheetMode(view);
     setSheetSnap("full");
     setIsSearchOpen(false);
-  }, [isSearchOpen, locale, mode, query, selectedId, sheetMode, sheetSnap]);
+  }, [isSearchOpen, locale, marketSet, marketSetPath, mode, query, selectedId, setActive, sheetMode, sheetSnap]);
   const selectMapMarket = useCallback((market: PublicMarket) => selectMarket(market, "map"), [selectMarket]);
   const selectListMarket = useCallback((market: PublicMarket) => selectMarket(market, "list"), [selectMarket]);
   const closeMarket = useCallback(() => {
@@ -410,7 +447,10 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         mode={mode}
         query={query}
         onMobileSearchOpen={() => setIsSearchOpen(true)}
-        onModeChange={setMode}
+        onModeChange={(nextMode) => {
+          if (marketSet) exitMarketSet("date");
+          setMode(nextMode);
+        }}
         onQueryChange={setQuery}
         participate={submissionsEnabled && locale === "ko" && dateReady && !isPending && !isError ? { markets, today, currentLocation } : null}
       />
@@ -424,9 +464,23 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       >
         <MarketMap
           locale={locale}
-          overlay={submissionsEnabled && locale === "ko" && dateReady && !isPending && !isError && !query.trim() && sheetSnap !== "full" && !selectedMarket
-            ? <MapParticipateButton markets={markets} today={today} currentLocation={currentLocation} />
+          overlay={(submissionsEnabled || setActive) && locale === "ko" && dateReady && !isPending && !isError && !query.trim() && sheetSnap !== "full" && !selectedMarket
+            ? <>
+              {submissionsEnabled ? <MapParticipateButton
+                markets={markets}
+                today={today}
+                currentLocation={currentLocation}
+                suggested={setActive ? { markets: setMarkets, label: setLabel } : undefined}
+              /> : null}
+              {setActive ? (
+                <button type="button" className="market-set-chip" onClick={() => exitMarketSet("button")}>
+                  <span><span>{setLabel} {setMarkets.length}곳만 보는 중</span><strong>전국 시장 모두 보기</strong></span>
+                  <span className="market-set-chip-go" aria-hidden="true"><Icon name="close" /></span>
+                </button>
+              ) : null}
+            </>
             : null}
+          fitMarkets={setActive ? setMarkets : undefined}
           markets={filteredMarkets}
           searchMarkets={queryMatches}
           searchQuery={query}

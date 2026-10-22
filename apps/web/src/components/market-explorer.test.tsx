@@ -525,4 +525,69 @@ describe("MarketExplorer", () => {
     await userEvent.click(screen.getByRole("button", { name: "메뉴 열기" }));
     expect(screen.getByRole("link", { name: "온누리상품권 가맹시장" })).toHaveAttribute("href", "/onnuri");
   });
+
+  describe("market set links from Threads", () => {
+    it("shows only the linked markets, counts the visit, and keeps the set in the URL", async () => {
+      const track = vi.fn();
+      vi.stubGlobal("umami", { track });
+      window.history.replaceState(null, "", "/?markets=tongbok,uncheon,missing&date=2026-09-05&utm_source=threads");
+      render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
+
+      const results = screen.getByRole("region", { name: "시장 결과" });
+      expect(await within(results).findByRole("heading", { name: "조건에 맞는 시장 2곳" })).toBeInTheDocument();
+      expect(within(results).getByText("통복시장")).toBeInTheDocument();
+      expect(within(results).queryByText("제천중앙시장")).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /스레드에서 본 시장 2곳/ })).toBeInTheDocument();
+      expect(track).toHaveBeenCalledWith("market-set-view", { count: "2", source: "threads" });
+      await waitFor(() => expect(new URLSearchParams(window.location.search).get("markets")).toBe("tongbok,uncheon,missing"));
+      expect(new URLSearchParams(window.location.search).get("date")).toBeNull();
+    });
+
+    it("returns to the normal map from the chip", async () => {
+      const user = userEvent.setup();
+      window.history.replaceState(null, "", "/?markets=tongbok,uncheon&utm_source=threads");
+      render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
+
+      await user.click(await screen.findByRole("button", { name: /스레드에서 본 시장 2곳/ }));
+      const results = screen.getByRole("region", { name: "시장 결과" });
+      await waitFor(() => expect(within(results).queryByText("통복시장")).not.toBeInTheDocument());
+      expect(screen.queryByRole("button", { name: /스레드에서 본 시장/ })).not.toBeInTheDocument();
+      expect(window.location.search).toBe("");
+    });
+
+    it("leaves the set when a date chip is picked", async () => {
+      const user = userEvent.setup();
+      window.history.replaceState(null, "", "/?markets=tongbok&utm_source=threads");
+      render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
+
+      await screen.findByRole("button", { name: /스레드에서 본 시장 1곳/ });
+      await user.click(screen.getByRole("button", { name: "전체" }));
+      await waitFor(() => expect(screen.queryByRole("button", { name: /스레드에서 본 시장/ })).not.toBeInTheDocument());
+      expect(new URLSearchParams(window.location.search).get("when")).toBe("all");
+    });
+
+    it("opens the normal map when no linked market exists", async () => {
+      window.history.replaceState(null, "", "/?markets=missing&utm_source=threads");
+      render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
+
+      const results = screen.getByRole("region", { name: "시장 결과" });
+      expect(await within(results).findByText("운천전통시장")).toBeInTheDocument();
+      expect(within(results).queryByText("통복시장")).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /스레드에서 본 시장/ })).not.toBeInTheDocument();
+      await waitFor(() => expect(window.location.search).toBe(""));
+    });
+
+    it("searches every market once the visitor types a query", async () => {
+      const user = userEvent.setup();
+      window.history.replaceState(null, "", "/?markets=tongbok&utm_source=threads");
+      render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
+
+      await screen.findByRole("button", { name: /스레드에서 본 시장 1곳/ });
+      await user.click(screen.getByRole("button", { name: "시장명 또는 지역 검색" }));
+      const search = await screen.findByRole("dialog", { name: "시장 검색" });
+      await user.type(within(search).getByRole("searchbox"), "운천");
+      expect(await within(search).findByRole("button", { name: /^운천전통시장/ })).toBeInTheDocument();
+      await waitFor(() => expect(new URLSearchParams(window.location.search).get("markets")).toBeNull());
+    });
+  });
 });

@@ -40,15 +40,16 @@ const useTodayMarkets = (markets: PublicMarket[], today: Date, currentLocation: 
 }, [currentLocation, markets, today]);
 
 /** 장을 고른 뒤 제보 시트로 이어지는 흐름. "바꾸기"를 누르면 다시 고른다. */
-function SubmissionFlow({ markets, todayMarkets, source, onClose }: {
+function SubmissionFlow({ markets, todayMarkets, suggestedLabel, source, onClose }: {
   markets: PublicMarket[];
   todayMarkets: PublicMarket[];
+  suggestedLabel?: string;
   source: SubmissionSource;
   onClose: () => void;
 }) {
   const [step, setStep] = useState<Step>({ kind: "picking" });
   return step.kind === "picking" ? (
-    <MarketPicker markets={markets} todayMarkets={todayMarkets} onPick={(market) => setStep({ kind: "writing", market })} onClose={onClose} />
+    <MarketPicker markets={markets} todayMarkets={todayMarkets} suggestedLabel={suggestedLabel} onPick={(market) => setStep({ kind: "writing", market })} onClose={onClose} />
   ) : (
     <HighlightSubmissionSheet
       market={toRef(step.market)}
@@ -93,8 +94,11 @@ export function TodayHighlightPrompt({ markets, today, currentLocation }: TodayH
   );
 }
 
-/** 메인 지도 왼쪽 위에 늘 떠 있는 제보 버튼. 시트를 펼치지 않아도 보인다. */
-export function MapParticipateButton({ markets, today, currentLocation }: TodayHighlightPromptProps) {
+/** 메인 지도 왼쪽 위에 늘 떠 있는 제보 버튼. 시트를 펼치지 않아도 보인다.
+ * Threads 링크로 시장 묶음이 떠 있으면 고르는 목록에 그 시장들을 먼저 보여 준다. */
+export function MapParticipateButton({ markets, today, currentLocation, suggested }: TodayHighlightPromptProps & {
+  suggested?: { markets: PublicMarket[]; label: string };
+}) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const todayMarkets = useTodayMarkets(markets, today, currentLocation);
@@ -107,7 +111,12 @@ export function MapParticipateButton({ markets, today, currentLocation }: TodayH
         setOpen(true);
       }}><Icon name="pen" />{label}</button>
       {open ? (
-        <SubmissionFlow markets={markets} todayMarkets={todayMarkets} source="map_button" onClose={() => { setOpen(false); buttonRef.current?.focus(); }} />
+        <SubmissionFlow
+          markets={markets}
+          todayMarkets={suggested?.markets ?? todayMarkets}
+          suggestedLabel={suggested?.label}
+          source={suggested ? "map_set" : "map_button"}
+          onClose={() => { setOpen(false); buttonRef.current?.focus(); }} />
       ) : null}
     </>
   );
@@ -119,7 +128,7 @@ export function MenuSubmissionFlow({ markets, today, currentLocation, onClose }:
   return <SubmissionFlow markets={markets} todayMarkets={todayMarkets} source="menu" onClose={onClose} />;
 }
 
-function MarketPicker({ markets, todayMarkets, onPick, onClose }: { markets: PublicMarket[]; todayMarkets: PublicMarket[]; onPick: (market: PublicMarket) => void; onClose: () => void }) {
+function MarketPicker({ markets, todayMarkets, suggestedLabel = "오늘 열린 장", onPick, onClose }: { markets: PublicMarket[]; todayMarkets: PublicMarket[]; suggestedLabel?: string; onPick: (market: PublicMarket) => void; onClose: () => void }) {
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
@@ -139,7 +148,7 @@ function MarketPicker({ markets, todayMarkets, onPick, onClose }: { markets: Pub
       <div className={styles.sheetHead}>
         <div>
           <h2 id={titleId}>어느 장이었나요?</h2>
-          <span className={styles.market}>{todayMarkets.length > 0 ? `오늘 열린 장 ${todayMarkets.length}곳 · 다른 장은 검색해 주세요` : "시장 이름이나 지역으로 찾아 주세요"}</span>
+          <span className={styles.market}>{todayMarkets.length > 0 ? `${suggestedLabel} ${todayMarkets.length}곳 · 다른 장은 검색해 주세요` : "시장 이름이나 지역으로 찾아 주세요"}</span>
         </div>
         <button type="button" className={styles.iconButton} aria-label="닫기" onClick={onClose}><Icon name="close" /></button>
       </div>
@@ -153,7 +162,7 @@ function MarketPicker({ markets, todayMarkets, onPick, onClose }: { markets: Pub
               <li key={market.id}>
                 <button type="button" className={styles.pickerRow} onClick={() => onPick(market)}>
                   <span className={`${styles.pickerTile} ${todayIds.has(market.id) ? "" : styles.pickerTileIdle} ${digits ? "jn" : styles.pickerTilePlain}`} aria-hidden="true">{digits ?? "상설"}</span>
-                  <span><strong>{market.name}</strong><span>{keyword && todayIds.has(market.id) ? <><em className={styles.pickerToday}>오늘 열림</em> · </> : null}{market.roadAddress ?? market.lotAddress ?? ""}</span></span>
+                  <span><strong>{market.name}</strong><span>{keyword && todayIds.has(market.id) && suggestedLabel === "오늘 열린 장" ? <><em className={styles.pickerToday}>오늘 열림</em> · </> : null}{market.roadAddress ?? market.lotAddress ?? ""}</span></span>
                   <Icon name="more" className={styles.chevron} />
                 </button>
               </li>

@@ -14,6 +14,8 @@ interface MarketMapProps {
   locale?: Locale;
   /** 지도 왼쪽 위에 띄울 요소 (방문자 제보 버튼). */
   overlay?: ReactNode;
+  /** 처음 한 번 이 시장들이 다 보이게 지도를 맞춘다 (Threads 링크로 받은 시장 묶음). */
+  fitMarkets?: PublicMarket[];
   markets: PublicMarket[];
   searchMarkets?: PublicMarket[];
   searchQuery?: string;
@@ -58,7 +60,7 @@ const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, (charact
   '"': "&quot;",
 })[character] ?? character);
 
-export function MarketMap({ locale = "ko", overlay, markets, searchMarkets = [], searchQuery = "", referenceDate, selectedId, clientId, mobileOcclusion, mobileSheetHeight = 0, onSelect, onLocationChange, onCameraRestoreComplete, onStatusChange, onLocationError, onFallbackList }: MarketMapProps) {
+export function MarketMap({ locale = "ko", overlay, fitMarkets, markets, searchMarkets = [], searchQuery = "", referenceDate, selectedId, clientId, mobileOcclusion, mobileSheetHeight = 0, onSelect, onLocationChange, onCameraRestoreComplete, onStatusChange, onLocationError, onFallbackList }: MarketMapProps) {
   const ui = getUiCopy(locale);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<NaverMapInstance | null>(null);
@@ -143,6 +145,23 @@ export function MarketMap({ locale = "ko", overlay, markets, searchMarkets = [],
     if (bounds.south === bounds.north && bounds.west === bounds.east) map.morph(new naver.maps.LatLng(bounds.south, bounds.west), 12);
     else map.fitBounds(bounds);
   };
+
+  const fitKey = fitMarkets?.map((market) => market.id).join(",") ?? "";
+  const fittedKeyRef = useRef("");
+  useEffect(() => {
+    const map = mapRef.current;
+    const naver = window.naver;
+    if (status !== "ready" || !map || !naver || !fitKey || fittedKeyRef.current === fitKey) return;
+    fittedKeyRef.current = fitKey;
+    const located = (fitMarkets ?? []).filter((market) => market.latitude !== null && market.longitude !== null);
+    if (located.length === 0) return;
+    const latitudes = located.map((market) => market.latitude!);
+    const longitudes = located.map((market) => market.longitude!);
+    const bounds = { south: Math.min(...latitudes), west: Math.min(...longitudes), north: Math.max(...latitudes), east: Math.max(...longitudes) };
+    if (bounds.south === bounds.north && bounds.west === bounds.east) map.morph(new naver.maps.LatLng(bounds.south, bounds.west), 12);
+    // 위쪽 헤더·버튼과 아래쪽 목록 시트에 가리지 않게 여백을 둔다.
+    else map.fitBounds(bounds, { top: 140, right: 40, bottom: 140, left: 40 });
+  }, [fitKey, fitMarkets, status]);
 
   const restoreSearchCamera = () => {
     const camera = searchCameraRef.current;

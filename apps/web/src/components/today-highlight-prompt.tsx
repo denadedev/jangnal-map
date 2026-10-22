@@ -113,6 +113,12 @@ export function MapParticipateButton({ markets, today, currentLocation }: TodayH
   );
 }
 
+/** 서비스 메뉴의 "다녀온 장 이야기 들려주기". 메뉴를 닫고 바로 장 고르기부터 연다. */
+export function MenuSubmissionFlow({ markets, today, currentLocation, onClose }: TodayHighlightPromptProps & { onClose: () => void }) {
+  const todayMarkets = useTodayMarkets(markets, today, currentLocation);
+  return <SubmissionFlow markets={markets} todayMarkets={todayMarkets} source="menu" onClose={onClose} />;
+}
+
 function MarketPicker({ markets, todayMarkets, onPick, onClose }: { markets: PublicMarket[]; todayMarkets: PublicMarket[]; onPick: (market: PublicMarket) => void; onClose: () => void }) {
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);

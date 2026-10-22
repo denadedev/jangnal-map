@@ -34,4 +34,22 @@ describe("MobileHomeControls", () => {
     expect(screen.getByRole("dialog", { name: "보조 메뉴" })).toBeVisible();
     expect(screen.getByRole("link", { name: "데이터 출처와 편집 기준" })).toHaveAttribute("href", "/about#data-policy");
   });
+
+  it("opens the market picker from the menu when submissions are on", async () => {
+    const user = userEvent.setup();
+    render(
+      <MobileHomeControls
+        mode="today"
+        query=""
+        onModeChange={() => undefined}
+        onQueryChange={() => undefined}
+        participate={{ markets: [], today: new Date(2026, 9, 22), currentLocation: null }}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "메뉴 열기" }));
+    await user.click(screen.getByRole("button", { name: "다녀온 장 이야기 들려주기" }));
+    expect(screen.queryByRole("dialog", { name: "보조 메뉴" })).not.toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "어느 장이었나요?" })).toBeVisible();
+  });
 });

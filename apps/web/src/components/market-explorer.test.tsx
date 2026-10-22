@@ -481,7 +481,7 @@ describe("MarketExplorer", () => {
     render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
 
     await user.click(screen.getByRole("button", { name: "메뉴 열기" }));
-    expect(screen.getByRole("link", { name: "불편 신고" })).toHaveAttribute("href", "/report?kind=service");
+    expect(screen.getByRole("link", { name: "정보 수정·불편 신고" })).toHaveAttribute("href", "/report?kind=service");
     await user.click(screen.getByRole("button", { name: "메뉴 닫기" }));
     await user.click(await screen.findByRole("link", { name: /운천전통시장/ }));
     expect(screen.getByRole("link", { name: "정보가 다른가요? 수정 제보" })).toHaveAttribute(
@@ -523,6 +523,6 @@ describe("MarketExplorer", () => {
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
     await userEvent.click(screen.getByRole("button", { name: "메뉴 열기" }));
-    expect(screen.getByRole("link", { name: "온누리상품권" })).toHaveAttribute("href", "/onnuri");
+    expect(screen.getByRole("link", { name: "온누리상품권 가맹시장" })).toHaveAttribute("href", "/onnuri");
   });
 });

@@ -19,14 +19,6 @@ export interface MobileAppBarProps {
 export function MobileAppBar({ title = "오늘 장날", backHref, homeHref = "/", onMenuOpen, menuProps }: MobileAppBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const installPrompt = useInstallPrompt();
-  const resolvedMenuProps = menuProps ?? {
-    installPlatform: installPrompt.platform,
-    installAction: () => {
-      setMenuOpen(false);
-      return installPrompt.start();
-    },
-    onDismissInstall: () => installPrompt.dismiss("menu"),
-  };
   const openMenu = () => {
     onMenuOpen?.();
     setMenuOpen(true);
@@ -56,7 +48,7 @@ export function MobileAppBar({ title = "오늘 장날", backHref, homeHref = "/"
           <Icon name="menu" />
         </button>
       </header>
-      <MobileMenu {...resolvedMenuProps} open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <MobileMenu {...menuProps} open={menuOpen} onClose={() => setMenuOpen(false)} />
       <InstallGuideSheet install={installPrompt} />
     </>
   );

@@ -2,7 +2,6 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { MobileMenu } from "./mobile-menu";
 import { detectGuidePlatform, useInstallPrompt } from "./install-prompt";
 import { InstallBanner, InstallGuideSheet, InstallWelcomeToast } from "./install-ui";
 
@@ -32,13 +31,6 @@ function InstallHarness() {
   const install = useInstallPrompt();
   return (
     <>
-      <MobileMenu
-        open
-        onClose={() => undefined}
-        installPlatform={install.platform}
-        installAction={install.start}
-        onDismissInstall={() => install.dismiss("menu")}
-      />
       <InstallBanner install={install} />
       <InstallGuideSheet install={install} />
       <InstallWelcomeToast visible={install.welcomeVisible} />
@@ -47,6 +39,8 @@ function InstallHarness() {
 }
 
 const startNewSession = () => window.sessionStorage.clear();
+// 배너는 두 번째 방문부터 뜬다. 첫 방문을 이미 한 것으로 둔다.
+const seedFirstVisit = () => window.localStorage.setItem("jangnal-visit-count", "1");
 
 describe("detectGuidePlatform", () => {
   it("tells Safari, Chrome and in-app browsers apart", () => {
@@ -80,25 +74,27 @@ describe("useInstallPrompt", () => {
     const prompt = vi.fn().mockResolvedValue(undefined);
     const userChoice = Promise.resolve({ outcome: "accepted", platform: "web" });
     setMobileBrowser(ANDROID_CHROME);
+    seedFirstVisit();
     render(<InstallHarness />);
 
-    expect(screen.queryByRole("region", { name: "홈 화면에 추가" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary", { name: "홈 화면에 추가" })).not.toBeInTheDocument();
     const event = Object.assign(new Event("beforeinstallprompt", { cancelable: true }), { prompt, userChoice });
     act(() => window.dispatchEvent(event));
-    await user.click(screen.getByRole("button", { name: "추가하기" }));
+    await user.click(screen.getByRole("button", { name: "추가" }));
 
     expect(prompt).toHaveBeenCalledOnce();
     expect(track).toHaveBeenCalledWith("install-click", { platform: "android" });
     expect(track).toHaveBeenCalledWith("install-accepted", undefined);
-    expect(screen.queryByRole("button", { name: "추가하기" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "추가" })).not.toBeInTheDocument();
   });
 
   it("shows the Safari steps and remembers dismissal for 14 days", async () => {
     const user = userEvent.setup();
     setMobileBrowser(IOS_SAFARI);
+    seedFirstVisit();
     const view = render(<InstallHarness />);
 
-    await user.click(screen.getByRole("button", { name: "추가 방법" }));
+    await user.click(screen.getByRole("button", { name: "추가" }));
     const guide = screen.getByRole("dialog", { name: "홈 화면에 추가하는 방법" });
     expect(guide).toHaveTextContent("아이폰 Safari에서 3번만 누르면 돼요");
     expect(guide).toHaveTextContent("맨 아래 가운데, 네모에 화살표 모양");
@@ -106,49 +102,53 @@ describe("useInstallPrompt", () => {
     await user.click(screen.getByRole("button", { name: "닫기" }));
     expect(screen.queryByRole("dialog", { name: "홈 화면에 추가하는 방법" })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "14일 동안 닫기" }));
-    expect(track).toHaveBeenCalledWith("install-dismiss", { platform: "ios-safari", source: "menu" });
+    await user.click(screen.getByRole("button", { name: "홈 화면 추가 안내 14일 동안 닫기" }));
+    expect(track).toHaveBeenCalledWith("install-dismiss", { platform: "ios-safari", source: "banner" });
     view.unmount();
     startNewSession();
     render(<InstallHarness />);
 
-    expect(screen.queryByRole("button", { name: "추가 방법" })).not.toBeInTheDocument();
     expect(screen.queryByRole("complementary", { name: "홈 화면에 추가" })).not.toBeInTheDocument();
   });
 
   it("points iPhone Chrome users to the share button at the top", async () => {
     const user = userEvent.setup();
     setMobileBrowser(IOS_CHROME);
+    seedFirstVisit();
     render(<InstallHarness />);
 
-    await user.click(screen.getByRole("button", { name: "추가 방법" }));
+    await user.click(screen.getByRole("button", { name: "추가" }));
     expect(screen.getByRole("dialog", { name: "홈 화면에 추가하는 방법" })).toHaveTextContent("오른쪽 위, 주소창 맨 끝 모양");
   });
 
   it("guides Whale users through the browser menu until the browser offers its own install prompt", async () => {
     const user = userEvent.setup();
     setMobileBrowser(ANDROID_WHALE);
+    seedFirstVisit();
     render(<InstallHarness />);
 
-    await user.click(screen.getByRole("button", { name: "추가 방법" }));
+    await user.click(screen.getByRole("button", { name: "추가" }));
     expect(screen.getByRole("dialog", { name: "홈 화면에 추가하는 방법" })).toHaveTextContent("브라우저 메뉴 열기");
     await user.click(screen.getByRole("button", { name: "닫기" }));
 
+    const prompt = vi.fn().mockResolvedValue(undefined);
     const event = Object.assign(new Event("beforeinstallprompt", { cancelable: true }), {
-      prompt: vi.fn().mockResolvedValue(undefined),
+      prompt,
       userChoice: Promise.resolve({ outcome: "dismissed", platform: "web" }),
     });
     act(() => window.dispatchEvent(event));
-    expect(screen.getByRole("button", { name: "추가하기" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "추가" }));
+    expect(prompt).toHaveBeenCalledOnce();
   });
 
   it("asks in-app browser users to open another browser first and copies the link", async () => {
     const user = userEvent.setup();
     const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue(undefined);
     setMobileBrowser(IOS_KAKAOTALK);
+    seedFirstVisit();
     render(<InstallHarness />);
 
-    await user.click(screen.getByRole("button", { name: "추가 방법" }));
+    await user.click(screen.getByRole("button", { name: "추가" }));
     const guide = screen.getByRole("dialog", { name: "이 화면에서는 바로 추가할 수 없어요" });
     expect(guide).toHaveTextContent("다른 브라우저로 열기");
     expect(guide).not.toHaveTextContent("Safari에서 3번만");
@@ -179,9 +179,10 @@ describe("useInstallPrompt", () => {
   it("hides install prompts in the home-screen app and welcomes the first launch once", () => {
     vi.useFakeTimers();
     setMobileBrowser(IOS_SAFARI, true);
+    seedFirstVisit();
     const first = render(<InstallHarness />);
 
-    expect(screen.queryByRole("button", { name: "추가 방법" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary", { name: "홈 화면에 추가" })).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("홈 화면에서 바로 열었어요");
     expect(track).toHaveBeenCalledWith("pwa-launch", undefined);
     expect(track).toHaveBeenCalledWith("pwa-first-launch", { os: "ios" });

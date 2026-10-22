@@ -52,52 +52,27 @@ describe("MarketShareButton", () => {
   it("shares an English message and an English market-selection URL", async () => {
     const share = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal("navigator", { share });
-    render(<MarketShareButton locale="en" market={market} sharePath="/en/map?q=Seoul&when=date&date=2026-09-04&market=uncheon" today={new Date(2026, 8, 3)} />);
+    render(<MarketShareButton locale="en" market={market} sharePath="/en/map?q=Seoul&market=uncheon" today={new Date(2026, 8, 3)} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Share" }));
 
     expect(share).toHaveBeenCalledWith({
       title: "운천전통시장 | K Market Day",
       text: "Sep 4, 2026: 운천전통시장. Want to visit?",
-      url: "http://localhost:3000/en/map?q=Seoul&when=date&date=2026-09-04&market=uncheon",
+      url: "http://localhost:3000/en/map?q=Seoul&market=uncheon",
     });
   });
 
-  it("uses the chosen travel date in an English invitation", async () => {
+  it("uses the next market day in a Korean invitation", async () => {
     const share = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal("navigator", { share });
-    render(<MarketShareButton locale="en" market={market} selectedDate={new Date(2026, 8, 9)} sharePath="/en/map?when=date&date=2026-09-09&market=uncheon" today={new Date(2026, 8, 3)} />);
-
-    await userEvent.click(screen.getByRole("button", { name: "Share" }));
-
-    expect(share).toHaveBeenCalledWith(expect.objectContaining({
-      text: "Sep 9, 2026: 운천전통시장. Want to visit?",
-      url: "http://localhost:3000/en/map?when=date&date=2026-09-09&market=uncheon",
-    }));
-  });
-
-  it("uses the chosen travel date in a Korean invitation", async () => {
-    const share = vi.fn().mockResolvedValue(undefined);
-    vi.stubGlobal("navigator", { share });
-    render(<MarketShareButton market={market} selectedDate={new Date(2026, 8, 9)} sharePath="/?when=date&date=2026-09-09&market=uncheon" today={new Date(2026, 8, 3)} />);
+    render(<MarketShareButton market={market} sharePath="/?market=uncheon" today={new Date(2026, 8, 3)} />);
 
     await userEvent.click(screen.getByRole("button", { name: "공유하기" }));
 
     expect(share).toHaveBeenCalledWith(expect.objectContaining({
-      text: "9월 9일 운천전통시장, 같이 갈래요?",
-      url: "http://localhost:3000/?when=date&date=2026-09-09&market=uncheon",
-    }));
-  });
-
-  it("does not invite someone to a five-day market on a non-market day", async () => {
-    const share = vi.fn().mockResolvedValue(undefined);
-    vi.stubGlobal("navigator", { share });
-    render(<MarketShareButton market={market} selectedDate={new Date(2026, 8, 5)} sharePath="/?when=date&date=2026-09-05&market=uncheon" today={new Date(2026, 8, 3)} />);
-
-    await userEvent.click(screen.getByRole("button", { name: "공유하기" }));
-
-    expect(share).toHaveBeenCalledWith(expect.objectContaining({
-      text: "9월 5일은 운천전통시장 장날이 아니에요. 방문 전 확인해 주세요.",
+      text: "9월 4일 운천전통시장, 같이 갈래요?",
+      url: "http://localhost:3000/?market=uncheon",
     }));
   });
 

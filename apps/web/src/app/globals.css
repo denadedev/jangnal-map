@@ -283,20 +283,7 @@ a { color: inherit; text-decoration: none; }
 .filter-pill:hover { border-color: var(--muted); background: oklch(1 0 0 / 70%); }
 .filter-pill[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: white; }
 
-.direct-date {
-  display: flex;
-  height: 38px;
-  align-items: center;
-  gap: 7px;
-  border-left: 1px solid var(--line);
-  padding-left: 12px;
-  color: var(--muted);
-  font-size: 15px;
-  font-weight: 700;
-}
 
-.direct-date input { max-width: 135px; border: 0; border-bottom: 1px solid var(--muted); padding: 4px 0; outline: 0; background: transparent; font-size: 15px; font-weight: 600; }
-.direct-date.is-visible input { border-color: var(--ink); color: var(--ink); }
 
 .explorer-grid {
   display: grid;
@@ -464,15 +451,6 @@ a { color: inherit; text-decoration: none; }
 .next-date-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 24px 0 0; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); padding: 17px 0; }
 .next-date-card p { margin: 0 0 5px; color: var(--muted); font-size: 15px; font-weight: 700; }
 .next-date-card strong { display: block; font-size: 20px; letter-spacing: -0.01em; }
-.selected-date-card { display: block; margin-top: 22px; border: 1px solid var(--line); border-radius: var(--r-m); padding: 16px; background: var(--paper); }
-.selected-date-card.is-market-day { border-color: var(--green); background: var(--surface-2); }
-.selected-date-card.is-not-market-day { border-color: var(--persimmon-dark); background: var(--persimmon-soft); }
-.visit-date-verdict { display: block; margin-top: 7px; color: var(--muted); font-size: 15px; font-weight: 700; }
-.selected-date-card.is-market-day .visit-date-verdict { color: var(--green); }
-.selected-date-card.is-not-market-day .visit-date-verdict { color: var(--persimmon-dark); }
-.selected-date-card small { display: block; margin-top: 7px; color: var(--muted); font-size: 15px; line-height: 1.5; }
-.detail-visit-date-control { display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; color: var(--ink); font-size: 15px; font-weight: 700; }
-.detail-visit-date-control input { width: min(180px, 60%); min-height: 44px; border: 1px solid var(--line); border-radius: var(--r-m); padding: 0 8px; background: var(--panel); font-size: 15px; }
 .source-summary { display: grid; gap: 4px; margin-top: 14px; border: 1px solid var(--line); border-radius: var(--r-m); padding: 13px; background: var(--panel); font-size: 15px; line-height: 1.5; }
 .source-summary strong { font-size: 15px; }
 .source-summary a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
@@ -491,7 +469,6 @@ a { color: inherit; text-decoration: none; }
 .month-calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; }
 .month-calendar li { display: grid; min-height: 36px; place-items: center; border-radius: var(--r-s); font-size: 15px; }
 .month-calendar li.is-market-day { background: var(--persimmon-soft); color: var(--persimmon-dark); font-weight: 700; }
-.month-calendar li.is-selected { outline: 2px solid var(--ink); outline-offset: -2px; }
 
 .info-list { display: grid; gap: 10px; margin: 0; }
 .info-list div { display: grid; grid-template-columns: 50px 1fr; gap: 8px; font-size: 15px; line-height: 1.55; }
@@ -545,13 +522,11 @@ a { color: inherit; text-decoration: none; }
   .explorer-grid { grid-template-columns: 320px minmax(340px, 1fr) 330px; }
   .market-filters { grid-template-columns: 320px 1fr; gap: 14px; }
   .filter-pill { padding: 0 12px; }
-  .direct-date span { display: none; }
 }
 
 @media (max-width: 1080px) and (min-width: 981px) {
   [lang="en"] .date-filter-row { flex-wrap: wrap; gap: 7px; }
   [lang="en"] .filter-pills { flex: 0 0 100%; flex-wrap: wrap; }
-  [lang="en"] .direct-date { border-left: 0; padding-left: 0; }
 }
 
 @media (max-width: 980px) and (min-width: 701px) {
@@ -562,8 +537,6 @@ a { color: inherit; text-decoration: none; }
   .date-filter-row { flex-wrap: wrap; gap: 7px; }
   .filter-pills { flex-wrap: wrap; gap: 5px; }
   .filter-pill { padding: 0 10px; font-size: 15px; }
-  .direct-date { flex-basis: 100%; border-left: 0; padding-left: 0; }
-  .direct-date span { display: inline; }
 }
 
 @media screen {
@@ -603,10 +576,6 @@ a { color: inherit; text-decoration: none; }
   .date-filter-row { min-width: 0; flex-wrap: wrap; gap: 7px; overflow: visible; }
   .filter-pills { width: 100%; min-width: 0; flex: 1 1 100%; gap: 5px; overflow-x: auto; padding-bottom: 2px; }
   .filter-pill { height: 44px; flex: 0 0 auto; padding: 0 9px; font-size: 15px; }
-  .direct-date { display: none; height: 44px; flex: 0 0 100%; border-left: 0; padding-left: 0; }
-  .direct-date.is-visible { display: flex; }
-  .direct-date span { display: none; }
-  .direct-date input { width: 100%; max-width: none; height: 44px; border: 1px solid var(--line); border-radius: var(--r-pill); padding: 0 10px; color: var(--ink); font-size: 15px; }
 
   .explorer-grid { position: relative; display: block; flex: 1 1 auto; min-height: 0; overflow: hidden; }
   .map-stage { position: absolute; inset: 0; min-height: 0; }
@@ -629,7 +598,6 @@ a { color: inherit; text-decoration: none; }
   .mobile-market-sheet.is-results[data-snap="full"] { top: var(--mobile-sheet-top); height: auto; }
   .mobile-market-sheet.is-detail[data-snap="full"] { top: calc(12px + env(safe-area-inset-top)); height: calc(100% - 12px - env(safe-area-inset-top)); }
   .mobile-market-sheet.is-preview { height: calc(clamp(178px, 26dvh, 180px) + env(safe-area-inset-bottom)); }
-  .mobile-market-sheet.is-preview.has-selected-date { height: calc(clamp(236px, 30dvh, 250px) + env(safe-area-inset-bottom)); }
   .mobile-market-sheet-handle { display: grid; width: 100%; min-height: 44px; flex: 0 0 44px; place-items: center; border: 0; background: transparent; touch-action: none; }
   .mobile-market-sheet-grip { display: block; width: 38px; height: 4px; border-radius: var(--r-pill); background: var(--line); }
   .mobile-market-sheet-heading { display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: 8px; padding: 0 16px; }
@@ -646,7 +614,6 @@ a { color: inherit; text-decoration: none; }
   .mobile-market-sheet.is-preview .mobile-market-sheet-close-button { min-height: 44px; padding: 0 11px; }
   .mobile-market-sheet.is-preview .mobile-market-sheet-content { padding: 0 14px calc(4px + env(safe-area-inset-bottom)); }
   .market-preview { display: grid; min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: 22px 18px 44px; gap: 1px; }
-  .mobile-market-sheet.is-preview.has-selected-date .market-preview { grid-template-rows: minmax(30px, auto) 22px 18px 44px; gap: 4px; }
   .market-preview-date { display: flex; min-width: 0; align-items: center; gap: 8px; font-size: 15px; }
   .market-preview-date strong { flex: 0 0 auto; color: var(--muted); font-size: 15px; }
   .market-preview-date span { min-width: 0; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
@@ -733,8 +700,6 @@ a { color: inherit; text-decoration: none; }
   .mobile-home-controls .filter-pill { display: inline-flex; height: 44px; min-height: 44px; flex: 0 0 auto; align-items: center; justify-content: center; gap: 4px; border-color: var(--line); padding: 0 15px; background: var(--panel); color: var(--ink); font-size: 15px; font-weight: 700; }
   .mobile-home-controls .filter-pill[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--panel); }
   .mobile-home-controls .filter-pill svg { width: 18px; height: 18px; }
-  .mobile-home-controls .direct-date, .mobile-home-controls .direct-date.is-visible { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); opacity: 0; }
-  .mobile-home-controls .direct-date.is-fallback { position: static; width: auto; height: 44px; overflow: visible; clip: auto; opacity: 1; }
   .mobile-discovery-context { margin: 0 -20px; border-bottom: 0; padding: 17px 20px 14px; }
   .mobile-discovery-context p { margin-bottom: 5px; font-size: 15px; }
   .mobile-discovery-context h1 { font-size: 24px; }
@@ -787,9 +752,7 @@ a { color: inherit; text-decoration: none; }
   .mobile-market-sheet-back-button { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; border: 0; border-radius: 50%; background: transparent; }
   .mobile-market-sheet-back-button svg { width: 20px; height: 20px; }
   .mobile-market-sheet.is-detail .detail-header { padding-right: 0; }
-  .mobile-market-sheet.is-detail .selected-date-card { margin-top: 18px; border-radius: var(--r-m); padding: 17px; }
-  .mobile-market-sheet.is-detail .selected-date-card strong { font-size: 18px; }
-  .mobile-market-sheet.is-detail .next-date-card:not(.selected-date-card) { border-top: 1px solid var(--line); }
+  .mobile-market-sheet.is-detail .next-date-card { border-top: 1px solid var(--line); }
   .mobile-market-sheet.is-detail .section-heading h3 { font-size: 18px; }
   .mobile-timing-pattern { color: var(--muted); font-size: 15px; white-space: nowrap; }
   .mobile-market-sheet.is-detail .detail-actions { padding-top: 10px; }
@@ -802,29 +765,8 @@ a { color: inherit; text-decoration: none; }
   .map-fallback .mobile-map-fallback-body { display: block; font-size: 15px; }
   .mobile-map-fallback-list { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; margin-top: 16px; border: 1px solid var(--ink); border-radius: var(--r-m); padding: 0 12px; background: var(--panel); color: var(--ink); font-size: 15px; font-weight: 700; }
   .mobile-market-sheet.is-detail .detail-actions .primary-button { background: var(--ink); color: var(--panel); font-size: 15px; }
-  .mobile-visit-date-button { display: block; min-height: 48px; margin-top: 6px; border: 0; padding: 0; background: transparent; color: var(--ink); font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
   .mobile-share-action { margin-top: 12px; }
   .mobile-share-action .market-action-secondary { min-height: 44px; margin: 0; }
-  .mobile-date-picker-overlay { position: fixed; z-index: 150; top: 0; right: var(--app-side); bottom: 0; left: var(--app-side); display: flex; align-items: flex-end; background: oklch(0.21 0.015 260 / 48%); }
-  .mobile-date-picker-dialog { width: 100%; max-height: 85dvh; overflow-y: auto; border-radius: var(--r-l) var(--r-l) 0 0; padding: 12px 20px calc(22px + env(safe-area-inset-bottom)); background: var(--panel); box-shadow: var(--shadow-float); }
-  .mobile-date-picker-grip { width: 35px; height: 4px; margin: 0 auto 16px; border-radius: var(--r-s); background: var(--line); }
-  .mobile-date-picker-heading, .mobile-date-picker-month { display: flex; align-items: center; justify-content: space-between; }
-  .mobile-date-picker-heading h2 { margin: 0; font-size: 20px; }
-  .mobile-date-picker-heading button, .mobile-date-picker-month button { width: 44px; height: 44px; border: 0; background: transparent; font-size: 24px; }
-  .mobile-date-picker-dialog > p { margin: 8px 0 17px; color: var(--muted); font-size: 15px; line-height: 1.5; }
-  .mobile-date-picker-month { margin-bottom: 6px; }
-  .mobile-date-picker-month strong { font-size: 15px; }
-  .mobile-date-picker-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
-  .mobile-date-picker-grid > span, .mobile-date-picker-grid > button { display: grid; min-height: 44px; place-items: center; border-radius: var(--r-m); font-size: 15px; }
-  .mobile-date-picker-grid > button { border: 1px solid transparent; background: transparent; }
-  .mobile-date-picker-grid > button.is-market-day { background: var(--persimmon-soft); color: var(--persimmon-dark); font-weight: 700; }
-  .mobile-date-picker-grid > button.is-selected { outline: 2px solid var(--ink); outline-offset: -2px; }
-  .mobile-date-picker-grid > button:disabled { opacity: 0.35; }
-  .mobile-date-picker-weekday { color: var(--muted); font-weight: 700; }
-  .mobile-date-picker-actions { display: flex; gap: 8px; margin-top: 16px; }
-  .mobile-date-picker-actions button { min-height: 50px; border: 1px solid var(--line); border-radius: var(--r-m); padding: 0 15px; background: var(--panel); font-weight: 700; }
-  .mobile-date-picker-actions button:last-child { flex: 1; border-color: var(--ink); background: var(--ink); color: var(--panel); }
-  .mobile-date-picker-actions button:disabled { opacity: 0.5; }
 }
 
 @media (max-height: 700px) {
@@ -855,8 +797,6 @@ a { color: inherit; text-decoration: none; }
 .mobile-search-result-copy { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
 .mobile-search-result-copy > strong { font-size: 18px; overflow-wrap: anywhere; }
 .mobile-search-result-copy > small { display: block; font-size: 15px; white-space: normal; overflow-wrap: anywhere; }
-.visit-date-recovery { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.visit-date-recovery .secondary-button { min-height: 48px; height: auto; border-radius: var(--r-m); padding: 12px; font-size: 18px; }
 .next-date-reference { color: var(--muted); font-size: 15px; line-height: 1.6; }
 @media (min-width: 0px) {
   .mobile-brand-row a, .mobile-discovery-context h1, .mobile-market-sheet.is-detail .detail-header h2 { font-size: 24px; }
@@ -872,12 +812,9 @@ a { color: inherit; text-decoration: none; }
   .mobile-search-suggestions button { font-size: 18px; }
   .mobile-search-suggestions button small { font-size: 15px; }
   .mobile-search-date-tile small { white-space: normal; text-align: center; }
-  .mobile-market-sheet.is-detail .selected-date-card { border-radius: var(--r-m); padding: 16px; }
-  .mobile-market-sheet.is-detail .selected-date-card strong, .mobile-market-sheet.is-detail .next-date-card strong { font-family: inherit; font-size: 20px; }
+  .mobile-market-sheet.is-detail .next-date-card strong { font-family: inherit; font-size: 20px; }
   .mobile-market-sheet.is-detail .market-detail { padding-right: 16px; padding-left: 16px; }
   .mobile-market-sheet.is-detail .detail-actions .primary-button { min-height: 56px; background: var(--ink); font-size: 18px; }
-  .mobile-visit-date-button { min-height: 48px; font-size: 18px; }
-  .mobile-market-sheet.is-detail .visit-date-verdict { font-size: 18px; }
   .mobile-market-sheet.is-detail .source-summary, .mobile-market-sheet.is-detail .source-summary strong, .mobile-timing-pattern { font-size: 15px; }
 }
 .mobile-search-date-tile strong { white-space: normal; overflow-wrap: anywhere; text-align: center; }

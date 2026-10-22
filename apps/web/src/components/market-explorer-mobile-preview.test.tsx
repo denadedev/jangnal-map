@@ -73,7 +73,7 @@ describe("MarketExplorer map-origin selection", () => {
 
   it("opens a map selection directly in full detail", async () => {
     const user = userEvent.setup();
-    render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="test" />);
+    render(<MarketExplorer today={new Date(2026, 8, 5)} mapClientId="test" />);
 
     await user.click(await screen.findByRole("button", { name: "지도에서 첫 시장 선택" }));
     const sheet = await screen.findByRole("dialog", { name: "지도선택시장 상세" });
@@ -86,7 +86,7 @@ describe("MarketExplorer map-origin selection", () => {
 
   it("still renders the map-origin detail path when matchMedia is unavailable", async () => {
     vi.stubGlobal("matchMedia", undefined);
-    render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="test" />);
+    render(<MarketExplorer today={new Date(2026, 8, 5)} mapClientId="test" />);
 
     await userEvent.click(await screen.findByRole("button", { name: "지도에서 첫 시장 선택" }));
     await waitFor(() => expect(window.history.state.mobileMarketView).toBe("detail"));
@@ -96,7 +96,7 @@ describe("MarketExplorer map-origin selection", () => {
 
   it("returns to the map page on Back and reopens full detail on Forward", async () => {
     const user = userEvent.setup();
-    render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="test" />);
+    render(<MarketExplorer today={new Date(2026, 8, 5)} mapClientId="test" />);
 
     await user.click(screen.getByRole("button", { name: "지도에서 첫 시장 선택" }));
     await screen.findByRole("dialog", { name: "지도선택시장 상세" });
@@ -127,7 +127,7 @@ describe("MarketExplorer map-origin selection", () => {
 
   it("returns from the search screen to the previous list view", async () => {
     const user = userEvent.setup();
-    render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="test" />);
+    render(<MarketExplorer today={new Date(2026, 8, 5)} mapClientId="test" />);
     await user.click(within(screen.getByRole("group", { name: "결과 보기" })).getByRole("button", { name: "목록" }));
     await user.click(screen.getByRole("button", { name: "시장명 또는 지역 검색" }));
     const search = within(screen.getByRole("dialog", { name: "시장 검색" })).getByRole("searchbox");

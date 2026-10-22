@@ -30,12 +30,8 @@ test("keeps mobile headers and fixed market actions inside the desktop column", 
   expect((action?.x ?? 0) + (action?.width ?? 0)).toBeLessThanOrEqual(855);
 });
 
-test("keeps the mobile menu and date picker inside the desktop column", async ({ page }) => {
+test("keeps the mobile menu inside the desktop column", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "메뉴 열기" }).click();
   expect(await page.locator(".mobile-menu-backdrop").boundingBox()).toMatchObject({ x: 425, width: 430 });
-
-  await page.goto("/?when=date&date=2026-09-30&market=market-1181d511e9973d14");
-  await page.getByRole("dialog", { name: /통복시장 상세/ }).getByRole("button", { name: "방문 날짜 바꾸기" }).click();
-  expect(await page.locator(".mobile-date-picker-overlay").boundingBox()).toMatchObject({ x: 425, width: 430 });
 });

@@ -75,31 +75,15 @@ test("English guide remains readable without JavaScript", async ({ browser }) =>
   await context.close();
 });
 
-test("English map explains when an old travel date is replaced", async ({ page }) => {
-  await page.goto("/en/map?when=date&date=2020-01-01");
+test("English map explains an unavailable shared market", async ({ page }) => {
+  await page.goto("/en/map?q=Seoul&market=missing-market");
 
-  await expect(page.getByRole("status").filter({ hasText: "The selected date has passed" })).toBeVisible();
-  await expect(page).not.toHaveURL(/date=2020-01-01/);
-});
-
-test("English map explains both a replaced date and an unavailable shared market", async ({ page }) => {
-  await page.goto("/en/map?q=Seoul&when=date&date=2020-01-01&market=missing-market");
-
-  const notice = page.getByRole("status").filter({ hasText: "The selected date has passed" });
-  await expect(notice).toContainText("That market is not available");
-});
-
-test("a shared English market link confirms the chosen travel date", async ({ page }) => {
-  await page.goto("/en/map?q=Seoul&when=date&date=2026-10-05&market=market-c8527eb76514f0dd");
-
-  const selectedDate = page.locator(".mobile-market-sheet").getByRole("region", { name: "Your selected travel date" });
-  await expect(selectedDate).toContainText("Market day on your selected date");
-  await expect(selectedDate).toContainText("Oct 5, 2026");
+  await expect(page.getByRole("status").filter({ hasText: "That market is not available" })).toBeVisible();
 });
 
 test("an old English preview state opens full detail with its primary action on screen", async ({ page }) => {
   const marketId = "market-c8527eb76514f0dd";
-  await page.goto(`/en/map?when=date&date=2026-10-05&market=${marketId}`);
+  await page.goto(`/en/map?market=${marketId}`);
   await expect(page.locator(".mobile-market-sheet")).toHaveClass(/is-detail/);
   await page.evaluate((id) => {
     window.history.replaceState({ mobileMarket: id, mobileMarketView: "preview", mobileMarketSource: "map", mobileReturnSnap: "collapsed" }, "", window.location.href);
@@ -126,39 +110,26 @@ test("browser Forward restores English search and date filters from the URL", as
   await expect(page.locator(".mobile-market-results")).toContainText("195 markets for these dates");
   await expect(page).toHaveURL(/\/en\/map\?q=Seoul&when=all$/);
   await page.evaluate(() => {
-    window.history.pushState({}, "", "/en/map?q=Busan&when=today");
+    window.history.pushState({}, "", "/en/map?q=Busan&when=weekend");
   });
-  await expect(page).toHaveURL(/\/en\/map\?q=Busan&when=today$/);
+  await expect(page).toHaveURL(/\/en\/map\?q=Busan&when=weekend$/);
 
   await page.goBack();
   await expect(page).toHaveURL(/\/en\/map\?q=Seoul&when=all$/);
   await page.goForward();
-  await expect(page).toHaveURL(/\/en\/map\?q=Busan&when=today$/);
+  await expect(page).toHaveURL(/\/en\/map\?q=Busan&when=weekend$/);
 
   await expect(page.locator(".mobile-search-launch")).toContainText("Busan");
-  await expect(page.getByRole("button", { name: "Market days today" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "This weekend" })).toHaveAttribute("aria-pressed", "true");
 });
 
 test("Today advances at Korean midnight in an open English map", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-28T14:59:59.000Z") });
   await page.goto("/en/map?when=today");
 
-  await expect(page.locator('input[type="date"]')).toHaveAttribute("min", "2026-09-28");
+  await expect(page.locator(".results-sheet-summary")).toContainText("9/28");
   await page.clock.fastForward(2_000);
-  await expect(page.locator('input[type="date"]')).toHaveAttribute("min", "2026-09-29");
-  await expect(page.locator('input[type="date"]')).toHaveValue("2026-09-29");
-});
-
-test("an expired selected travel date is updated visibly at Korean midnight", async ({ page }) => {
-  await page.clock.install({ time: new Date("2026-09-28T14:59:59.000Z") });
-  await page.goto("/en/map?when=date&date=2026-09-28&market=market-da5046982c1c50ff");
-  await expect(page.locator('.direct-date input[type="date"]')).toHaveValue("2026-09-28");
-
-  await page.clock.fastForward(2_000);
-
-  await expect(page.locator('.direct-date input[type="date"]')).toHaveValue("2026-09-29");
-  await expect(page).toHaveURL(/date=2026-09-29/);
-  await expect(page.getByRole("status").filter({ hasText: "The selected date has passed" })).toBeVisible();
+  await expect(page.locator(".results-sheet-summary")).toContainText("9/29");
 });
 
 test("English guide and map fit the mobile viewport", async ({ page }) => {
@@ -203,11 +174,9 @@ test("English date controls stay inside the mobile column at desktop widths", as
 
   for (const width of [981, 993, 1080, 1081, 1100, 1180, 1440]) {
     await page.setViewportSize({ width, height: 844 });
-    const chooseDateButton = page.getByRole("button", { name: "Choose date" });
-    await chooseDateButton.scrollIntoViewIfNeeded();
-    const chooseDate = await chooseDateButton.boundingBox();
-    expect(chooseDate, `Choose date at ${width}px`).not.toBeNull();
-    expect(chooseDate!.x, `Choose date within ${width}px`).toBeGreaterThanOrEqual((width - 430) / 2);
-    expect(chooseDate!.x + chooseDate!.width, `Choose date within ${width}px`).toBeLessThanOrEqual((width + 430) / 2);
+    const dateFilters = await page.locator(".mobile-home-controls .filter-pills").boundingBox();
+    expect(dateFilters, `Date filters at ${width}px`).not.toBeNull();
+    expect(dateFilters!.x, `Date filters within ${width}px`).toBeGreaterThanOrEqual((width - 430) / 2);
+    expect(dateFilters!.x + dateFilters!.width, `Date filters within ${width}px`).toBeLessThanOrEqual((width + 430) / 2);
   }
 });

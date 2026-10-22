@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { extractLegalDocumentHtml, fetchLegalDocumentHtml, LEGAL_HUB_URL } from "./legal-document";

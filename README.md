@@ -135,7 +135,7 @@ pnpm --filter @jangnal-map/web exec playwright test
 
 ## 배포
 
-`main`에 머지하면 배포됩니다. 순서는 CI 테스트와 Docker 이미지 smoke test → Harbor에 커밋 SHA 태그로 게시 → GitOps의 `apps/jangnal-map/web/manifests/deployment.yaml` 이미지 갱신 → GitHub Release 기록입니다. Argo CD(`jangnal-map` Application, 자동 Sync)가 GitOps 변경을 받아 K3s에 배포합니다. Release와 Actions 성공은 배포 요청까지의 기록이며, 실제 Pod 상태는 Argo CD에서 확인합니다.
+`main`에 머지하면 배포됩니다. CI의 `test` job(테스트·타입 검사·DB 검증)과 `image` job(Docker 이미지 빌드·smoke test·Harbor에 커밋 SHA 태그로 게시)이 병렬로 돌고, 둘 다 성공하면 `deploy` job이 GitOps의 `apps/jangnal-map/web/manifests/` 이미지를 갱신하고 GitHub Release를 기록합니다. 테스트가 실패한 커밋은 이미지가 Harbor에 남아도 배포되지 않습니다. Argo CD(`jangnal-map` Application, 자동 Sync)가 GitOps 변경을 받아 K3s에 배포합니다. Release와 Actions 성공은 배포 요청까지의 기록이며, 실제 Pod 상태는 Argo CD에서 확인합니다.
 
 요청은 NPMplus(TLS) → Traefik → Next.js 컨테이너로 들어옵니다. 예전 주소 `https://spamfam.kr`은 경로와 쿼리를 보존해 새 주소로 301 이동합니다.
 

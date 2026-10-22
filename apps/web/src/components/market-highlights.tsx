@@ -271,7 +271,22 @@ export function MarketHighlightsTeaser({ market, scheduleLabel, initialHighlight
 }
 
 /** 하단 시트 틀. 포커스를 시트 안에 가두고 Escape로 이 시트만 닫는다. */
-export function SheetOverlay({ labelledBy, onClose, children }: { labelledBy: string; onClose: () => void; children: ReactNode }) {
+export function SheetOverlay({ labelledBy, onClose, className, children }: { labelledBy: string; onClose: () => void; className?: string; children: ReactNode }) {
+  // 모바일 키보드가 올라오면 iOS는 fixed 레이어를 줄이지 않아 시트가 키보드 뒤로 숨는다. 보이는 영역(visualViewport)에 맞춘다.
+  const [viewport, setViewport] = useState<{ top: number; height: number } | null>(null);
+  useEffect(() => {
+    const visual = window.visualViewport;
+    if (!visual) return;
+    const update = () => setViewport({ top: visual.offsetTop, height: visual.height });
+    update();
+    visual.addEventListener("resize", update);
+    visual.addEventListener("scroll", update);
+    return () => {
+      visual.removeEventListener("resize", update);
+      visual.removeEventListener("scroll", update);
+    };
+  }, []);
+
   // 지도 패널 시트도 document에서 Escape를 들어 패널을 닫는다. 캡처 단계에서 먼저 받아 이 시트만 닫는다.
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -294,9 +309,9 @@ export function SheetOverlay({ labelledBy, onClose, children }: { labelledBy: st
   };
 
   return createPortal(
-    <div className={styles.overlay} onKeyDown={trapFocus}>
+    <div className={styles.overlay} style={viewport ? { top: viewport.top, bottom: "auto", height: viewport.height } : undefined} onKeyDown={trapFocus}>
       <div className={styles.scrim} onClick={onClose} aria-hidden="true" />
-      <div className={styles.sheet} role="dialog" aria-modal="true" aria-labelledby={labelledBy}>
+      <div className={className ? `${styles.sheet} ${className}` : styles.sheet} role="dialog" aria-modal="true" aria-labelledby={labelledBy}>
         <div className={styles.grabber} aria-hidden="true" />
         {children}
       </div>

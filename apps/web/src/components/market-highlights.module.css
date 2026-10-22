@@ -54,7 +54,7 @@
 .overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: flex-end; justify-content: center; }
 /* 시안의 --scrim(ink 42%). 이 시트에서만 쓰여 토큰으로 올리지 않았다. */
 .scrim { position: absolute; inset: 0; background: oklch(0.21 0.015 260 / 42%); }
-.sheet { position: relative; width: 100%; max-width: 430px; max-height: 94dvh; overflow: auto; background: var(--surface); border-radius: var(--r-l) var(--r-l) 0 0; box-shadow: var(--shadow-float); padding: 8px 20px calc(28px + env(safe-area-inset-bottom)); color: var(--ink); word-break: keep-all; }
+.sheet { position: relative; width: 100%; max-width: 430px; max-height: calc(100% - 24px); overflow: auto; background: var(--surface); border-radius: var(--r-l) var(--r-l) 0 0; box-shadow: var(--shadow-float); padding: 8px 20px calc(28px + env(safe-area-inset-bottom)); color: var(--ink); word-break: keep-all; }
 .grabber { width: 40px; height: 4px; border-radius: var(--r-pill); background: var(--line); margin: 0 auto 8px; }
 .sheetHead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .sheetHead h2 { margin: 10px 0 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
@@ -116,6 +116,10 @@
 .todayAction :global(.icon) { width: 16px; height: 16px; }
 .pickerSearch { margin-top: 16px; }
 .pickerList { list-style: none; margin: 8px 0 0; padding: 0; }
+/* 검색 결과 수와 상관없이 높이를 고정하고 목록만 스크롤한다. 키보드가 올라오면 보이는 영역에 맞춰 줄어든다. */
+.pickerSheet { height: min(640px, calc(100% - 24px)); display: flex; flex-direction: column; overflow: hidden; }
+.pickerSheet > * { flex-shrink: 0; }
+.pickerSheet > .pickerList { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .pickerRow { width: 100%; min-height: 64px; padding: 8px 4px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); display: flex; align-items: center; gap: 12px; font: inherit; text-align: left; cursor: pointer; }
 .pickerRow:hover { background: var(--surface-2); }
 .pickerTile { width: 48px; height: 48px; flex: none; border-radius: var(--r-s); background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: 18px; }

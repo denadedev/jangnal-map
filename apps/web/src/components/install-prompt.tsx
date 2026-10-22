@@ -42,6 +42,11 @@ export const trackEvent = (event: string, data?: Record<string, string>) => {
   (window as WindowWithUmami).umami?.track(event, data);
 };
 
+const detectOs = (userAgent: string, maxTouchPoints: number): string => {
+  if (/iPhone|iPad|iPod/i.test(userAgent) || (/Macintosh/i.test(userAgent) && maxTouchPoints > 1)) return "ios";
+  return /Android/i.test(userAgent) ? "android" : "other";
+};
+
 const readStorage = (storage: Storage, key: string): string | null => {
   try {
     return storage.getItem(key);
@@ -83,7 +88,7 @@ export interface InstallPromptState {
   /** 안드로이드는 설치 창을, 그 밖에는 따라 할 안내 시트를 연다. */
   start: () => Promise<void>;
   closeGuide: () => void;
-  dismiss: () => void;
+  dismiss: (source: "banner" | "menu") => void;
 }
 
 export function useInstallPrompt(): InstallPromptState {
@@ -102,6 +107,8 @@ export function useInstallPrompt(): InstallPromptState {
       trackEvent("pwa-launch");
       if (readStorage(window.localStorage, WELCOMED_STORAGE_KEY)) return;
       writeStorage(window.localStorage, WELCOMED_STORAGE_KEY, "1");
+      // 홈 화면 앱은 브라우저와 저장소를 따로 써서, 앱으로 처음 열린 순간이 곧 새 설치다. iOS 설치 수는 이것으로만 셀 수 있다.
+      trackEvent("pwa-first-launch", { os: detectOs(window.navigator.userAgent, window.navigator.maxTouchPoints) });
       setWelcomeVisible(true);
       const timer = window.setTimeout(() => setWelcomeVisible(false), WELCOME_DURATION_MS);
       return () => window.clearTimeout(timer);
@@ -143,7 +150,8 @@ export function useInstallPrompt(): InstallPromptState {
 
   const closeGuide = useCallback(() => setGuideOpen(false), []);
 
-  const dismiss = () => {
+  const dismiss = (source: "banner" | "menu") => {
+    trackEvent("install-dismiss", { platform: platform ?? "", source });
     writeStorage(window.localStorage, DISMISS_STORAGE_KEY, String(Date.now()));
     setPlatform(null);
     setInstallEvent(null);

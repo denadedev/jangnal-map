@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { buildMapItems, type CoordinateBounds } from "../lib/market-clusters";
 import type { PublicMarket } from "../lib/market";
@@ -12,6 +12,8 @@ import { Icon } from "./icon";
 
 interface MarketMapProps {
   locale?: Locale;
+  /** 지도 왼쪽 위에 띄울 요소 (방문자 제보 버튼). */
+  overlay?: ReactNode;
   markets: PublicMarket[];
   searchMarkets?: PublicMarket[];
   searchQuery?: string;
@@ -56,7 +58,7 @@ const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, (charact
   '"': "&quot;",
 })[character] ?? character);
 
-export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQuery = "", referenceDate, selectedId, clientId, mobileOcclusion, mobileSheetHeight = 0, onSelect, onLocationChange, onCameraRestoreComplete, onStatusChange, onLocationError, onFallbackList }: MarketMapProps) {
+export function MarketMap({ locale = "ko", overlay, markets, searchMarkets = [], searchQuery = "", referenceDate, selectedId, clientId, mobileOcclusion, mobileSheetHeight = 0, onSelect, onLocationChange, onCameraRestoreComplete, onStatusChange, onLocationError, onFallbackList }: MarketMapProps) {
   const ui = getUiCopy(locale);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<NaverMapInstance | null>(null);
@@ -479,6 +481,7 @@ export function MarketMap({ locale = "ko", markets, searchMarkets = [], searchQu
         </button>
         {locationMessage ? <p className={`location-message is-${locationStatus}`} role="status">{locationMessage}</p> : null}
       </div>
+      {overlay ? <div className="map-overlay-start">{overlay}</div> : null}
       <div className="map-legend" aria-hidden="true"><span /> {ui.mapLegend}</div>
       <p className="mobile-map-caption">{locale === "en" ? "Map pins reflect the selected dates. Check each market before visiting." : "지도 핀은 선택한 날짜 조건을 반영합니다. 방문 전 시장 정보를 확인해 주세요."}</p>
     </section>

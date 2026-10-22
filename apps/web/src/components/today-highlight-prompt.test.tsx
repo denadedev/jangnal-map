@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { PublicMarket } from "../lib/market";
 import { publicMarkets } from "../lib/market-catalog";
-import { findNearbyMarkets, TodayHighlightPrompt } from "./today-highlight-prompt";
+import { findNearbyMarkets, MapParticipateButton, TodayHighlightPrompt } from "./today-highlight-prompt";
 
 const base = publicMarkets.find((market) => market.schedule.kind === "digit-pair")!;
 const make = (id: string, name: string, days: [number, number], roadAddress: string): PublicMarket =>
@@ -30,7 +30,7 @@ describe("TodayHighlightPrompt", () => {
     await userEvent.click(screen.getByRole("button", { name: "알려 주기" }));
 
     const picker = screen.getByRole("dialog", { name: "어느 장이었나요?" });
-    expect(within(picker).getByText("오늘 열린 장 2곳")).toBeInTheDocument();
+    expect(within(picker).getByText(/오늘 열린 장 2곳/)).toBeInTheDocument();
     expect(within(picker).queryByText("상설시장")).not.toBeInTheDocument();
     await userEvent.type(within(picker).getByRole("searchbox"), "원주");
     expect(within(picker).queryByText("정선아리랑시장")).not.toBeInTheDocument();
@@ -59,6 +59,32 @@ describe("TodayHighlightPrompt", () => {
   it("does not show on days without a five-day market", () => {
     const { container } = render(<TodayHighlightPrompt markets={markets} today={new Date(2026, 9, 24)} currentLocation={null} />);
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe("MapParticipateButton", () => {
+  it("asks about today's market and still finds other markets by search", async () => {
+    render(<MapParticipateButton markets={markets} today={today} currentLocation={null} />);
+    await userEvent.click(screen.getByRole("button", { name: "오늘 장 다녀오셨나요?" }));
+    expect(umami.track).toHaveBeenCalledWith("highlight_map_button_open", { today: "yes" });
+
+    const picker = screen.getByRole("dialog", { name: "어느 장이었나요?" });
+    expect(within(picker).queryByText("정선 임계시장")).not.toBeInTheDocument();
+    await userEvent.type(within(picker).getByRole("searchbox"), "정선");
+    const rows = within(picker).getAllByRole("button", { name: /정선/ }).map((row) => row.textContent);
+    expect(rows[0]).toContain("정선아리랑시장");
+    expect(rows[0]).toContain("오늘 열림");
+    expect(rows.some((row) => row?.includes("정선 임계시장"))).toBe(true);
+
+    await userEvent.click(within(picker).getByRole("button", { name: /정선 임계시장/ }));
+    expect(within(screen.getByRole("dialog", { name: "이 장에 대해 알려 주기" })).getByText("정선 임계시장")).toBeInTheDocument();
+    expect(umami.track).toHaveBeenCalledWith("specialty_form_open", { source: "map_button" });
+  });
+
+  it("invites a story on days without a five-day market", async () => {
+    render(<MapParticipateButton markets={markets} today={new Date(2026, 9, 24)} currentLocation={null} />);
+    await userEvent.click(screen.getByRole("button", { name: "장 이야기 알려 주기" }));
+    expect(screen.getByText("시장 이름이나 지역으로 찾아 주세요")).toBeInTheDocument();
   });
 });
 

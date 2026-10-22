@@ -98,7 +98,7 @@ export function MapParticipateButton({ markets, today, currentLocation }: TodayH
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const todayMarkets = useTodayMarkets(markets, today, currentLocation);
-  const label = todayMarkets.length > 0 ? "오늘 장 다녀오셨나요?" : "장 이야기 알려 주기";
+  const label = todayMarkets.length > 0 ? "오늘 장 꿀팁 한 줄 남기기" : "단골 장 꿀팁 남기기";
 
   return (
     <>

@@ -65,7 +65,7 @@ describe("TodayHighlightPrompt", () => {
 describe("MapParticipateButton", () => {
   it("asks about today's market and still finds other markets by search", async () => {
     render(<MapParticipateButton markets={markets} today={today} currentLocation={null} />);
-    await userEvent.click(screen.getByRole("button", { name: "오늘 장 다녀오셨나요?" }));
+    await userEvent.click(screen.getByRole("button", { name: "오늘 장 꿀팁 한 줄 남기기" }));
     expect(umami.track).toHaveBeenCalledWith("highlight_map_button_open", { today: "yes" });
 
     const picker = screen.getByRole("dialog", { name: "어느 장이었나요?" });
@@ -83,7 +83,7 @@ describe("MapParticipateButton", () => {
 
   it("invites a story on days without a five-day market", async () => {
     render(<MapParticipateButton markets={markets} today={new Date(2026, 9, 24)} currentLocation={null} />);
-    await userEvent.click(screen.getByRole("button", { name: "장 이야기 알려 주기" }));
+    await userEvent.click(screen.getByRole("button", { name: "단골 장 꿀팁 남기기" }));
     expect(screen.getByText("시장 이름이나 지역으로 찾아 주세요")).toBeInTheDocument();
   });
 });

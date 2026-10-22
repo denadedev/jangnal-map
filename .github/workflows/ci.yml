@@ -18,7 +18,60 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  verify:
+  # test와 image는 병렬로 돈다. image는 테스트 결과를 기다리지 않고 Harbor에 올리지만,
+  # GitOps 갱신(deploy)은 두 job이 모두 성공해야 실행되므로 실패한 커밋은 배포되지 않는다.
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: jangnal
+          POSTGRES_PASSWORD: jangnal-ci
+          POSTGRES_DB: jangnal
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jangnal"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Set up pnpm
+        run: corepack enable && corepack prepare pnpm@10.33.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Run type checks
+        run: pnpm typecheck
+
+      - name: Migrate, seed and verify the database
+        working-directory: apps/web
+        env:
+          DATABASE_URL: postgres://jangnal:jangnal-ci@127.0.0.1:5432/jangnal
+        run: |
+          pnpm db:migrate
+          pnpm db:seed
+          pnpm db:verify
+          pnpm db:parity
+          pnpm exec vitest run src/db/highlights.test.ts --environment node
+
+  image:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     services:
@@ -56,22 +109,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run tests
-        run: pnpm test
-
-      - name: Run type checks
-        run: pnpm typecheck
-
-      - name: Migrate, seed and verify the database
+      # 스모크 테스트의 DB 모드와 마이그레이션 비교 기준으로 쓸 DB를 drizzle-kit으로 준비한다.
+      - name: Migrate and seed the database
         working-directory: apps/web
         env:
           DATABASE_URL: postgres://jangnal:jangnal-ci@127.0.0.1:5432/jangnal
         run: |
           pnpm db:migrate
           pnpm db:seed
-          pnpm db:verify
-          pnpm db:parity
-          pnpm exec vitest run src/db/highlights.test.ts --environment node
 
       - name: Require map configuration for publishing
         if: github.ref == 'refs/heads/main'
@@ -145,25 +190,28 @@ jobs:
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
 
-      - name: Push the tested image
+      - name: Push the image
         if: steps.latest.outputs.publish == 'true'
         run: docker push "$IMAGE"
 
     outputs:
       published: ${{ steps.latest.outputs.publish }}
 
-  gitops:
-    needs: verify
-    if: github.ref == 'refs/heads/main' && needs.verify.outputs.published == 'true'
+  deploy:
+    name: Update GitOps and record K3s deployment request
+    needs: [test, image]
+    if: github.ref == 'refs/heads/main' && needs.image.outputs.published == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    outputs:
-      updated: ${{ steps.update.outputs.updated }}
+    permissions:
+      contents: write
     concurrency:
-      group: jangnal-web-gitops
+      group: jangnal-web-deploy
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v5
         with:
           node-version: 22
@@ -221,26 +269,8 @@ jobs:
           echo 'GitOps update failed after three attempts.'
           exit 1
 
-  release:
-    name: Record K3s deployment request
-    needs: [verify, gitops]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.gitops.outputs.updated == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: write
-    concurrency:
-      group: jangnal-web-release
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          package-manager-cache: false
       - name: Create release for the latest main commit
+        if: github.event_name == 'push' && steps.update.outputs.updated == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/create-release.mjs

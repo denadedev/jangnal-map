@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.9.1] - 2026-10-22
+
+### Changed
+
+- CI에서 테스트(`test`)와 이미지 빌드·smoke test·Harbor 게시(`image`)를 병렬 job으로 나눴다. GitOps 갱신은 두 job이 모두 성공해야 실행되므로 실패한 커밋은 배포되지 않는다.
+- GitOps 갱신과 Release 생성을 `deploy` job 하나로 합쳐 러너를 하나 덜 띄운다.
+- web 단위 테스트에서 화면 테스트(`.tsx`)만 jsdom 환경으로 돌리고 나머지는 node 환경으로 돌린다. DOM이 필요한 `.ts` 테스트는 파일 첫 줄에 `@vitest-environment jsdom`을 적는다.
+
 ## [0.4.9.0] - 2026-10-22
 
 ### Changed

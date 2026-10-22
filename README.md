@@ -101,7 +101,7 @@ NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=your_naver_maps_client_id
 
 ## K3s 배포와 Release
 
-`main` 반영 → CI 테스트·이미지 검증 → Harbor 게시 → GitOps 이미지 갱신 → GitHub Release 생성 순서입니다. Argo CD가 GitOps 변경을 감지해 K3s에 배포합니다. Release는 **배포 요청 완료 기록**이며 실제 Pod 배포 완료를 보장하지 않습니다.
+`main` 반영 → CI 테스트와 이미지 빌드·검증·Harbor 게시(두 job 병렬) → 둘 다 성공하면 GitOps 이미지 갱신 → GitHub Release 생성 순서입니다. Argo CD가 GitOps 변경을 감지해 K3s에 배포합니다. Release는 **배포 요청 완료 기록**이며 실제 Pod 배포 완료를 보장하지 않습니다.
 
 공식 서비스 주소는 `https://kmarketday.com`이며, 기존 `https://spamfam.kr`과 연결된 레거시 호스트는 NPMplus에서 경로·쿼리를 보존한 301로 새 주소로 보냅니다. 요청 경로는 NPMplus(TLS) → Traefik → Next.js 컨테이너로 전달됩니다. Vercel Git 연결은 해제했고 기존 프로젝트는 일시 중지 상태입니다. 환경변수·권한·재실행·롤백 안내는 [웹 배포 안내](apps/web/README.md)를 참고합니다.
 

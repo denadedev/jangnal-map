@@ -52,10 +52,12 @@ SMTP 자격증명은 없는 상태로 빌드해야 런타임 이메일 테스트
 
 ## GitHub Actions
 
-`CI`는 PR에서 전체 테스트·타입 검사와 AMD64 Docker 이미지 빌드·smoke test를 실행한다.
-PR에서는 Harbor 로그인이나 GitOps 쓰기를 하지 않는다. main push 또는 main의 수동 실행은
-검사를 통과한 바로 그 이미지를 전체 커밋 SHA 태그로 Harbor에 올리고 GitOps의
-`apps/jangnal-map/web/manifests/deployment.yaml` 이미지 필드만 갱신한다.
+`CI`는 `test`(전체 테스트·타입 검사·DB 검증)와 `image`(AMD64 Docker 이미지 빌드·smoke test)
+job을 병렬로 실행한다. PR에서는 Harbor 로그인이나 GitOps 쓰기를 하지 않는다. main push 또는
+main의 수동 실행에서는 `image`가 smoke test를 통과한 이미지를 전체 커밋 SHA 태그로 Harbor에
+바로 올리고, `deploy` job이 `test`와 `image`가 모두 성공한 뒤에만 GitOps의
+`apps/jangnal-map/web/manifests/` 이미지 필드를 갱신한다. 그래서 테스트가 실패한 커밋의
+이미지가 Harbor에 남을 수는 있지만 배포되지는 않는다.
 
 저장소에서 사용할 수 있도록 조직의 허용 저장소 범위를 확인한다:
 
@@ -83,17 +85,17 @@ GitOps의 이미지 SHA를 검증된 이전 값으로 변경한다.
 
 ## GitHub Release
 
-별도 Vercel 이벤트 대신 `CI`의 마지막 `release` job에서 생성한다.
+별도 Vercel 이벤트 대신 `CI`의 `deploy` job 마지막 단계에서 GitOps 갱신 직후 생성한다.
 
 - 트리거: `main` push(일반적으로 PR 병합). PR과 `workflow_dispatch`에서는 생성하지 않는다.
 - 조건: 검증·이미지 게시 성공, GitOps가 해당 이미지로 갱신됐거나 이미 같은 이미지임을 확인.
   오래된 main 작업으로 게시·갱신을 건너뛴 경우 Release도 만들지 않는다.
 - 태그: `k3s-<전체 커밋 SHA>`. 제목: `K3s <짧은 SHA>`. 변경 내용은 자동 생성한다.
 - 같은 push 실행을 재실행해도 기존 Release는 수정하거나 중복 생성하지 않는다.
-  Release만 실패하면 해당 push 실행의 실패한 job을 재실행한다.
+  Release만 실패하면 해당 push 실행의 `deploy` job을 재실행한다. GitOps가 이미 같은 이미지면 갱신 없이 Release만 만든다.
 - Release는 **CI 검증·Harbor 게시·GitOps 갱신 완료**를 기록한다. 실제 K3s 배포를
   기다리지 않으며 Argo CD 토큰은 필요 없다. 배포 상태는 Argo CD에서 확인한다.
-- Release job만 `contents: write`를 사용한다. 기존 Vercel 전용 워크플로와
+- `deploy` job만 `contents: write`를 사용한다. 기존 Vercel 전용 워크플로와
   `vercel.json`은 제거했으며 과거 GitHub Release는 이력으로 보존한다.
 
 참고: [Next.js standalone 출력](https://nextjs.org/docs/app/api-reference/config/next-config-js/output).

@@ -25,7 +25,7 @@ export function MobileAppBar({ title = "오늘 장날", backHref, homeHref = "/"
       setMenuOpen(false);
       return installPrompt.start();
     },
-    onDismissInstall: installPrompt.dismiss,
+    onDismissInstall: () => installPrompt.dismiss("menu"),
   };
   const openMenu = () => {
     onMenuOpen?.();

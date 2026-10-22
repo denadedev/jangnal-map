@@ -37,7 +37,7 @@ function InstallHarness() {
         onClose={() => undefined}
         installPlatform={install.platform}
         installAction={install.start}
-        onDismissInstall={install.dismiss}
+        onDismissInstall={() => install.dismiss("menu")}
       />
       <InstallBanner install={install} />
       <InstallGuideSheet install={install} />
@@ -107,6 +107,7 @@ describe("useInstallPrompt", () => {
     expect(screen.queryByRole("dialog", { name: "홈 화면에 추가하는 방법" })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "14일 동안 닫기" }));
+    expect(track).toHaveBeenCalledWith("install-dismiss", { platform: "ios-safari", source: "menu" });
     view.unmount();
     startNewSession();
     render(<InstallHarness />);
@@ -167,6 +168,8 @@ describe("useInstallPrompt", () => {
     const second = render(<InstallHarness />);
     expect(screen.getByRole("complementary", { name: "홈 화면에 추가" })).toHaveTextContent("홈 화면에 추가하고 바로 열기");
     expect(track).toHaveBeenCalledWith("install-banner-view", { platform: "ios-safari" });
+    await userEvent.setup().click(screen.getByRole("button", { name: "홈 화면 추가 안내 14일 동안 닫기" }));
+    expect(track).toHaveBeenCalledWith("install-dismiss", { platform: "ios-safari", source: "banner" });
     second.unmount();
 
     render(<InstallHarness />);
@@ -181,13 +184,17 @@ describe("useInstallPrompt", () => {
     expect(screen.queryByRole("button", { name: "추가 방법" })).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("홈 화면에서 바로 열었어요");
     expect(track).toHaveBeenCalledWith("pwa-launch", undefined);
+    expect(track).toHaveBeenCalledWith("pwa-first-launch", { os: "ios" });
     act(() => vi.advanceTimersByTime(4_000));
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     first.unmount();
 
     startNewSession();
+    track.mockClear();
     render(<InstallHarness />);
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(track).toHaveBeenCalledWith("pwa-launch", undefined);
+    expect(track).not.toHaveBeenCalledWith("pwa-first-launch", expect.anything());
     vi.useRealTimers();
   });
 });

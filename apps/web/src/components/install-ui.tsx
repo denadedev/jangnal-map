@@ -24,7 +24,7 @@ export function InstallBanner({ locale = "ko", install }: { locale?: Locale; ins
       <AppIcon size={40} />
       <p>{ui.installBanner}</p>
       <button type="button" className="install-banner-add" onClick={() => void install.start()}>{ui.installBannerAdd}</button>
-      <button type="button" className="install-banner-close" aria-label={ui.installBannerClose} onClick={install.dismiss}>
+      <button type="button" className="install-banner-close" aria-label={ui.installBannerClose} onClick={() => install.dismiss("banner")}>
         <Icon name="close" />
       </button>
     </aside>

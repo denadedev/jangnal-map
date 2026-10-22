@@ -42,7 +42,7 @@ test("keeps mobile controls readable and tappable", async ({ page }) => {
   });
   expect(metrics.searchHeight).toBeGreaterThanOrEqual(44);
   expect(["auto", "scroll"]).toContain(metrics.filterOverflow);
-  expect(metrics.chipHeights).toHaveLength(5);
+  expect(metrics.chipHeights).toHaveLength(3);
   expect(metrics.chipHeights.every((height) => height === 40)).toBe(true);
 
   await page.locator(".mobile-search-launch").click();

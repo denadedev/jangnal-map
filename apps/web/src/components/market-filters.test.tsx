@@ -12,52 +12,15 @@ describe("MarketFilters", () => {
 
     render(
       <MarketFilters
-        mode="week"
+        mode="today"
         query=""
-        directDate="2026-09-03"
         onModeChange={onModeChange}
         onQueryChange={() => undefined}
-        onDirectDateChange={() => undefined}
       />,
     );
 
     await user.click(screen.getByRole("button", { name: "전체" }));
     expect(onModeChange).toHaveBeenCalledWith("all");
-  });
-
-  it("opens the native picker from the date-selection button", async () => {
-    const showPicker = vi.fn();
-    Object.defineProperty(HTMLInputElement.prototype, "showPicker", { configurable: true, value: showPicker });
-    const user = userEvent.setup();
-
-    render(
-      <MarketFilters
-        mode="week"
-        query=""
-        directDate="2026-09-03"
-        onModeChange={() => undefined}
-        onQueryChange={() => undefined}
-        onDirectDateChange={() => undefined}
-      />,
-    );
-
-    await user.click(screen.getByRole("button", { name: "날짜 선택" }));
-    expect(showPicker).toHaveBeenCalledOnce();
-  });
-
-  it("shows the selected visit date on the date chip", () => {
-    render(
-      <MarketFilters
-        mode="date"
-        query=""
-        directDate="2026-09-30"
-        onModeChange={() => undefined}
-        onQueryChange={() => undefined}
-        onDirectDateChange={() => undefined}
-      />,
-    );
-
-    expect(screen.getByRole("button", { name: /9월 30일/ })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("exposes the active date filter and reports a new filter selection", async () => {
@@ -66,20 +29,18 @@ describe("MarketFilters", () => {
 
     render(
       <MarketFilters
-        mode="week"
+        mode="today"
         query=""
-        directDate="2026-09-03"
         onModeChange={onModeChange}
         onQueryChange={() => undefined}
-        onDirectDateChange={() => undefined}
       />,
     );
 
-    expect(screen.getByRole("button", { name: "오늘부터 7일" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "다가오는 주말" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "오늘" }));
+    expect(screen.getAllByRole("button").filter((button) => button.classList.contains("filter-pill")).map((button) => button.textContent)).toEqual(["오늘", "다가오는 주말", "전체"]);
+    expect(screen.getByRole("button", { name: "오늘" })).toHaveAttribute("aria-pressed", "true");
+    await user.click(screen.getByRole("button", { name: "다가오는 주말" }));
 
-    expect(onModeChange).toHaveBeenCalledWith("today");
+    expect(onModeChange).toHaveBeenCalledWith("weekend");
   });
 
   it("offers a labelled market or region search", async () => {
@@ -90,16 +51,14 @@ describe("MarketFilters", () => {
       const [query, setQuery] = useState("");
       return (
         <MarketFilters
-          mode="week"
+          mode="today"
           query={query}
-          directDate="2026-09-03"
-          onModeChange={() => undefined}
+            onModeChange={() => undefined}
           onQueryChange={(value) => {
             setQuery(value);
             onQueryChange(value);
           }}
-          onDirectDateChange={() => undefined}
-        />
+          />
       );
     }
 

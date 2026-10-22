@@ -14,13 +14,10 @@ describe("MobileHomeControls", () => {
       const [query, setQuery] = useState("");
       return (
         <MobileHomeControls
-          mode="week"
+          mode="weekend"
           query={query}
-          directDate="2026-09-24"
-          minDate="2026-09-24"
           onModeChange={onModeChange}
           onQueryChange={(value) => { onQueryChange(value); setQuery(value); }}
-          onDirectDateChange={() => undefined}
         />
       );
     }

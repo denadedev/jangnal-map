@@ -10,7 +10,6 @@ export type SheetMode = "results" | "preview" | "detail";
 
 export interface MobileMarketSheetProps {
   locale?: Locale;
-  hasSelectedDate?: boolean;
   snap: SheetSnap;
   onSnapChange: (snap: SheetSnap) => void;
   mode: SheetMode;
@@ -33,7 +32,6 @@ const nextSnap = (snap: SheetSnap, direction: "up" | "down"): SheetSnap => {
 
 export function MobileMarketSheet({
   locale = "ko",
-  hasSelectedDate = false,
   snap,
   onSnapChange,
   mode,
@@ -142,7 +140,7 @@ export function MobileMarketSheet({
   return (
     <section
       ref={sheetRef}
-      className={`mobile-market-sheet is-${mode}${hasSelectedDate && mode === "preview" ? " has-selected-date" : ""}`}
+      className={`mobile-market-sheet is-${mode}`}
       data-snap={snap}
       role={mode === "detail" && snap === "full" ? "dialog" : "region"}
       aria-modal={mode === "detail" && snap === "full" ? "true" : undefined}

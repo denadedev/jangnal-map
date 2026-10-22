@@ -89,7 +89,7 @@ export function RegionToday({ markets, regionName }: { markets: MarketLink[]; re
     );
   }
 
-  const weekend = getDateRange("weekend", today, "")!;
+  const weekend = getDateRange("weekend", today)!;
   const sunday = weekend.end;
   const saturday = weekend.start;
   const chosen = selected ?? today;
@@ -185,7 +185,7 @@ export function HubToday({ markets }: { markets: MarketLink[] }) {
   }
 
   const pattern = getPatternForDate(today);
-  const weekend = getDateRange("weekend", today, "")!;
+  const weekend = getDateRange("weekend", today)!;
   const countOn = (date: Date) => getMarketsOpenOn(markets, date).length;
 
   return (

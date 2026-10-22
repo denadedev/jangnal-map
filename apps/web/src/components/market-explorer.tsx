@@ -7,7 +7,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import type { PublicMarket } from "../lib/market";
 import { buildExplorerPath, type Locale } from "../lib/locale";
 import { getMarketBrowsePath, getMarketPagePath } from "../lib/market-path";
-import { filterMarkets, getDateRange, normalizeDirectDate, sortMarketsByDistance, toIsoDate, type Coordinates } from "../lib/market-view";
+import { filterMarkets, getDateRange, sortMarketsByDistance, type Coordinates } from "../lib/market-view";
 import { getKoreaCalendarDate, msUntilNextKoreaMidnight } from "../lib/korea-date";
 import { resolveRegionAlias } from "../lib/region-aliases";
 import { getUiCopy } from "../lib/ui-copy";
@@ -24,7 +24,6 @@ import { ReviewedMarketGuides, type ReviewedMarketGuide } from "./reviewed-marke
 export interface ExplorerInitialState {
   query?: string;
   mode?: DateFilterMode;
-  directDate?: string;
   selectedId?: string;
 }
 
@@ -38,17 +37,16 @@ interface MarketExplorerProps {
   submissionsEnabled?: boolean;
 }
 
-const validModes = new Set<DateFilterMode>(["all", "today", "week", "weekend", "date"]);
+const validModes = new Set<DateFilterMode>(["all", "today", "weekend"]);
 const staticRenderDate = new Date(2000, 0, 15);
 
-const readUrlState = (today: Date): ExplorerInitialState => {
+const readUrlState = (): ExplorerInitialState => {
   if (typeof window === "undefined") return {};
   const params = new URLSearchParams(window.location.search);
   const modeValue = params.get("when") as DateFilterMode | null;
   return {
     query: params.get("q") ?? "",
-    mode: modeValue && validModes.has(modeValue) ? modeValue : "week",
-    directDate: params.get("date") ?? toIsoDate(today),
+    mode: modeValue && validModes.has(modeValue) ? modeValue : "today",
     selectedId: params.get("market") ?? undefined,
   };
 };
@@ -75,13 +73,11 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   const [today, setToday] = useState(() => providedToday ?? staticRenderDate);
   const resolvedInitial = useMemo(() => {
     const rawState = initialState ?? {};
-    const mode = rawState.mode && validModes.has(rawState.mode) ? rawState.mode : "week";
-    const directDate = toIsoDate(normalizeDirectDate(rawState.directDate ?? toIsoDate(today), today));
-    return { ...rawState, mode, directDate };
-  }, [initialState, today]);
+    const mode = rawState.mode && validModes.has(rawState.mode) ? rawState.mode : "today";
+    return { ...rawState, mode };
+  }, [initialState]);
   const [query, setQuery] = useState(resolvedInitial.query ?? "");
-  const [mode, setMode] = useState<DateFilterMode>(resolvedInitial.mode ?? "week");
-  const [directDate, setDirectDate] = useState(resolvedInitial.directDate ?? toIsoDate(today));
+  const [mode, setMode] = useState<DateFilterMode>(resolvedInitial.mode ?? "today");
   const [selectedId, setSelectedId] = useState<string | null>(resolvedInitial.selectedId ?? null);
   const [sheetSnap, setSheetSnap] = useState<SheetSnap>(resolvedInitial.selectedId ? "full" : "collapsed");
   const [sheetMode, setSheetMode] = useState<SheetMode>(resolvedInitial.selectedId ? "detail" : "results");
@@ -108,9 +104,9 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     retry: false,
   });
 
-  const range = useMemo(() => getDateRange(mode, today, directDate), [directDate, mode, today]);
+  const range = useMemo(() => getDateRange(mode, today), [mode, today]);
   const referenceDate = range?.start ?? today;
-  const includeDaily = Boolean(query.trim()) || mode === "all" || mode === "date";
+  const includeDaily = Boolean(query.trim()) || mode === "all";
   const regionPrefixes = locale === "en" ? resolveRegionAlias(query) : null;
   const queryMatches = useMemo(
     () => filterMarkets(markets, query, null, { regionPrefixes }),
@@ -134,17 +130,12 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   );
   const displayedMarkets = query.trim() ? queryMatches : filteredMarkets;
   const dateReady = hasRestoredUrl || Boolean(providedToday);
-  const rangeLabel = !dateReady ? ui.week : range
+  const rangeLabel = !dateReady ? ui.today : range
     ? `${range.start.getMonth() + 1}/${range.start.getDate()}${range.start.getTime() === range.end.getTime() ? "" : `–${range.end.getMonth() + 1}/${range.end.getDate()}`}`
     : ui.allMarkets;
   const selectedMarket = markets.find((market) => market.id === selectedId) ?? null;
   const todayDigit = today.getDate() % 5 || 5;
   const todayPattern = `${todayDigit}·${todayDigit + 5}`;
-
-  const handleDirectDateChange = useCallback((date: string) => {
-    setDirectDate(toIsoDate(normalizeDirectDate(date, today)));
-    setMode("date");
-  }, [today]);
 
   const focusResultControl = useCallback(() => {
     document.querySelector<HTMLButtonElement>(
@@ -189,16 +180,9 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   useEffect(() => {
     const clientToday = providedToday ?? getKoreaCalendarDate(new Date());
     if (!providedToday) setToday(clientToday);
-    const urlState = readUrlState(clientToday);
+    const urlState = readUrlState();
     setQuery(urlState.query ?? "");
-    setMode(urlState.mode ?? "week");
-    const requestedDate = urlState.directDate ?? toIsoDate(clientToday);
-    const normalizedDate = toIsoDate(normalizeDirectDate(requestedDate, clientToday));
-    setDirectDate(normalizedDate);
-    if (locale === "en" && urlState.mode === "date" && requestedDate !== normalizedDate) {
-      const message = "The selected date has passed or is invalid, so the date was changed to today in Korea.";
-      setUrlNotice((current) => current.includes(message) ? current : [current, message].filter(Boolean).join(" "));
-    }
+    setMode(urlState.mode ?? "today");
     setSelectedId(urlState.selectedId ?? null);
     setSheetMode(urlState.selectedId ? "detail" : "results");
     setSheetSnap(urlState.selectedId ? "full" : "collapsed");
@@ -222,17 +206,6 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
 
   useEffect(() => {
     if (!hasRestoredUrl) return;
-    const normalizedDate = toIsoDate(normalizeDirectDate(directDate, today));
-    if (normalizedDate === directDate) return;
-    setDirectDate(normalizedDate);
-    if (locale === "en" && mode === "date") {
-      const message = "The selected date has passed or is invalid, so the date was changed to today in Korea.";
-      setUrlNotice((current) => current.includes(message) ? current : [current, message].filter(Boolean).join(" "));
-    }
-  }, [directDate, hasRestoredUrl, locale, mode, today]);
-
-  useEffect(() => {
-    if (!hasRestoredUrl) return;
     const nextState = { ...(window.history.state ?? {}) } as Record<string, unknown>;
     if (selectedId) nextState.mobileMarket = selectedId;
     else {
@@ -242,8 +215,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       delete nextState.mobileMarketFromSearch;
       delete nextState.marketSelectionFromResults;
     }
-    window.history.replaceState(nextState, "", buildExplorerPath(locale, { query, mode, directDate, marketId: selectedId }));
-  }, [directDate, hasRestoredUrl, locale, mode, query, selectedId]);
+    window.history.replaceState(nextState, "", buildExplorerPath(locale, { query, mode, marketId: selectedId }));
+  }, [hasRestoredUrl, locale, mode, query, selectedId]);
 
   const restoreResultContext = useCallback(() => {
     if (returnToSearchRef.current) {
@@ -301,12 +274,12 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       marketSelectionFromResults: replacingSelection
         ? Boolean(window.history.state?.marketSelectionFromResults)
         : true,
-    }, "", buildExplorerPath(locale, { query, mode, directDate, marketId: market.id }));
+    }, "", buildExplorerPath(locale, { query, mode, marketId: market.id }));
     setSelectedId(market.id);
     setSheetMode(view);
     setSheetSnap("full");
     setIsSearchOpen(false);
-  }, [directDate, isSearchOpen, locale, mode, query, selectedId, sheetMode, sheetSnap]);
+  }, [isSearchOpen, locale, mode, query, selectedId, sheetMode, sheetSnap]);
   const selectMapMarket = useCallback((market: PublicMarket) => selectMarket(market, "map"), [selectMarket]);
   const selectListMarket = useCallback((market: PublicMarket) => selectMarket(market, "list"), [selectMarket]);
   const closeMarket = useCallback(() => {
@@ -323,8 +296,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   const resetFilters = () => {
     setUrlNotice("");
     setQuery("");
-    setMode("week");
-    setDirectDate(toIsoDate(today));
+    setMode("today");
     closeMarket();
   };
   const clearDateFilter = () => setMode("all");
@@ -353,7 +325,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
 
   useEffect(() => {
     const handlePopState = () => {
-      const urlState = readUrlState(today);
+      const urlState = readUrlState();
       if (!urlState.selectedId && returnToSearchRef.current) {
         setSelectedId(null);
         setSheetMode("results");
@@ -362,14 +334,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         return;
       }
       setQuery(urlState.query ?? "");
-      setMode(urlState.mode ?? "week");
-      const requestedDate = urlState.directDate ?? toIsoDate(today);
-      const normalizedDate = toIsoDate(normalizeDirectDate(requestedDate, today));
-      setDirectDate(normalizedDate);
-      if (locale === "en" && urlState.mode === "date" && requestedDate !== normalizedDate) {
-        const message = "The selected date has passed or is invalid, so the date was changed to today in Korea.";
-        setUrlNotice((current) => current.includes(message) ? current : [current, message].filter(Boolean).join(" "));
-      }
+      setMode(urlState.mode ?? "today");
       const marketId = urlState.selectedId;
       if (marketId) {
         setSelectedId(marketId);
@@ -420,8 +385,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       onReset={resetFilters}
       currentLocation={currentLocation}
       locale={locale}
-      getMarketHref={(market) => locale === "en" || mode === "date"
-        ? buildExplorerPath(locale, { query, mode, directDate, marketId: market.id })
+      getMarketHref={(market) => locale === "en"
+        ? buildExplorerPath(locale, { query, mode, marketId: market.id })
         : getMarketBrowsePath(market, reviewedMarketIdSet.has(market.id))}
     />
   );
@@ -441,15 +406,12 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     <main className="explorer-shell" inert={isSearchOpen}>
       <MobileHomeControls
         locale={locale}
-        languageSwitchHref={buildExplorerPath(locale === "en" ? "ko" : "en", { query, mode, directDate, marketId: selectedId })}
+        languageSwitchHref={buildExplorerPath(locale === "en" ? "ko" : "en", { query, mode, marketId: selectedId })}
         mode={mode}
         query={query}
-        directDate={dateReady ? directDate : ""}
-        minDate={dateReady ? toIsoDate(today) : undefined}
         onMobileSearchOpen={() => setIsSearchOpen(true)}
         onModeChange={setMode}
         onQueryChange={setQuery}
-        onDirectDateChange={handleDirectDateChange}
       />
       {locale === "en" ? <p className="english-map-note">Market names and addresses are in Korean. Dates use Korea time (KST). <a href="/en">How market days work</a></p> : null}
       {urlNotice ? <p className="english-map-note" role="status">{urlNotice}</p> : null}
@@ -527,7 +489,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
 
         <section className="mobile-market-results" aria-label={locale === "en" ? "Market results" : "시장 결과"} data-map-status={mapStatus}>
           {!isPending && !isError && dateReady ? <div className="mobile-results-heading">
-            <h2>{locale === "en" ? `${filteredMarkets.length} markets for these dates` : `${mode === "date" ? "선택일에 장이 서는 시장" : "조건에 맞는 시장"} ${filteredMarkets.length}곳`}</h2>
+            <h2>{locale === "en" ? `${filteredMarkets.length} markets for these dates` : `조건에 맞는 시장 ${filteredMarkets.length}곳`}</h2>
             <span>{query ? locale === "en" ? `Search: “${query}”` : `“${query}” 검색` : locale === "en" ? `${displayedMarkets.length} results` : `시장 ${displayedMarkets.length}곳`}</span>
           </div> : null}
           {marketListContent}
@@ -540,7 +502,6 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         {sheetMode === "detail" && selectedMarket ? (
           <MobileMarketSheet
             locale={locale}
-            hasSelectedDate={mode === "date"}
             snap="full"
             onSnapChange={setSheetSnap}
             mode="detail"
@@ -555,13 +516,10 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
               mobile
               market={selectedMarket}
               detailPath={reviewedMarketIdSet.has(selectedMarket.id) ? getMarketPagePath(selectedMarket) : undefined}
-              sharePath={locale === "en" || mode === "date"
-                ? buildExplorerPath(locale, { query, mode, directDate, marketId: selectedMarket.id })
+              sharePath={locale === "en"
+                ? buildExplorerPath(locale, { query, mode, marketId: selectedMarket.id })
                 : getMarketBrowsePath(selectedMarket, reviewedMarketIdSet.has(selectedMarket.id))}
               today={today}
-              selectedDate={mode === "date" ? range?.start : undefined}
-              onVisitDateChange={handleDirectDateChange}
-              onClearDate={clearDateFilter}
               onClose={closeMarket}
               submissionsEnabled={submissionsEnabled}
               nearbyMarkets={findNearbyMarkets(selectedMarket, markets)}

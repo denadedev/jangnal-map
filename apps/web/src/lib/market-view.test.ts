@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { PublicMarket } from "./market";
-import { filterMarkets, formatDistance, formatMarketTiming, formatMarketType, formatScheduleDates, formatSchedulePattern, getDateRange, normalizeDirectDate, sortMarketsByDistance } from "./market-view";
+import { filterMarkets, formatDistance, formatMarketTiming, formatMarketType, formatScheduleDates, formatSchedulePattern, getDateRange, sortMarketsByDistance } from "./market-view";
 
 const market: PublicMarket = {
   id: "market",
@@ -61,15 +61,15 @@ describe("market explorer date semantics", () => {
     expect(formatScheduleDates({ ...market, schedule: { kind: "unknown", raw: "확인 중" } })).toBe("일정 확인 필요");
   });
 
-  it("uses all markets without a date range and treats this week as the next seven days", () => {
+  it("uses all markets without a date range and today and the coming weekend as ranges", () => {
     const sunday = new Date(2026, 8, 6);
 
-    expect(getDateRange("all", sunday, "2026-09-06")).toBeNull();
-    expect(getDateRange("week", sunday, "2026-09-06")).toEqual({
+    expect(getDateRange("all", sunday)).toBeNull();
+    expect(getDateRange("today", sunday)).toEqual({
       start: new Date(2026, 8, 6),
-      end: new Date(2026, 8, 12),
+      end: new Date(2026, 8, 6),
     });
-    expect(getDateRange("weekend", sunday, "2026-09-06")).toEqual({
+    expect(getDateRange("weekend", sunday)).toEqual({
       start: new Date(2026, 8, 12),
       end: new Date(2026, 8, 13),
     });
@@ -101,25 +101,17 @@ describe("market explorer date semantics", () => {
     expect(filterMarkets([seoul, busan], "서울", null)).toEqual([seoul]);
   });
 
-  it("shows an upcoming market day during the next seven days", () => {
+  it("shows the next market day for a market open this weekend", () => {
     const today = new Date(2026, 8, 8);
-    const range = getDateRange("week", today, "2026-09-08");
+    const range = getDateRange("weekend", today);
     const results = filterMarkets([market], "", range);
 
-    expect(range).toEqual({ start: new Date(2026, 8, 8), end: new Date(2026, 8, 14) });
+    expect(range).toEqual({ start: new Date(2026, 8, 12), end: new Date(2026, 8, 13) });
     expect(results).toEqual([market]);
-    expect(formatMarketTiming(results[0], range!.start)).toBe("9/12");
+    expect(formatMarketTiming(results[0], today)).toBe("9/12");
   });
 
   it("spells out the month for English travelers", () => {
     expect(formatMarketTiming(market, new Date(2026, 8, 8), "en")).toBe("Sep 12");
-  });
-
-  it("clamps empty, malformed, and past direct dates to today", () => {
-    const today = new Date(2026, 8, 8);
-
-    expect(normalizeDirectDate("", today)).toEqual(today);
-    expect(normalizeDirectDate("2026-09-99", today)).toEqual(today);
-    expect(normalizeDirectDate("2026-09-07", today)).toEqual(today);
   });
 });

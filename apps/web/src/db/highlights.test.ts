@@ -37,7 +37,7 @@ describe.skipIf(!process.env.DATABASE_URL)("highlight submissions on PostgreSQL"
     expect(row.highlightId).not.toBeNull();
 
     const snapshot = await readDbSnapshot(db);
-    expect(snapshot.highlights).toContainEqual({ marketId: legacyId, name: "안동 식혜 테스트", description: "생강이 들어가요", category: "specialty" });
+    expect(snapshot.highlights).toContainEqual({ marketId: legacyId, name: "안동 식혜 테스트", description: "생강이 들어가요", category: "specialty", createdAt: expect.any(String) });
     expect(snapshot.editorial.find((entry) => entry.marketId === legacyId)?.specialties).not.toContain("안동 식혜 테스트");
   });
 

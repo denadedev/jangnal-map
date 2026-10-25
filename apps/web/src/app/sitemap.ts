@@ -8,7 +8,7 @@ import { getMarketPagePath, SITE_URL } from "../lib/market-seo";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { markets, launchRegions, isMarketIndexable, findMarketEditorial } = await loadCatalog();
+  const { markets, launchRegions, isMarketIndexable, findMarketEditorial, findMarketHighlights } = await loadCatalog();
   return [
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
     { url: `${SITE_URL}/about`, changeFrequency: "monthly", priority: 0.8 },
@@ -21,7 +21,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/terms`, changeFrequency: "yearly", priority: 0.3 },
     ...markets.filter(isMarketIndexable).map((market) => ({
       url: `${SITE_URL}${getMarketPagePath(market)}`,
-      lastModified: [market.referenceDate ?? market.source.referenceDate ?? "", findMarketEditorial(market.id)!.reviewedAt].sort().at(-1),
+      // 방문자 제보가 승인되면 페이지 내용이 바뀌므로 승인 시각도 후보에 넣는다.
+      lastModified: [
+        market.referenceDate ?? market.source.referenceDate ?? "",
+        findMarketEditorial(market.id)!.reviewedAt,
+        ...findMarketHighlights(market.id).map((highlight) => highlight.createdAt),
+      ].sort().at(-1),
       changeFrequency: "monthly" as const,
       priority: market.schedule.kind === "digit-pair" ? 0.8 : 0.6,
     })),

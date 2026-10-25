@@ -80,6 +80,15 @@ describe("market SEO copy", () => {
     });
   });
 
+  it("names up to three approved visitor picks right after the schedule, skipping tips", () => {
+    const pick = (name: string, category: "specialty" | "food" | "tip" | "sight") =>
+      ({ marketId: periodicMarket.id, name, description: null, category, createdAt: "2026-10-21T00:00:00.000Z" });
+    const seo = createMarketSeoText(periodicMarket, [pick("백암순대", "specialty"), pick("주차는 일찍", "tip"), pick("국밥", "food"), pick("호떡", "food"), pick("벽화길", "sight")]);
+
+    expect(seo.description).toBe("경기도 용인시 용인 중앙시장 장날은 매월 5일·10일·15일·20일·25일·30일입니다. 방문자 추천: 백암순대·국밥·호떡. 주소와 전화, 주차 정보를 확인하고 전국 장날 지도에서 위치를 찾아보세요.");
+    expect(createMarketSeoText(periodicMarket, [pick("주차는 일찍", "tip")])).toEqual(createMarketSeoText(periodicMarket));
+  });
+
   it("uses daily copy for permanent markets and noindexes unknown schedules", () => {
     const daily = { ...periodicMarket, scheduleRaw: "매일", schedule: { kind: "daily" as const } };
     const unknown = { ...periodicMarket, scheduleRaw: "확인 중", schedule: { kind: "unknown" as const, raw: "확인 중" } };

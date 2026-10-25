@@ -104,6 +104,7 @@ export function assembleSnapshot(rows: SeedRows): CatalogSnapshot {
       name: highlight.name,
       description: highlight.description ?? null,
       category: highlight.category as HighlightCategoryCode,
+      createdAt: highlight.createdAt?.toISOString() ?? "",
     }));
 
   return { markets: sortMarkets(markets), editorial, highlights };

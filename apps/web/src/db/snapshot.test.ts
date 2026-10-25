@@ -34,7 +34,7 @@ describe("DB snapshot", () => {
     const fromDb = assembleSnapshot({ ...rows, marketHighlights: [...rows.marketHighlights, user("호떡", "food", 2), user("미나리", "specialty", 3), user("국밥", "food", 1)] });
 
     expect(fromDb.highlights.map(({ name }) => name)).toEqual(["미나리", "국밥", "호떡"]);
-    expect(fromDb.highlights[0]).toEqual({ marketId: market.legacyId, name: "미나리", description: null, category: "specialty" });
+    expect(fromDb.highlights[0]).toEqual({ marketId: market.legacyId, name: "미나리", description: null, category: "specialty", createdAt: "2026-10-21T00:03:00.000Z" });
     expect(snapshotDifferences(fromDb, loadJsonSnapshot())).toEqual([]);
   });
 

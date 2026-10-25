@@ -3,7 +3,7 @@ import { eq, inArray } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { createDb } from "./client";
-import { decideSubmission, findMarketRowId, hasDuplicateHighlight, insertSubmission } from "./highlights";
+import { decideSubmission, findMarketRowId, hasDuplicateHighlight, insertSubmission, removeApprovedHighlight } from "./highlights";
 import * as schema from "./schema";
 import { readDbSnapshot } from "./snapshot";
 
@@ -60,5 +60,20 @@ describe.skipIf(!process.env.DATABASE_URL)("highlight submissions on PostgreSQL"
     const [row] = await db.select().from(schema.marketHighlightSubmissions).where(eq(schema.marketHighlightSubmissions.id, id));
     expect(row).toMatchObject({ status: "rejected", highlightId: null });
     expect(await decideSubmission(db, "not-a-uuid", { approve: false }, "U_TEST")).toEqual({ status: "missing" });
+  });
+
+  it("removes an approved highlight once and keeps the submission approved", async () => {
+    const marketId = (await findMarketRowId(db, legacyId))!;
+    const id = await insertSubmission(db, marketId, { name: "삭제 테스트", description: null, category: "food" });
+    created.push(id);
+    expect(await removeApprovedHighlight(db, id)).toEqual({ status: "not-approved", current: "pending" });
+    await decideSubmission(db, id, { approve: true, category: "food" }, "U_TEST");
+
+    expect(await removeApprovedHighlight(db, id)).toEqual({ status: "removed" });
+    expect(await removeApprovedHighlight(db, id)).toEqual({ status: "already-removed" });
+    const [row] = await db.select().from(schema.marketHighlightSubmissions).where(eq(schema.marketHighlightSubmissions.id, id));
+    expect(row).toMatchObject({ status: "approved", highlightId: null });
+    expect((await readDbSnapshot(db)).highlights.map((highlight) => highlight.name)).not.toContain("삭제 테스트");
+    expect(await removeApprovedHighlight(db, "not-a-uuid")).toEqual({ status: "missing" });
   });
 });

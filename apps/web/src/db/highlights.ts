@@ -95,3 +95,23 @@ export async function decideSubmission(
     throw error;
   }
 }
+
+export type RemovalResult = { status: "removed" } | { status: "already-removed" } | { status: "not-approved"; current: string } | { status: "missing" };
+
+/**
+ * 승인된 제보의 공개 항목(origin=user)을 지운다. 제보 행은 approved로 두고, FK가 highlight_id를 null로 바꾼다.
+ * highlight_id가 이미 null이면 지워진 것으로 본다.
+ */
+export async function removeApprovedHighlight(db: Db, submissionId: string): Promise<RemovalResult> {
+  if (!uuidPattern.test(submissionId)) return { status: "missing" };
+  return db.transaction(async (tx) => {
+    const [submission] = await tx.select().from(schema.marketHighlightSubmissions)
+      .where(eq(schema.marketHighlightSubmissions.id, submissionId)).for("update");
+    if (!submission) return { status: "missing" } as const;
+    if (submission.status !== "approved") return { status: "not-approved", current: submission.status } as const;
+    if (!submission.highlightId) return { status: "already-removed" } as const;
+    await tx.delete(schema.marketHighlights)
+      .where(and(eq(schema.marketHighlights.id, submission.highlightId), eq(schema.marketHighlights.origin, "user")));
+    return { status: "removed" } as const;
+  });
+}

@@ -5,8 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MarketHighlights, MarketHighlightsTeaser } from "./market-highlights";
 
 const highlights = [
-  { marketId: "m", name: "곤드레", description: "봄엔 생나물", category: "specialty" as const },
-  { marketId: "m", name: "콧등치기국수", description: null, category: "food" as const },
+  { marketId: "m", name: "곤드레", description: "봄엔 생나물", category: "specialty" as const, createdAt: "2026-10-21T00:00:00.000Z" },
+  { marketId: "m", name: "콧등치기국수", description: null, category: "food" as const, createdAt: "2026-10-21T00:00:00.000Z" },
 ];
 const props = { marketId: "m", marketName: "정선아리랑시장", scheduleLabel: "끝자리 2·7일" };
 const market = { id: "m", name: "정선아리랑시장", schedule: { kind: "digit-pair" as const, days: [2, 7] as [number, number] } };

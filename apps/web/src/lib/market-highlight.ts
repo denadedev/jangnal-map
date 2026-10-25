@@ -6,4 +6,6 @@ export interface MarketHighlight {
   name: string;
   description: string | null;
   category: HighlightCategoryCode;
+  /** 승인되어 공개된 시각(ISO). */
+  createdAt: string;
 }

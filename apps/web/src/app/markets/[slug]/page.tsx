@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: MarketPageProps): Promise<Met
   const market = catalog.findMarketBySlug((await params).slug);
   if (!market || !catalog.isMarketIndexable(market)) return { robots: { index: false, follow: false } };
 
-  const seo = createMarketSeoText(market);
+  const seo = createMarketSeoText(market, catalog.findMarketHighlights(market.id));
   const path = getMarketPagePath(market);
   const url = `${SITE_URL}${path}`;
 

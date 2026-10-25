@@ -26,6 +26,8 @@ interface MarketDetailProps {
   submissionsEnabled?: boolean;
   /** 제보를 마친 뒤 이어서 제보하도록 보여 줄 같은 지역 시장. */
   nearbyMarkets?: HighlightMarketRef[];
+  /** 지도의 "새 이야기"로 들어왔을 때 강조할 방문자 이야기 이름. */
+  focusHighlight?: string;
 }
 
 const formatSourceDate = (value: string | null, locale: Locale): string => {
@@ -33,7 +35,7 @@ const formatSourceDate = (value: string | null, locale: Locale): string => {
   return locale === "en" ? value : value.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$1.$2.$3");
 };
 
-export function MarketDetail({ locale = "ko", mobile = false, market, detailPath, sharePath, today, onClose, submissionsEnabled, nearbyMarkets }: MarketDetailProps) {
+export function MarketDetail({ locale = "ko", mobile = false, market, detailPath, sharePath, today, onClose, submissionsEnabled, nearbyMarkets, focusHighlight }: MarketDetailProps) {
   const ui = getUiCopy(locale);
   const [monthOffset, setMonthOffset] = useState(0);
   useEffect(() => setMonthOffset(0), [market?.id]);
@@ -169,7 +171,7 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
 
       {locale === "ko" ? (
         <div className="detail-section">
-          <MarketHighlights marketId={market.id} marketName={market.name} scheduleLabel={formatSchedulePattern(market)} submissionsEnabled={submissionsEnabled} nearbyMarkets={nearbyMarkets} headingLevel={3} />
+          <MarketHighlights marketId={market.id} marketName={market.name} scheduleLabel={formatSchedulePattern(market)} submissionsEnabled={submissionsEnabled} nearbyMarkets={nearbyMarkets} focusName={focusHighlight} headingLevel={3} />
         </div>
       ) : null}
 

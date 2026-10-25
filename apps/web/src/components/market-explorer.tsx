@@ -16,7 +16,7 @@ import { MobileHomeControls } from "./mobile-home-controls";
 import { MobileMarketSheet, type SheetMode, type SheetSnap } from "./mobile-market-sheet";
 import { MobileSearchScreen } from "./mobile-search-screen";
 import { MarketDetail } from "./market-detail";
-import { findNearbyMarkets, MapParticipateButton, TodayHighlightPrompt } from "./today-highlight-prompt";
+import { findNearbyMarkets, MapParticipateButton, TodayHighlightPrompt, type LatestStory } from "./today-highlight-prompt";
 import { track } from "./market-highlights";
 import type { DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
@@ -82,6 +82,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   const [query, setQuery] = useState(resolvedInitial.query ?? "");
   const [mode, setMode] = useState<DateFilterMode>(resolvedInitial.mode ?? "today");
   const [selectedId, setSelectedId] = useState<string | null>(resolvedInitial.selectedId ?? null);
+  /** 지도의 "새 이야기"로 연 시장이면 그 이야기를 상세에서 강조한다. */
+  const [storyFocus, setStoryFocus] = useState<{ marketId: string; name: string } | null>(null);
   const [sheetSnap, setSheetSnap] = useState<SheetSnap>(resolvedInitial.selectedId ? "full" : "collapsed");
   const [sheetMode, setSheetMode] = useState<SheetMode>(resolvedInitial.selectedId ? "detail" : "results");
   const previousSheetSnap = useRef<SheetSnap>("collapsed");
@@ -328,6 +330,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         : true,
     }, "", buildExplorerPath(locale, { query, mode, marketId: market.id, marketSet: marketSetPath }));
     if (setActive && marketSet) track("market-set-open", { market: market.id, source: marketSet.source });
+    setStoryFocus(null);
     setSelectedId(market.id);
     setSheetMode(view);
     setSheetSnap("full");
@@ -335,6 +338,10 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   }, [isSearchOpen, locale, marketSet, marketSetPath, mode, query, selectedId, setActive, sheetMode, sheetSnap]);
   const selectMapMarket = useCallback((market: PublicMarket) => selectMarket(market, "map"), [selectMarket]);
   const selectListMarket = useCallback((market: PublicMarket) => selectMarket(market, "list"), [selectMarket]);
+  const openLatestStory = useCallback(({ market, highlight }: LatestStory) => {
+    selectMarket(market, "list");
+    setStoryFocus({ marketId: market.id, name: highlight.name });
+  }, [selectMarket]);
   const closeMarket = useCallback(() => {
     const selected = selectedOrigin.current;
     if (selected && window.history.state?.mobileMarket === selected.id && window.history.state?.marketSelectionFromResults) {
@@ -487,6 +494,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
                 today={today}
                 currentLocation={currentLocation}
                 suggested={setActive ? { markets: setMarkets, label: setLabel } : undefined}
+                onOpenStory={setActive ? undefined : openLatestStory}
               /> : null}
               {setActive ? (
                 <button type="button" className="market-set-chip" onClick={() => exitMarketSet("button")}>
@@ -601,6 +609,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
               onClose={closeMarket}
               submissionsEnabled={submissionsEnabled}
               nearbyMarkets={findNearbyMarkets(selectedMarket, markets)}
+              focusHighlight={storyFocus?.marketId === selectedMarket.id ? storyFocus.name : undefined}
             />
           </MobileMarketSheet>
         ) : null}

@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
+import type { MarketHighlight } from "../lib/market-highlight";
 import { formatSchedulePattern, sortMarketsByDistance, toIsoDate, type Coordinates } from "../lib/market-view";
 import { getMarketDates } from "../lib/schedule";
 import { Icon } from "./icon";
@@ -12,6 +13,52 @@ import styles from "./market-highlights.module.css";
 
 const DISMISS_KEY = "jangnal:today-highlight-card-dismissed";
 const PICKER_LIMIT = 50;
+const LATEST_SEEN_KEY = "jangnal:latest-story-seen";
+const LATEST_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+/** 버튼이 들어온 뒤(400ms 대기 + 240ms) 펼치고, 0.3초 펼침을 포함해 4.8초 뒤 접는다. */
+const LATEST_OPEN_DELAY_MS = 700;
+const LATEST_HOLD_MS = 4800;
+
+export interface LatestStory {
+  highlight: MarketHighlight;
+  market: PublicMarket;
+}
+
+const storyKey = ({ marketId, name, createdAt }: MarketHighlight) => `${marketId}:${name}:${createdAt}`;
+
+/**
+ * 7일 안에 승인된 가장 최근 제보를 한 번만 잠깐 보여 준다. 본 제보는 기억해 두고, 더 새 제보가 올라오면 다시 펼친다.
+ * 펼쳐 있는 동안만 값이 있다.
+ */
+function useLatestStory(markets: PublicMarket[], enabled: boolean): LatestStory | null {
+  const [story, setStory] = useState<LatestStory | null>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    const timers: number[] = [];
+    fetch("/api/highlights/latest")
+      .then((response) => response.ok ? response.json() as Promise<{ highlight: MarketHighlight | null }> : { highlight: null })
+      .catch(() => ({ highlight: null }))
+      .then(({ highlight }) => {
+        if (cancelled || !highlight) return;
+        const market = markets.find((candidate) => candidate.id === highlight.marketId);
+        const age = Date.now() - Date.parse(highlight.createdAt);
+        if (!market || !(age <= LATEST_MAX_AGE_MS) || readStorage(LATEST_SEEN_KEY) === storyKey(highlight)) return;
+        timers.push(window.setTimeout(() => {
+          writeStorage(LATEST_SEEN_KEY, storyKey(highlight));
+          track("latest_story_view", { category: highlight.category });
+          setStory({ highlight, market });
+        }, LATEST_OPEN_DELAY_MS));
+        timers.push(window.setTimeout(() => setStory(null), LATEST_OPEN_DELAY_MS + LATEST_HOLD_MS));
+      });
+    return () => {
+      cancelled = true;
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  // 지도에 들어올 때 한 번만 본다. 버튼은 시장 목록을 다 읽은 뒤에 그려지므로 그때 목록으로 충분하다.
+  }, [enabled]);
+  return story;
+}
 
 const addressPrefix = (market: PublicMarket): string =>
   (market.roadAddress ?? market.lotAddress ?? "").split(/\s+/).slice(0, 2).join(" ");
@@ -96,20 +143,33 @@ export function TodayHighlightPrompt({ markets, today, currentLocation }: TodayH
 
 /** 메인 지도 왼쪽 위에 늘 떠 있는 제보 버튼. 시트를 펼치지 않아도 보인다.
  * Threads 링크로 시장 묶음이 떠 있으면 고르는 목록에 그 시장들을 먼저 보여 준다. */
-export function MapParticipateButton({ markets, today, currentLocation, suggested }: TodayHighlightPromptProps & {
+export function MapParticipateButton({ markets, today, currentLocation, suggested, onOpenStory }: TodayHighlightPromptProps & {
   suggested?: { markets: PublicMarket[]; label: string };
+  /** 펼쳐진 "새 이야기"를 누르면 그 시장 상세로 보낸다. 없으면 펼치지 않는다. */
+  onOpenStory?: (story: LatestStory) => void;
 }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const todayMarkets = useTodayMarkets(markets, today, currentLocation);
+  const story = useLatestStory(markets, Boolean(onOpenStory));
   const label = todayMarkets.length > 0 ? "오늘 장 꿀팁 한 줄 남기기" : "단골 장 꿀팁 남기기";
 
   return (
     <>
       <button ref={buttonRef} type="button" className={`${styles.mapButton} map-participate-button`} onClick={() => {
+        if (story) {
+          track("latest_story_open", { category: story.highlight.category });
+          onOpenStory?.(story);
+          return;
+        }
         track("highlight_map_button_open", { today: todayMarkets.length > 0 ? "yes" : "no" });
         setOpen(true);
-      }}><Icon name="pen" />{label}</button>
+      }}>
+        <Icon name={story ? "chat" : "pen"} />
+        {story ? (
+          <span key="story" className={styles.mapButtonStory}><strong>새 이야기</strong> · {story.market.name} “{story.highlight.name}”</span>
+        ) : <span key="label" className={styles.mapButtonLabel}>{label}</span>}
+      </button>
       {open ? (
         <SubmissionFlow
           markets={markets}

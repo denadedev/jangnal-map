@@ -40,6 +40,8 @@ export function createCatalog({ markets, editorial, highlights }: CatalogSnapsho
   const reviewedMarketIds: ReadonlySet<string> = new Set(editorialById.keys());
   const highlightsByMarket = new Map<string, MarketHighlight[]>();
   for (const highlight of highlights) highlightsByMarket.set(highlight.marketId, [...(highlightsByMarket.get(highlight.marketId) ?? []), highlight]);
+  const latestHighlight = highlights.reduce<MarketHighlight | undefined>((latest, highlight) =>
+    !latest || highlight.createdAt > latest.createdAt ? highlight : latest, undefined);
 
   const isMarketIndexable = (market: PublicMarket): boolean =>
     market.status === "운영" && market.schedule.kind !== "unknown" && reviewedMarketIds.has(market.id);
@@ -67,6 +69,8 @@ export function createCatalog({ markets, editorial, highlights }: CatalogSnapsho
     },
     findMarketEditorial: (marketId: string): MarketEditorialContent | undefined => editorialById.get(marketId),
     findMarketHighlights: (marketId: string): MarketHighlight[] => highlightsByMarket.get(marketId) ?? [],
+    /** 가장 최근에 승인된 방문자 제보. 메인 지도의 "새 이야기"에 쓴다. */
+    latestHighlight: (): MarketHighlight | undefined => latestHighlight,
     isMarketIndexable,
     findRelatedMarkets(market: PublicMarket, limit = 6): PublicMarket[] {
       const prefix = addressPrefix(market);

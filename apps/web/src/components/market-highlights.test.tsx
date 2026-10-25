@@ -34,6 +34,19 @@ describe("MarketHighlights", () => {
     expect(within(section).queryByRole("button", { name: /알려 주기/ })).not.toBeInTheDocument();
   });
 
+  it("scrolls to and marks the story opened from the map, and counts follow-ups as latest", async () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    render(<MarketHighlights {...props} initialHighlights={highlights} submissionsEnabled focusName="콧등치기국수" />);
+    expect(scrollIntoView).toHaveBeenCalled();
+    const item = screen.getByText("콧등치기국수").closest("li")!;
+    expect(item).toHaveAttribute("aria-current", "true");
+    expect(within(item).getByText("새 이야기")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "먹거리 알려 주기" }));
+    expect(umami.track).toHaveBeenCalledWith("specialty_form_open", { source: "latest", category: "food" });
+  });
+
   it("shows nothing when there is nothing to show and submissions are off", () => {
     const { container } = render(<MarketHighlights {...props} initialHighlights={[]} />);
     expect(container).toBeEmptyDOMElement();

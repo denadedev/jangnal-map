@@ -7,6 +7,7 @@ export const DECISION_BLOCK_ID = "decision";
 export const CATEGORY_ACTION_ID = "category";
 export const APPROVE_ACTION_ID = "approve";
 export const REJECT_ACTION_ID = "reject";
+export const REMOVE_ACTION_ID = "remove";
 
 const SIGNATURE_MAX_AGE_SECONDS = 5 * 60;
 
@@ -60,6 +61,24 @@ export function submissionBlocks(message: SubmissionMessage) {
 /** 결정한 뒤 버튼을 지우고 결과 한 줄을 남긴 메시지. */
 export function decidedBlocks(summary: { type: string; text?: unknown } | undefined, result: string) {
   return [...(summary ? [summary] : []), { type: "context", elements: [{ type: "mrkdwn", text: result }] }];
+}
+
+/** 승인한 뒤 메시지. 결과 줄 아래에 공개 항목을 내리는 [삭제] 버튼을 남긴다. */
+export function approvedBlocks(summary: { type: string; text?: unknown } | undefined, result: string, submissionId: string) {
+  return [
+    ...decidedBlocks(summary, result),
+    {
+      type: "actions",
+      elements: [{
+        type: "button",
+        action_id: REMOVE_ACTION_ID,
+        style: "danger",
+        text: plain("삭제"),
+        value: submissionId,
+        confirm: { title: plain("제보 삭제"), text: plain("사이트에서 이 제보를 내릴까요? 되돌릴 수 없어요."), confirm: plain("삭제"), deny: plain("취소"), style: "danger" },
+      }],
+    },
+  ];
 }
 
 export async function postSubmissionMessage(message: SubmissionMessage, fetcher: typeof fetch = fetch): Promise<void> {

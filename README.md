@@ -63,7 +63,7 @@ pnpm --filter @jangnal-map/web start
 | `CATALOG_SOURCE` | 시장 데이터 출처. `json`(기본) 또는 `db`. 운영은 `db` | JSON을 읽습니다 |
 | `DATABASE_URL` | PostgreSQL 접속 주소 | DB 모드와 장 정보 제보가 꺼집니다 |
 | `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID` | 장 정보 제보 승인 요청을 슬랙으로 보냅니다 | 장 정보 제보 버튼이 숨습니다 |
-| `SLACK_SIGNING_SECRET`, `SLACK_APPROVER_IDS` | 슬랙 승인·반려 버튼 서명 검증과 승인자 목록 | 승인 처리를 할 수 없습니다 |
+| `SLACK_SIGNING_SECRET`, `SLACK_APPROVER_IDS` | 슬랙 승인·반려·삭제 버튼 서명 검증과 승인자 목록 | 승인 처리를 할 수 없습니다 |
 | `SMTP_USER`, `SMTP_PASS` | `/report` 메일 전송 (Gmail 앱 비밀번호) | `/report` 제출이 꺼집니다 |
 | `REPORT_TO_EMAIL` | `/report` 수신 주소 | `SMTP_USER`로 받습니다 |
 | `REPORT_ALLOWED_ORIGINS` | 제보 API가 받아 줄 Origin 목록(쉼표 구분) | 요청 URL 기준으로 검사합니다 |
@@ -111,7 +111,7 @@ CATALOG_SOURCE=db pnpm dev
 
 제보는 두 갈래입니다.
 
-1. **장 정보 제보** (`POST /api/submissions`): 시장 상세와 지도의 "알려 주기" 버튼으로 특산물·먹거리·이용 팁·볼거리를 받습니다. 검토 중 상태로 `market_highlight_submissions`에 저장하고 슬랙에 승인 요청을 보냅니다. 승인자가 슬랙 버튼을 누르면 `POST /api/slack/actions`가 `market_highlights`에 반영하고 스냅샷을 바로 다시 읽습니다. IP당 10분에 5건으로 제한하고 같은 장의 중복 이름은 막습니다.
+1. **장 정보 제보** (`POST /api/submissions`): 시장 상세와 지도의 "알려 주기" 버튼으로 특산물·먹거리·이용 팁·볼거리를 받습니다. 검토 중 상태로 `market_highlight_submissions`에 저장하고 슬랙에 승인 요청을 보냅니다. 승인자가 슬랙 버튼을 누르면 `POST /api/slack/actions`가 `market_highlights`에 반영하고 스냅샷을 바로 다시 읽습니다. 승인된 메시지의 [삭제] 버튼으로 공개된 제보를 내릴 수 있습니다. IP당 10분에 5건으로 제한하고 같은 장의 중복 이름은 막습니다.
 2. **정보 수정·불편 신고** (`/report` → `POST /api/report`): Nodemailer와 Gmail SMTP로 운영자 메일에 보냅니다. 이쪽은 DB에 저장하지 않으며, IP 기준 요청 제한이 아직 없습니다.
 
 두 API 모두 허용된 Origin에서 온 요청만 받습니다. 운영 절차는 [제보 운영](docs/product/제보-운영.md)을 참고합니다.

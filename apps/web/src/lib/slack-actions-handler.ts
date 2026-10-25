@@ -1,15 +1,17 @@
 import { after } from "next/server";
 
 import { HIGHLIGHT_CATEGORY_LABELS } from "../db/codes";
-import type { DecisionResult, decideSubmission } from "../db/highlights";
+import type { DecisionResult, decideSubmission, RemovalResult } from "../db/highlights";
 import { refreshCatalog } from "./catalog/load";
 import { isHighlightCategory } from "./highlight-submission";
 import {
   APPROVE_ACTION_ID,
+  approvedBlocks,
   CATEGORY_ACTION_ID,
   DECISION_BLOCK_ID,
   decidedBlocks,
   REJECT_ACTION_ID,
+  REMOVE_ACTION_ID,
   slackApproverIds,
   verifySlackSignature,
 } from "./slack";
@@ -27,6 +29,7 @@ type Decide = (submissionId: string, decision: Parameters<typeof decideSubmissio
 
 export interface SlackActionsDeps {
   decide: Decide;
+  remove: (submissionId: string) => Promise<RemovalResult>;
   refresh: () => Promise<unknown>;
   respond: (url: string, body: object) => Promise<void>;
   defer: (task: () => Promise<void>) => void;
@@ -36,6 +39,11 @@ export interface SlackActionsDeps {
 async function dbDecide(...args: Parameters<Decide>): Promise<DecisionResult> {
   const [{ sharedDb }, { decideSubmission }] = await Promise.all([import("../db/client"), import("../db/highlights")]);
   return decideSubmission(sharedDb(), ...args);
+}
+
+async function dbRemove(submissionId: string): Promise<RemovalResult> {
+  const [{ sharedDb }, { removeApprovedHighlight }] = await Promise.all([import("../db/client"), import("../db/highlights")]);
+  return removeApprovedHighlight(sharedDb(), submissionId);
 }
 
 async function postToResponseUrl(url: string, body: object): Promise<void> {
@@ -56,6 +64,7 @@ const ephemeral = (text: string) => ({ response_type: "ephemeral", replace_origi
 export function createSlackActionsHandler(overrides: Partial<SlackActionsDeps> = {}) {
   const deps: SlackActionsDeps = {
     decide: dbDecide,
+    remove: dbRemove,
     refresh: refreshCatalog,
     respond: postToResponseUrl,
     defer: (task) => after(task),
@@ -80,11 +89,37 @@ export function createSlackActionsHandler(overrides: Partial<SlackActionsDeps> =
     const userId = payload.user?.id ?? "";
     // 셀렉트를 바꿀 때도 요청이 오지만 저장하지 않는다. 승인할 때 state.values에서 읽는다.
     if (payload.type !== "block_actions" || !action || !responseUrl || action.action_id === CATEGORY_ACTION_ID) return new Response(null, { status: 200 });
-    if (action.action_id !== APPROVE_ACTION_ID && action.action_id !== REJECT_ACTION_ID) return new Response(null, { status: 200 });
+    if (![APPROVE_ACTION_ID, REJECT_ACTION_ID, REMOVE_ACTION_ID].includes(action.action_id ?? "")) return new Response(null, { status: 200 });
 
     const run = (body: object) => deps.defer(() => deps.respond(responseUrl, body).catch((error) => console.error("Slack response failed", error)));
     if (!slackApproverIds().includes(userId)) {
       run(ephemeral("이 제보를 처리할 권한이 없어요."));
+      return new Response(null, { status: 200 });
+    }
+
+    const submissionId = action.value ?? "";
+    const summary = payload.message?.blocks?.[0];
+    const by = () => `<@${userId}> · ${formatTime(deps.now())}`;
+
+    if (action.action_id === REMOVE_ACTION_ID) {
+      deps.defer(async () => {
+        try {
+          const result = await deps.remove(submissionId);
+          if (result.status === "removed") {
+            await deps.refresh().catch((error) => console.error("Catalog refresh after removal failed", error));
+            await deps.respond(responseUrl, { replace_original: true, text: "삭제됨", blocks: decidedBlocks(summary, `🗑️ 삭제됨 · ${by()}`) });
+          } else if (result.status === "already-removed") {
+            await deps.respond(responseUrl, ephemeral("이미 삭제된 제보예요."));
+          } else if (result.status === "not-approved") {
+            await deps.respond(responseUrl, ephemeral(`승인된 제보만 삭제할 수 있어요 (${result.current}).`));
+          } else {
+            await deps.respond(responseUrl, ephemeral("제보를 찾지 못했어요."));
+          }
+        } catch (error) {
+          console.error("Slack removal failed", error);
+          await deps.respond(responseUrl, ephemeral("삭제하지 못했어요. 잠시 뒤에 다시 눌러 주세요.")).catch(() => undefined);
+        }
+      });
       return new Response(null, { status: 200 });
     }
 
@@ -94,18 +129,14 @@ export function createSlackActionsHandler(overrides: Partial<SlackActionsDeps> =
       run(ephemeral("카테고리를 골라 주세요."));
       return new Response(null, { status: 200 });
     }
-    const submissionId = action.value ?? "";
-    const summary = payload.message?.blocks?.[0];
-
     deps.defer(async () => {
       try {
         const result = await deps.decide(submissionId, approve && isHighlightCategory(category) ? { approve: true, category } : { approve: false }, userId);
-        const by = `<@${userId}> · ${formatTime(deps.now())}`;
         if (result.status === "approved") {
           await deps.refresh().catch((error) => console.error("Catalog refresh after approval failed", error));
-          await deps.respond(responseUrl, { replace_original: true, text: "승인됨", blocks: decidedBlocks(summary, `✅ 승인됨 (${HIGHLIGHT_CATEGORY_LABELS[result.category]}) · ${by}`) });
+          await deps.respond(responseUrl, { replace_original: true, text: "승인됨", blocks: approvedBlocks(summary, `✅ 승인됨 (${HIGHLIGHT_CATEGORY_LABELS[result.category]}) · ${by()}`, submissionId) });
         } else if (result.status === "rejected") {
-          await deps.respond(responseUrl, { replace_original: true, text: "반려됨", blocks: decidedBlocks(summary, `🚫 반려됨 · ${by}`) });
+          await deps.respond(responseUrl, { replace_original: true, text: "반려됨", blocks: decidedBlocks(summary, `🚫 반려됨 · ${by()}`) });
         } else if (result.status === "duplicate") {
           await deps.respond(responseUrl, ephemeral("이 시장에 같은 이름의 항목이 이미 있어 승인하지 못했어요. 반려해 주세요."));
         } else if (result.status === "already-decided") {

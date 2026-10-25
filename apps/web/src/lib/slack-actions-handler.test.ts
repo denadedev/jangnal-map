@@ -30,6 +30,7 @@ function setup(overrides: Partial<SlackActionsDeps> = {}) {
   const tasks: (() => Promise<void>)[] = [];
   const deps = {
     decide: vi.fn<SlackActionsDeps["decide"]>(async (_id, decision) => decision.approve ? { status: "approved", category: decision.category } : { status: "rejected" }),
+    remove: vi.fn<SlackActionsDeps["remove"]>(async () => ({ status: "removed" })),
     refresh: vi.fn<SlackActionsDeps["refresh"]>(async () => undefined),
     respond: vi.fn<SlackActionsDeps["respond"]>(async () => undefined),
   };
@@ -63,6 +64,34 @@ describe("POST /api/slack/actions", () => {
     expect(refresh).toHaveBeenCalled();
     expect(respond).toHaveBeenCalledWith("https://hooks.slack.com/actions/1", expect.objectContaining({ replace_original: true }));
     expect(JSON.stringify(respond.mock.calls[0])).toContain("승인됨 (이용 팁) · <@U_OK> · 10월 21일 14:31");
+    expect(JSON.stringify(respond.mock.calls[0])).toContain(`"action_id":"remove","style":"danger","text":{"type":"plain_text","text":"삭제","emoji":true},"value":"${submissionId}"`);
+  });
+
+  it("removes an approved highlight, refreshes the snapshot, and drops the button", async () => {
+    const { run, decide, remove, refresh, respond } = setup();
+    await run(slackRequest(click("remove")));
+    expect(remove).toHaveBeenCalledWith(submissionId);
+    expect(decide).not.toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalled();
+    const body = JSON.stringify(respond.mock.calls[0]);
+    expect(body).toContain("삭제됨 · <@U_OK> · 10월 21일 14:31");
+    expect(body).not.toContain('"action_id":"remove"');
+  });
+
+  it.each([
+    [{ status: "already-removed" }, "이미 삭제된"],
+    [{ status: "not-approved", current: "rejected" }, "승인된 제보만"],
+  ] as const)("tells the operator when the removal did not apply: %j", async (result, text) => {
+    const { run, refresh, respond } = setup({ remove: async () => result });
+    await run(slackRequest(click("remove")));
+    expect(refresh).not.toHaveBeenCalled();
+    expect(respond).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ replace_original: false, text: expect.stringContaining(text) }));
+  });
+
+  it("refuses removal from users outside SLACK_APPROVER_IDS", async () => {
+    const { run, remove } = setup();
+    await run(slackRequest(click("remove", { user: "U_STRANGER" })));
+    expect(remove).not.toHaveBeenCalled();
   });
 
   it("rejects without touching the snapshot", async () => {

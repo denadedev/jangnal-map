@@ -1,6 +1,6 @@
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { PublicMarket } from "../lib/market";
 import { publicMarkets } from "../lib/market-catalog";
@@ -123,5 +123,53 @@ describe("MarketPicker", () => {
 describe("findNearbyMarkets", () => {
   it("returns other markets in the same city or county", () => {
     expect(findNearbyMarkets(markets[0], markets).map((market) => market.name)).toEqual(["정선 임계시장", "상설시장"]);
+  });
+});
+
+describe("MapParticipateButton latest story", () => {
+  const story = { marketId: "c", name: "메밀전병", description: null, category: "food", createdAt: "2026-10-22T01:00:00.000Z" };
+  const serve = (highlight: unknown) => vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ highlight }))));
+
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true, now: new Date("2026-10-22T09:00:00.000Z") });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("briefly shows the newest story, opens it on tap, then folds back", async () => {
+    serve(story);
+    const onOpenStory = vi.fn();
+    render(<MapParticipateButton markets={markets} today={today} currentLocation={null} onOpenStory={onOpenStory} />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(700); });
+
+    const button = screen.getByRole("button", { name: /새 이야기 · 원주풍물시장 “메밀전병”/ });
+    expect(umami.track).toHaveBeenCalledWith("latest_story_view", { category: "food" });
+    await userEvent.click(button);
+    expect(onOpenStory).toHaveBeenCalledWith(expect.objectContaining({ highlight: story, market: markets[2] }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(4800); });
+    expect(screen.getByRole("button", { name: "오늘 장 꿀팁 한 줄 남기기" })).toBeInTheDocument();
+  });
+
+  it("does not show the same story twice", async () => {
+    serve(story);
+    const { unmount } = render(<MapParticipateButton markets={markets} today={today} currentLocation={null} onOpenStory={vi.fn()} />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(700); });
+    expect(screen.getByText(/메밀전병/)).toBeInTheDocument();
+    unmount();
+
+    render(<MapParticipateButton markets={markets} today={today} currentLocation={null} onOpenStory={vi.fn()} />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(700); });
+    expect(screen.queryByText(/메밀전병/)).not.toBeInTheDocument();
+  });
+
+  it("skips stories older than seven days", async () => {
+    serve({ ...story, createdAt: "2026-10-14T09:00:00.000Z" });
+    render(<MapParticipateButton markets={markets} today={today} currentLocation={null} onOpenStory={vi.fn()} />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(700); });
+    expect(screen.queryByText(/메밀전병/)).not.toBeInTheDocument();
   });
 });

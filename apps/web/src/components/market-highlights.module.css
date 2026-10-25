@@ -12,6 +12,9 @@
 .items { list-style: none; margin: 0; padding: 0 0 0 42px; }
 .items li { padding: 10px 0; border-bottom: 1px solid var(--line); }
 .items li:last-child { border-bottom: 0; }
+/* 지도의 "새 이야기"로 들어온 항목 (Open Design 2026-10-26 새 이야기 시안). */
+.items li.focused { margin-left: -8px; padding: 10px 8px; border: 1.5px solid var(--muted); border-radius: var(--r-s); background: var(--surface-2); }
+.newTag { display: inline-flex; align-items: center; height: 22px; margin-left: 8px; padding: 0 8px; border-radius: var(--r-s); background: var(--ink); color: #fff; font-size: 14px; font-weight: 600; vertical-align: 2px; }
 .what { display: block; font-size: 16px; font-weight: 600; line-height: 1.4; }
 .description { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); line-height: 1.55; }
 /* 제보 유도 (Open Design 2026-10-22 제보 진입점 시안). 빈 상태는 질문 + 카테고리 칩, 있으면 조용한 칩 줄. */
@@ -130,10 +133,14 @@
 .pickerTilePlain { font-family: inherit; font-size: 14px; font-weight: 600; }
 .pickerToday { color: var(--accent); font-style: normal; font-weight: 600; }
 /* 지도 왼쪽 위 제보 버튼. 지도 위 흰 요소들 사이의 유일한 빨강 채움 면이라 먼저 눈에 띈다. */
-.mapButton { min-height: 44px; padding: 0 16px 0 14px; border: 0; border-radius: var(--r-pill); background: var(--accent); color: #fff; display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 15px; font-weight: 600; white-space: nowrap; cursor: pointer; animation: mapButtonIn 240ms ease-out 400ms both; }
+.mapButton { min-height: 44px; padding: 0 16px 0 14px; border: 0; border-radius: var(--r-pill); background: var(--accent); color: #fff; display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 15px; font-weight: 600; max-width: 100%; white-space: nowrap; cursor: pointer; animation: mapButtonIn 240ms ease-out 400ms both; }
 .mapButton:hover { background: var(--accent-ink); }
 .mapButton :global(.icon) { width: 18px; height: 18px; }
+.mapButtonLabel, .mapButtonStory { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.mapButtonStory { font-weight: 500; animation: mapButtonStoryIn 300ms ease-out both; }
+.mapButtonStory strong { font-weight: 700; }
+@keyframes mapButtonStoryIn { from { opacity: 0; max-width: 0; } to { opacity: 1; max-width: 320px; } }
 @keyframes mapButtonIn { from { opacity: 0; transform: translateY(8px); } }
-@media (prefers-reduced-motion: reduce) { .mapButton { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .mapButton, .mapButtonStory { animation: none; } }
 .pickerEmpty { margin: 16px 0 0; font-size: 14px; color: var(--muted); }
 .visuallyHidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

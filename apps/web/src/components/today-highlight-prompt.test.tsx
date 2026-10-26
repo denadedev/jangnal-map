@@ -154,16 +154,16 @@ describe("MapParticipateButton latest story", () => {
     expect(screen.getByRole("button", { name: "오늘 장 꿀팁 한 줄 남기기" })).toBeInTheDocument();
   });
 
-  it("does not show the same story twice", async () => {
-    serve(story);
+  it("does not show the story again when the map redraws within the same visit", async () => {
+    serve({ ...story, name: "수수부꾸미" });
     const { unmount } = render(<MapParticipateButton markets={markets} today={today} currentLocation={null} onOpenStory={vi.fn()} />);
     await act(async () => { await vi.advanceTimersByTimeAsync(700); });
-    expect(screen.getByText(/메밀전병/)).toBeInTheDocument();
+    expect(screen.getByText(/수수부꾸미/)).toBeInTheDocument();
     unmount();
 
     render(<MapParticipateButton markets={markets} today={today} currentLocation={null} onOpenStory={vi.fn()} />);
     await act(async () => { await vi.advanceTimersByTimeAsync(700); });
-    expect(screen.queryByText(/메밀전병/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/수수부꾸미/)).not.toBeInTheDocument();
   });
 
   it("skips stories older than seven days", async () => {

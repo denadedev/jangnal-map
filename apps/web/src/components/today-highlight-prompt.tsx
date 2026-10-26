@@ -13,7 +13,6 @@ import styles from "./market-highlights.module.css";
 
 const DISMISS_KEY = "jangnal:today-highlight-card-dismissed";
 const PICKER_LIMIT = 50;
-const LATEST_SEEN_KEY = "jangnal:latest-story-seen";
 const LATEST_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 /** 버튼이 들어온 뒤(400ms 대기 + 240ms) 펼치고, 0.3초 펼침을 포함해 4.8초 뒤 접는다. */
 const LATEST_OPEN_DELAY_MS = 700;
@@ -25,9 +24,11 @@ export interface LatestStory {
 }
 
 const storyKey = ({ marketId, name, createdAt }: MarketHighlight) => `${marketId}:${name}:${createdAt}`;
+/** 이번 방문(페이지 로드)에서 이미 펼친 제보. 상세를 닫거나 검색을 지워 버튼이 다시 그려져도 또 펼치지 않는다. */
+let shownStoryKey: string | null = null;
 
 /**
- * 7일 안에 승인된 가장 최근 제보를 한 번만 잠깐 보여 준다. 본 제보는 기억해 두고, 더 새 제보가 올라오면 다시 펼친다.
+ * 7일 안에 승인된 가장 최근 제보를 사이트에 들어올 때마다 잠깐 보여 준다.
  * 펼쳐 있는 동안만 값이 있다.
  */
 function useLatestStory(markets: PublicMarket[], enabled: boolean): LatestStory | null {
@@ -43,9 +44,9 @@ function useLatestStory(markets: PublicMarket[], enabled: boolean): LatestStory 
         if (cancelled || !highlight) return;
         const market = markets.find((candidate) => candidate.id === highlight.marketId);
         const age = Date.now() - Date.parse(highlight.createdAt);
-        if (!market || !(age <= LATEST_MAX_AGE_MS) || readStorage(LATEST_SEEN_KEY) === storyKey(highlight)) return;
+        if (!market || !(age <= LATEST_MAX_AGE_MS) || shownStoryKey === storyKey(highlight)) return;
         timers.push(window.setTimeout(() => {
-          writeStorage(LATEST_SEEN_KEY, storyKey(highlight));
+          shownStoryKey = storyKey(highlight);
           track("latest_story_view", { category: highlight.category });
           setStory({ highlight, market });
         }, LATEST_OPEN_DELAY_MS));

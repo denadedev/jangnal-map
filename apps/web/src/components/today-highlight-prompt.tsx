@@ -12,6 +12,8 @@ import { CATEGORY_ICONS, HighlightSubmissionSheet, readStorage, SheetOverlay, tr
 import styles from "./market-highlights.module.css";
 
 const DISMISS_KEY = "jangnal:today-highlight-card-dismissed";
+/** 이야기 카드는 "오늘 열린 장" 카드를 닫았다고 같이 숨지 않도록 따로 기억한다. */
+const STORY_DISMISS_KEY = "jangnal:story-list-card-dismissed";
 const PICKER_LIMIT = 50;
 const LATEST_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 /** 버튼이 들어온 뒤(400ms 대기 + 240ms) 펼치고, 0.3초 펼침을 포함해 4.8초 뒤 접는다. */
@@ -200,7 +202,7 @@ export function StoryListCard({ markets, today, currentLocation, stories, title,
   const [sheet, setSheet] = useState<"list" | "write" | null>(null);
   const moreRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
-  useEffect(() => setDismissedOn(readStorage(DISMISS_KEY)), []);
+  useEffect(() => setDismissedOn(readStorage(STORY_DISMISS_KEY)), []);
   const todayMarkets = useTodayMarkets(markets, today, currentLocation);
   const items = useMemo(() => {
     const byId = new Map(markets.map((market) => [market.id, market]));
@@ -227,7 +229,7 @@ export function StoryListCard({ markets, today, currentLocation, stories, title,
   return (
     <div className={styles.storyCard} role="group" aria-labelledby={titleId}>
       <button type="button" className={styles.contextClose} aria-label="닫기" onClick={() => {
-        writeStorage(DISMISS_KEY, todayIso);
+        writeStorage(STORY_DISMISS_KEY, todayIso);
         track("story_list_dismiss", { filter });
         setDismissedOn(todayIso);
       }}><Icon name="close" /></button>

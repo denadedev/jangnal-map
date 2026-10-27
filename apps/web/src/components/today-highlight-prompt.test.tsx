@@ -106,6 +106,15 @@ describe("StoryListCard", () => {
     expect(screen.queryByRole("group", { name: "오늘 서는 장 이야기" })).not.toBeInTheDocument();
     expect(umami.track).toHaveBeenCalledWith("story_list_dismiss", { filter: "today" });
   });
+
+  it("still shows stories after the today card was dismissed", async () => {
+    const { unmount } = render(<TodayHighlightPrompt markets={markets} today={today} currentLocation={null} />);
+    await userEvent.click(screen.getByRole("button", { name: "닫기" }));
+    unmount();
+
+    render(<StoryListCard {...props} stories={[story("a", "곤드레", 21)]} onOpenStory={vi.fn()} />);
+    expect(screen.getByRole("group", { name: "오늘 서는 장 이야기" })).toBeInTheDocument();
+  });
 });
 
 describe("MapParticipateButton", () => {

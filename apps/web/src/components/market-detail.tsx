@@ -8,7 +8,7 @@ import { getDday, formatKoreanDate, formatMarketType, formatSchedulePattern } fr
 import { getMarketDates, getNextMarketDate } from "../lib/schedule";
 import { getUiCopy } from "../lib/ui-copy";
 import { MarketDirectionsMenu } from "./market-directions-menu";
-import { MarketHighlights, MarketHighlightsTeaser, type HighlightMarketRef } from "./market-highlights";
+import { MarketHighlights, type HighlightMarketRef } from "./market-highlights";
 import { MarketShareButton } from "./market-share-button";
 import { OnnuriSummary } from "./onnuri-summary";
 import { formatPatternDigits } from "./jangnal-number";
@@ -111,7 +111,11 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
       {market.schedule.kind === "daily" ? <p className="next-date-reference">{locale === "en" ? "Public data lists a daily schedule. Check individual stall opening days and regular market closures before visiting." : "공공데이터에 등록된 상설 일정입니다. 점포별 영업일과 정기휴무는 방문 전 확인하세요."}</p> : null}
       {market.schedule.kind === "digit-pair" ? <p className="next-date-reference">{locale === "en" ? `From today (${formatKoreanDate(today, locale)}).` : `오늘 ${formatKoreanDate(today)} 기준이에요.`}</p> : null}
 
-      {locale === "ko" ? <MarketHighlightsTeaser market={market} scheduleLabel={formatSchedulePattern(market)} submissionsEnabled={submissionsEnabled} nearbyMarkets={nearbyMarkets} /> : null}
+      {locale === "ko" ? (
+        <div className="detail-section">
+          <MarketHighlights market={market} scheduleLabel={formatSchedulePattern(market)} submissionsEnabled={submissionsEnabled} nearbyMarkets={nearbyMarkets} focusName={focusHighlight} headingLevel={3} />
+        </div>
+      ) : null}
 
       <section className="source-summary" aria-label={locale === "en" ? "Market day source" : "장날 정보의 근거"}>
         <strong>{locale === "en" ? "Market day source" : "장날 정보의 근거"}</strong>
@@ -168,12 +172,6 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
       <div className="detail-section">
         <OnnuriSummary locale={locale} marketName={market.name} summary={market.onnuri} headingLevel={3} />
       </div>
-
-      {locale === "ko" ? (
-        <div className="detail-section">
-          <MarketHighlights marketId={market.id} marketName={market.name} scheduleLabel={formatSchedulePattern(market)} submissionsEnabled={submissionsEnabled} nearbyMarkets={nearbyMarkets} focusName={focusHighlight} headingLevel={3} />
-        </div>
-      ) : null}
 
       <footer className="source-note">
         <a className="report-link" href={`/report?kind=market&market=${encodeURIComponent(market.id)}`}>

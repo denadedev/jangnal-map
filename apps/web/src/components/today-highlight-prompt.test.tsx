@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { PublicMarket } from "../lib/market";
 import { publicMarkets } from "../lib/market-catalog";
-import { findNearbyMarkets, MapParticipateButton, TodayHighlightPrompt } from "./today-highlight-prompt";
+import { findNearbyMarkets, MapParticipateButton, StoryListCard, TodayHighlightPrompt } from "./today-highlight-prompt";
 
 const base = publicMarkets.find((market) => market.schedule.kind === "digit-pair")!;
 const make = (id: string, name: string, days: [number, number], roadAddress: string): PublicMarket =>
@@ -59,6 +59,52 @@ describe("TodayHighlightPrompt", () => {
   it("does not show on days without a five-day market", () => {
     const { container } = render(<TodayHighlightPrompt markets={markets} today={new Date(2026, 9, 24)} currentLocation={null} />);
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe("StoryListCard", () => {
+  const story = (marketId: string, name: string, day: number) =>
+    ({ marketId, name, description: `${name} 설명`, category: "food" as const, createdAt: `2026-10-${day}T00:00:00.000Z` });
+  const props = { markets, today, currentLocation: null, title: "오늘 서는 장 이야기", filter: "today" };
+
+  it("shows the three newest stories of the listed markets and opens one", async () => {
+    const onOpenStory = vi.fn();
+    const stories = [story("a", "콧등치기국수", 21), story("c", "순대국", 20), story("a", "곤드레", 19)];
+    render(<StoryListCard {...props} stories={stories} onOpenStory={onOpenStory} />);
+    const card = screen.getByRole("group", { name: "오늘 서는 장 이야기" });
+    expect(within(card).getAllByRole("listitem")).toHaveLength(3);
+    expect(within(card).queryByRole("button", { name: /더 보기/ })).not.toBeInTheDocument();
+    expect(umami.track).toHaveBeenCalledWith("story_list_view", { filter: "today", count: "3" });
+
+    await userEvent.click(within(card).getByRole("button", { name: /원주풍물시장 순대국/ }));
+    expect(onOpenStory).toHaveBeenCalledWith({ highlight: stories[1], market: markets[2] });
+    expect(umami.track).toHaveBeenCalledWith("story_list_open", { filter: "today" });
+  });
+
+  it("moves the rest into a sheet that also leads to writing", async () => {
+    const stories = Array.from({ length: 25 }, (_, index) => story("a", `이야기${index + 1}`, 1 + (index % 20)));
+    render(<StoryListCard {...props} stories={stories} onOpenStory={vi.fn()} />);
+    await userEvent.click(screen.getByRole("button", { name: "이야기 22개 더 보기" }));
+
+    const sheet = screen.getByRole("dialog", { name: "오늘 서는 장 이야기 25" });
+    expect(within(sheet).getAllByRole("button", { name: /정선아리랑시장 이야기/ })).toHaveLength(20);
+    await userEvent.click(within(sheet).getByRole("button", { name: "더 보기" }));
+    expect(within(sheet).getAllByRole("button", { name: /정선아리랑시장 이야기/ })).toHaveLength(25);
+
+    await userEvent.click(within(sheet).getByRole("button", { name: "나도 알려 주기" }));
+    expect(screen.getByRole("dialog", { name: "어느 장이었나요?" })).toBeInTheDocument();
+  });
+
+  it("falls back to the today card when the listed markets have no stories", () => {
+    render(<StoryListCard {...props} stories={[]} onOpenStory={vi.fn()} />);
+    expect(screen.getByText("오늘 열린 장 다녀오셨나요?")).toBeInTheDocument();
+  });
+
+  it("stays hidden for the rest of the day once dismissed", async () => {
+    render(<StoryListCard {...props} stories={[story("a", "곤드레", 21)]} onOpenStory={vi.fn()} />);
+    await userEvent.click(screen.getByRole("button", { name: "닫기" }));
+    expect(screen.queryByRole("group", { name: "오늘 서는 장 이야기" })).not.toBeInTheDocument();
+    expect(umami.track).toHaveBeenCalledWith("story_list_dismiss", { filter: "today" });
   });
 });
 

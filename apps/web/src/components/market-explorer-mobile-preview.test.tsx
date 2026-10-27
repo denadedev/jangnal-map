@@ -138,10 +138,13 @@ describe("MarketExplorer map-origin selection", () => {
   });
 
   it("recovers from a transient market data error when the user retries", async () => {
-    const fetchMock = vi.fn<() => Promise<Response>>()
+    const marketsMock = vi.fn<() => Promise<Response>>()
       .mockRejectedValueOnce(new Error("temporary network failure"))
       .mockResolvedValueOnce({ ok: true, json: async () => [market] } as Response);
-    vi.stubGlobal("fetch", fetchMock);
+    // 지도는 방문자 이야기도 따로 읽는다. 이 테스트는 시장 목록 요청만 센다.
+    vi.stubGlobal("fetch", (url: string) => url === "/api/highlights"
+      ? Promise.resolve({ ok: true, json: async () => ({ highlights: [] }) } as Response)
+      : marketsMock());
     const user = userEvent.setup();
     render(<MarketExplorer today={new Date(2026, 8, 5)} mapClientId="" />);
 
@@ -150,6 +153,6 @@ describe("MarketExplorer map-origin selection", () => {
     if (!results) throw new Error("Mobile market results were not rendered");
     await user.click(within(results).getByRole("button", { name: "다시 시도" }));
     expect(await within(results).findByText("지도선택시장")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(marketsMock).toHaveBeenCalledTimes(2);
   });
 });

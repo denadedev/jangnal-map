@@ -5,6 +5,7 @@ import { SiteFooter } from "./site-footer";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 import type { PublicMarket } from "../lib/market";
+import type { MarketHighlight } from "../lib/market-highlight";
 import { buildExplorerPath, type Locale } from "../lib/locale";
 import { getMarketBrowsePath, getMarketPagePath } from "../lib/market-path";
 import { filterMarkets, getDateRange, sortMarketsByDistance, type Coordinates } from "../lib/market-view";
@@ -16,7 +17,7 @@ import { MobileHomeControls } from "./mobile-home-controls";
 import { MobileMarketSheet, type SheetMode, type SheetSnap } from "./mobile-market-sheet";
 import { MobileSearchScreen } from "./mobile-search-screen";
 import { MarketDetail } from "./market-detail";
-import { findNearbyMarkets, MapParticipateButton, TodayHighlightPrompt, type LatestStory } from "./today-highlight-prompt";
+import { findNearbyMarkets, MapParticipateButton, StoryListCard, type LatestStory } from "./today-highlight-prompt";
 import { track } from "./market-highlights";
 import type { DateFilterMode } from "./market-filters";
 import { MarketList } from "./market-list";
@@ -61,6 +62,16 @@ async function fetchMarkets(): Promise<PublicMarket[]> {
   if (!Array.isArray(data)) throw new Error("시장 데이터 형식이 올바르지 않습니다.");
   return data as PublicMarket[];
 }
+
+// 승인된 방문자 제보 전부(최근 순). 실패해도 지도는 그대로 쓰도록 빈 목록으로 둔다.
+async function fetchStories(): Promise<MarketHighlight[]> {
+  const response = await fetch("/api/highlights");
+  if (!response.ok) return [];
+  const data = await response.json() as { highlights?: MarketHighlight[] };
+  return Array.isArray(data.highlights) ? data.highlights : [];
+}
+
+const STORY_LIST_TITLES: Record<DateFilterMode, string> = { today: "오늘 서는 장 이야기", weekend: "이번 주말 장 이야기", all: "방문자 이야기" };
 
 const emptyReviewedMarketIds: string[] = [];
 const sheetSnaps: SheetSnap[] = ["collapsed", "half", "full"];
@@ -113,6 +124,20 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     retry: false,
   });
 
+  const { data: stories = [] } = useQuery({
+    queryKey: ["visitor-stories"],
+    queryFn: fetchStories,
+    enabled: locale === "ko",
+    staleTime: Number.POSITIVE_INFINITY,
+    retry: false,
+  });
+  const storyCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const story of stories) counts.set(story.marketId, (counts.get(story.marketId) ?? 0) + 1);
+    return counts;
+  }, [stories]);
+  const storyMarketIds = useMemo(() => new Set(storyCounts.keys()), [storyCounts]);
+
   // 링크로 받은 시장 묶음. 한국어 지도에서, 검색어가 없을 때만 쓴다.
   const setMarkets = useMemo(() => marketSet
     ? marketSet.ids.map((id) => markets.find((market) => market.id === id)).filter((market): market is PublicMarket => Boolean(market))
@@ -144,6 +169,10 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     [currentLocation, inactiveMarkets],
   );
   const displayedMarkets = query.trim() ? queryMatches : filteredMarkets;
+  const filteredStories = useMemo(() => {
+    const ids = new Set(filteredMarkets.map((market) => market.id));
+    return stories.filter((story) => ids.has(story.marketId));
+  }, [filteredMarkets, stories]);
   const dateReady = hasRestoredUrl || Boolean(providedToday);
   const setLabel = marketSet?.source === "threads" ? "스레드에서 본 시장" : "골라 둔 시장";
   const rangeLabel = !dateReady ? ui.today : setActive ? setLabel : range
@@ -336,7 +365,10 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
     setSheetSnap("full");
     setIsSearchOpen(false);
   }, [isSearchOpen, locale, marketSet, marketSetPath, mode, query, selectedId, setActive, sheetMode, sheetSnap]);
-  const selectMapMarket = useCallback((market: PublicMarket) => selectMarket(market, "map"), [selectMarket]);
+  const selectMapMarket = useCallback((market: PublicMarket) => {
+    if (storyMarketIds.has(market.id)) track("story_marker_open");
+    selectMarket(market, "map");
+  }, [selectMarket, storyMarketIds]);
   const selectListMarket = useCallback((market: PublicMarket) => selectMarket(market, "list"), [selectMarket]);
   const openLatestStory = useCallback(({ market, highlight }: LatestStory) => {
     selectMarket(market, "list");
@@ -439,6 +471,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       range={range}
       onClearDate={query.trim() ? clearDateFilter : undefined}
       reviewedMarketIds={reviewedMarketIdSet}
+      storyCounts={storyCounts}
       referenceDate={referenceDate}
       selectedId={selectedId}
       onSelect={selectListMarket}
@@ -513,6 +546,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
             : null}
           fitMarkets={setActive ? setMarkets : undefined}
           markets={filteredMarkets}
+          storyMarketIds={storyMarketIds}
           searchMarkets={queryMatches}
           searchQuery={query}
           referenceDate={referenceDate}
@@ -570,7 +604,15 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
           <noscript><p>{locale === "en" ? "Enable JavaScript to use the map and date filters. Market guides remain available through the links below." : "지도와 날짜 검색은 자바스크립트가 필요합니다. 아래 시장별 방문 안내는 바로 읽을 수 있습니다."}</p></noscript>
         </div>
         {submissionsEnabled && locale === "ko" && dateReady && !isPending && !isError ? (
-          <TodayHighlightPrompt markets={markets} today={today} currentLocation={currentLocation} />
+          query.trim() ? null : <StoryListCard
+            markets={markets}
+            today={today}
+            currentLocation={currentLocation}
+            stories={filteredStories}
+            title={setActive ? "이 장들의 이야기" : STORY_LIST_TITLES[mode]}
+            filter={setActive ? "set" : mode}
+            onOpenStory={openLatestStory}
+          />
         ) : null}
 
         <section className="mobile-market-results" aria-label={locale === "en" ? "Market results" : "시장 결과"} data-map-status={mapStatus}>

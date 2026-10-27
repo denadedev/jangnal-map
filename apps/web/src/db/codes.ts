@@ -30,6 +30,13 @@ export type SubmissionStatusCode = (typeof SUBMISSION_STATUSES)[number];
 export const GUIDE_STATUSES = ["draft", "reviewed"] as const;
 export type GuideStatusCode = (typeof GUIDE_STATUSES)[number];
 
+// 전단을 싣는 대형마트. 화면에 이 순서로 보인다 (mart_brands.position과 같다).
+export const MART_BRAND_LABELS = { emart: "이마트", homeplus: "홈플러스", lottemart: "롯데마트" } as const;
+export type MartBrandCode = keyof typeof MART_BRAND_LABELS;
+
+export const FLYER_STATUSES = ["published", "removed"] as const;
+export type FlyerStatusCode = (typeof FLYER_STATUSES)[number];
+
 function codeForLabel<T extends string>(labels: Record<T, string>, label: string): T | undefined {
   return (Object.keys(labels) as T[]).find((code) => labels[code] === label);
 }

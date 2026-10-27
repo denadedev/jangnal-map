@@ -293,9 +293,9 @@ export function MapParticipateButton({ markets, today, currentLocation, suggeste
 }
 
 /** 서비스 메뉴의 "다녀온 장 이야기 들려주기". 메뉴를 닫고 바로 장 고르기부터 연다. */
-export function MenuSubmissionFlow({ markets, today, currentLocation, onClose }: TodayHighlightPromptProps & { onClose: () => void }) {
+export function MenuSubmissionFlow({ markets, today, currentLocation, source = "menu", onClose }: TodayHighlightPromptProps & { source?: SubmissionSource; onClose: () => void }) {
   const todayMarkets = useTodayMarkets(markets, today, currentLocation);
-  return <SubmissionFlow markets={markets} todayMarkets={todayMarkets} source="menu" onClose={onClose} />;
+  return <SubmissionFlow markets={markets} todayMarkets={todayMarkets} source={source} onClose={onClose} />;
 }
 
 function MarketPicker({ markets, todayMarkets, suggestedLabel = "오늘 열린 장", onPick, onClose }: { markets: PublicMarket[]; todayMarkets: PublicMarket[]; suggestedLabel?: string; onPick: (market: PublicMarket) => void; onClose: () => void }) {

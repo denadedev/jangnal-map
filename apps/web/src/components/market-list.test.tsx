@@ -57,6 +57,21 @@ describe("MarketList", () => {
     );
   });
 
+  it("labels markets that have visitor stories", () => {
+    render(<MarketList
+      markets={[market, { ...market, id: "quiet", name: "조용한시장" }]}
+      storyCounts={new Map([[market.id, 2]])}
+      referenceDate={new Date(2026, 8, 7)}
+      selectedId={null}
+      onSelect={() => undefined}
+      onReset={() => undefined}
+      currentLocation={null}
+    />);
+
+    expect(screen.getByRole("link", { name: /가까운시장/ })).toHaveTextContent("이야기 2");
+    expect(screen.getByRole("link", { name: /조용한시장/ })).not.toHaveTextContent("이야기");
+  });
+
   it("shows straight-line distance when a current location is available", () => {
     render(<MarketList
       markets={[market]}

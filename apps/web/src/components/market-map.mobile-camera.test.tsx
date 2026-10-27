@@ -256,6 +256,17 @@ describe("MarketMap mobile camera behavior", () => {
     expect(fake.setZoom).toHaveBeenCalledWith(9);
   });
 
+  it("puts a speech bubble before the name of markets with visitor stories", async () => {
+    const fake = installFakeNaverMap();
+    renderMap({ markets: [market("story", 37.5, 127), market("quiet", 37.52, 127.02)], storyMarketIds: new Set(["story"]) });
+
+    await waitFor(() => expect(fake.markerOptions.length).toBe(2));
+    const content = (text: string) => fake.markerOptions.find((marker) => marker.icon.content.includes(text))!.icon.content;
+    expect(content("story 시장")).toContain("map-marker-story");
+    expect(content("story 시장")).toContain("방문자 이야기 있음");
+    expect(content("quiet 시장")).not.toContain("map-marker-story");
+  });
+
   it("keeps the selected market rendered when the map projection is unavailable", async () => {
     const fake = installFakeNaverMap({ projection: "missing" });
 

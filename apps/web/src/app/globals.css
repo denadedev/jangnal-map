@@ -361,6 +361,9 @@ a { color: inherit; text-decoration: none; }
 .list-copy .schedule-tag.is-daily { border-color: var(--line); background: var(--surface-2); color: var(--green); }
 .list-copy .schedule-tag.is-unknown { border-color: var(--line); background: var(--surface-2); color: var(--muted); }
 .list-copy .distance-label { color: var(--green); font-size: 15px; font-weight: 700; }
+/* 방문자 이야기가 있는 시장 줄의 작은 표시. 장날 표시보다 조용하게 잉크·회색만 쓴다. */
+.list-copy .list-story-count { display: inline-flex; align-self: flex-start; align-items: center; gap: 4px; border-radius: var(--r-s); padding: 2px 7px; background: var(--surface-2); color: var(--ink); font-size: 13px; font-weight: 600; }
+.list-copy .list-story-count .icon { width: 14px; height: 14px; }
 .distance-label b { font-weight: 700; }
 .list-copy em { color: var(--persimmon-dark); font-size: 15px; font-style: normal; font-weight: 700; }
 .list-copy .market-date-status { font-size: 15px; }
@@ -448,6 +451,8 @@ a { color: inherit; text-decoration: none; }
 .map-marker strong { color: var(--persimmon-dark); font-size: 15px; }
 .map-marker.is-selected { border-color: var(--persimmon-dark); background: var(--persimmon); color: white; transform: translateY(-3px); }
 .map-marker.is-selected strong { color: white; }
+/* 방문자 이야기가 있는 장: 이름 앞 말풍선 (Open Design 2026-10-27 시안 1-b). 빨강은 "오늘"에만 쓰므로 잉크색. */
+.map-marker .map-marker-story { width: 15px; height: 15px; margin-right: -3px; stroke-width: 2.2; }
 
 .detail-pane { grid-area: detail; min-height: 0; overflow-y: auto; border-left: 1px solid var(--line); background: var(--panel); }
 

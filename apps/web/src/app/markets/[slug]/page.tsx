@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { MarketNextDate } from "../../../components/market-next-date";
 import { MarketShareButton } from "../../../components/market-share-button";
 import { MarketEditorialSections } from "../../../components/market-editorial-sections";
-import { MarketHighlights, MarketHighlightsTeaser } from "../../../components/market-highlights";
+import { MarketHighlights } from "../../../components/market-highlights";
 import { SiteFooter } from "../../../components/site-footer";
 import { MobileAppBar } from "../../../components/mobile-app-bar";
 import { OnnuriSummary } from "../../../components/onnuri-summary";
@@ -147,7 +147,9 @@ export default async function MarketPage({ params }: MarketPageProps) {
           </section>
           <div className={`${styles.section} ${styles.nextDate}`}>
             <MarketNextDate market={market} />
-            <MarketHighlightsTeaser
+          </div>
+          <div className="editorial-section">
+            <MarketHighlights
               market={market}
               scheduleLabel={formatSchedulePattern(market)}
               initialHighlights={highlights}
@@ -176,16 +178,6 @@ export default async function MarketPage({ params }: MarketPageProps) {
             <OnnuriSummary marketName={market.name} summary={market.onnuri} headingLevel={2} />
           </div>
           <MarketEditorialSections editorial={editorial} />
-          <div className="editorial-section">
-            <MarketHighlights
-              marketId={market.id}
-              marketName={market.name}
-              scheduleLabel={formatSchedulePattern(market)}
-              initialHighlights={highlights}
-              submissionsEnabled={submissionsEnabled}
-              nearbyMarkets={nearbyMarkets}
-            />
-          </div>
           {relatedMarkets.length > 0 ? (
             <section className={styles.section} aria-labelledby="related-markets-heading">
               <h2 id="related-markets-heading">같은 지역 장날</h2>

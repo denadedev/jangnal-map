@@ -15,6 +15,8 @@ interface MarketListProps {
   range?: DateRange | null;
   onClearDate?: () => void;
   reviewedMarketIds?: ReadonlySet<string>;
+  /** 시장별 방문자 이야기 수. 있는 줄에만 "이야기 N"을 붙인다. */
+  storyCounts?: ReadonlyMap<string, number>;
   referenceDate: Date;
   selectedId: string | null;
   onSelect: (market: PublicMarket) => void;
@@ -22,7 +24,7 @@ interface MarketListProps {
   currentLocation: Coordinates | null;
 }
 
-export function MarketList({ locale = "ko", getMarketHref, markets, inactiveMarkets = [], range, onClearDate, reviewedMarketIds = new Set(), referenceDate, selectedId, onSelect, onReset, currentLocation }: MarketListProps) {
+export function MarketList({ locale = "ko", getMarketHref, markets, inactiveMarkets = [], range, onClearDate, reviewedMarketIds = new Set(), storyCounts, referenceDate, selectedId, onSelect, onReset, currentLocation }: MarketListProps) {
   const ui = getUiCopy(locale);
   if (markets.length === 0 && inactiveMarkets.length === 0) {
     return (
@@ -68,6 +70,7 @@ export function MarketList({ locale = "ko", getMarketHref, markets, inactiveMark
             </span>
             <span className="list-copy">
               <strong lang={locale === "en" ? "ko" : undefined}>{market.name}</strong>
+              {storyCounts?.get(market.id) ? <span className="list-story-count"><Icon name="chat" />이야기 {storyCounts.get(market.id)}</span> : null}
               {locale === "en" && market.schedule.kind === "daily" ? null : <span className="sr-only">{formatSchedulePattern(market, locale)}</span>}
               <span lang={market.roadAddress || market.lotAddress ? "ko" : undefined}>{market.roadAddress ?? market.lotAddress ?? ui.addressMissing}</span>
               {distance !== null ? <span className="distance-label">{locale === "en" ? "From your location" : "현재 위치에서"} <b>{formatDistance(distance)}</b></span> : null}

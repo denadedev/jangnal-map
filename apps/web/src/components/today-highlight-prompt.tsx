@@ -8,7 +8,7 @@ import { formatSchedulePattern, sortMarketsByDistance, toIsoDate, type Coordinat
 import { getMarketDates } from "../lib/schedule";
 import { Icon } from "./icon";
 import { formatPatternDigits } from "./jangnal-number";
-import { HighlightSubmissionSheet, readStorage, SheetOverlay, track, writeStorage, type HighlightMarketRef, type SubmissionSource } from "./market-highlights";
+import { CATEGORY_ICONS, HighlightSubmissionSheet, readStorage, SheetOverlay, track, writeStorage, type HighlightMarketRef, type SubmissionSource } from "./market-highlights";
 import styles from "./market-highlights.module.css";
 
 const DISMISS_KEY = "jangnal:today-highlight-card-dismissed";
@@ -17,6 +17,9 @@ const LATEST_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 /** 버튼이 들어온 뒤(400ms 대기 + 240ms) 펼치고, 0.3초 펼침을 포함해 4.8초 뒤 접는다. */
 const LATEST_OPEN_DELAY_MS = 700;
 const LATEST_HOLD_MS = 4800;
+/** 목록 위 이야기 카드에 바로 보이는 수와, "더 보기" 시트가 한 번에 늘리는 수. */
+const STORY_CARD_LIMIT = 3;
+const STORY_SHEET_PAGE = 20;
 
 export interface LatestStory {
   highlight: MarketHighlight;
@@ -138,6 +141,110 @@ export function TodayHighlightPrompt({ markets, today, currentLocation }: TodayH
       {open ? (
         <SubmissionFlow markets={markets} todayMarkets={todayMarkets} source="map_today" onClose={() => { setOpen(false); openButtonRef.current?.focus(); }} />
       ) : null}
+    </div>
+  );
+}
+
+function StoryRow({ story, onOpen }: { story: LatestStory; onOpen: () => void }) {
+  const { highlight, market } = story;
+  return (
+    <button type="button" className={styles.storyRow} onClick={onOpen}>
+      <span className={styles.categoryIcon} aria-hidden="true"><Icon name={CATEGORY_ICONS[highlight.category]} /></span>
+      <span className={styles.storyCopy}>
+        <span className={styles.storyMarket}>{market.name}</span>
+        <strong className={styles.what}>{highlight.name}</strong>
+        {highlight.description ? <span className={styles.description}>{highlight.description}</span> : null}
+      </span>
+      <Icon name="more" className={styles.chevron} />
+    </button>
+  );
+}
+
+/** "더 보기"로 여는 같은 필터의 이야기 전체. 맨 아래에서 바로 제보로 이어진다. */
+function StorySheet({ title, stories, onOpenStory, onWrite, onClose }: { title: string; stories: LatestStory[]; onOpenStory: (story: LatestStory) => void; onWrite: () => void; onClose: () => void }) {
+  const [shown, setShown] = useState(STORY_SHEET_PAGE);
+  const titleId = useId();
+  return (
+    <SheetOverlay labelledBy={titleId} onClose={onClose} className={styles.pickerSheet}>
+      <div className={styles.sheetHead}>
+        <h2 id={titleId}>{title} <span className={styles.count}>{stories.length}</span></h2>
+        <button type="button" className={styles.iconButton} aria-label="닫기" onClick={onClose}><Icon name="close" /></button>
+      </div>
+      <ul className={styles.pickerList}>
+        {stories.slice(0, shown).map((story) => (
+          <li key={`${story.market.id}:${story.highlight.name}`}><StoryRow story={story} onOpen={() => onOpenStory(story)} /></li>
+        ))}
+        {stories.length > shown ? (
+          <li><button type="button" className={styles.storyMore} onClick={() => setShown((count) => count + STORY_SHEET_PAGE)}>더 보기</button></li>
+        ) : null}
+      </ul>
+      <button type="button" className={styles.primary} onClick={onWrite}>나도 알려 주기</button>
+    </SheetOverlay>
+  );
+}
+
+/**
+ * 메인 지도 결과 목록 위 카드. 지금 필터에 걸린 시장들의 방문자 이야기를 최근 순으로 보여 주고,
+ * 이야기가 없으면 "오늘 열린 장 다녀오셨나요?" 카드를 대신 보여 준다.
+ */
+export function StoryListCard({ markets, today, currentLocation, stories, title, filter, onOpenStory }: TodayHighlightPromptProps & {
+  /** 필터에 걸린 시장들의 제보, 최근 승인 순. */
+  stories: MarketHighlight[];
+  title: string;
+  /** Umami에 남길 필터 이름. */
+  filter: string;
+  onOpenStory: (story: LatestStory) => void;
+}) {
+  const todayIso = toIsoDate(today);
+  const [dismissedOn, setDismissedOn] = useState<string | null>(todayIso);
+  const [sheet, setSheet] = useState<"list" | "write" | null>(null);
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
+  useEffect(() => setDismissedOn(readStorage(DISMISS_KEY)), []);
+  const todayMarkets = useTodayMarkets(markets, today, currentLocation);
+  const items = useMemo(() => {
+    const byId = new Map(markets.map((market) => [market.id, market]));
+    return stories.flatMap((highlight) => {
+      const market = byId.get(highlight.marketId);
+      return market ? [{ highlight, market }] : [];
+    });
+  }, [markets, stories]);
+  const visible = items.length > 0 && dismissedOn !== todayIso;
+  useEffect(() => {
+    if (visible) track("story_list_view", { filter, count: String(items.length) });
+  // 필터를 바꿔 다른 이야기가 보일 때마다 한 번 센다.
+  }, [filter, visible]);
+
+  if (items.length === 0) return <TodayHighlightPrompt markets={markets} today={today} currentLocation={currentLocation} />;
+  if (!visible) return null;
+  const open = (story: LatestStory) => {
+    track("story_list_open", { filter });
+    setSheet(null);
+    onOpenStory(story);
+  };
+  const closeSheet = () => { setSheet(null); moreRef.current?.focus(); };
+
+  return (
+    <div className={styles.storyCard} role="group" aria-labelledby={titleId}>
+      <button type="button" className={styles.contextClose} aria-label="닫기" onClick={() => {
+        writeStorage(DISMISS_KEY, todayIso);
+        track("story_list_dismiss", { filter });
+        setDismissedOn(todayIso);
+      }}><Icon name="close" /></button>
+      <p id={titleId} className={styles.contextTitle}>{title}</p>
+      <ul className={styles.storyRows}>
+        {items.slice(0, STORY_CARD_LIMIT).map((story) => (
+          <li key={`${story.market.id}:${story.highlight.name}`}><StoryRow story={story} onOpen={() => open(story)} /></li>
+        ))}
+      </ul>
+      {items.length > STORY_CARD_LIMIT ? (
+        <button ref={moreRef} type="button" className={styles.storyMore} onClick={() => {
+          track("story_list_more", { filter, count: String(items.length) });
+          setSheet("list");
+        }}>이야기 {items.length - STORY_CARD_LIMIT}개 더 보기<Icon name="more" className={styles.chevron} /></button>
+      ) : null}
+      {sheet === "list" ? <StorySheet title={title} stories={items} onOpenStory={open} onWrite={() => setSheet("write")} onClose={closeSheet} /> : null}
+      {sheet === "write" ? <SubmissionFlow markets={markets} todayMarkets={todayMarkets} source="story_list" onClose={closeSheet} /> : null}
     </div>
   );
 }

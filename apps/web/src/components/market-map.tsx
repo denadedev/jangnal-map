@@ -17,6 +17,8 @@ interface MarketMapProps {
   /** 처음 한 번 이 시장들이 다 보이게 지도를 맞춘다 (Threads 링크로 받은 시장 묶음). */
   fitMarkets?: PublicMarket[];
   markets: PublicMarket[];
+  /** 방문자 이야기가 있는 시장. 마커 이름 앞에 말풍선을 붙인다. */
+  storyMarketIds?: ReadonlySet<string>;
   searchMarkets?: PublicMarket[];
   searchQuery?: string;
   referenceDate: Date;
@@ -52,6 +54,10 @@ const coordinateBounds = (map: NaverMapInstance): CoordinateBounds => {
   };
 };
 
+const noStories: ReadonlySet<string> = new Set();
+// icon.tsx의 chat 아이콘. 마커는 HTML 문자열로 그려서 경로를 그대로 옮겨 둔다.
+const storyIcon = '<svg class="icon map-marker-story" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z" /></svg>';
+
 const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, (character) => ({
   "&": "&amp;",
   "<": "&lt;",
@@ -60,7 +66,7 @@ const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, (charact
   '"': "&quot;",
 })[character] ?? character);
 
-export function MarketMap({ locale = "ko", overlay, fitMarkets, markets, searchMarkets = [], searchQuery = "", referenceDate, selectedId, clientId, mobileOcclusion, mobileSheetHeight = 0, onSelect, onLocationChange, onCameraRestoreComplete, onStatusChange, onLocationError, onFallbackList }: MarketMapProps) {
+export function MarketMap({ locale = "ko", overlay, fitMarkets, markets, storyMarketIds = noStories, searchMarkets = [], searchQuery = "", referenceDate, selectedId, clientId, mobileOcclusion, mobileSheetHeight = 0, onSelect, onLocationChange, onCameraRestoreComplete, onStatusChange, onLocationError, onFallbackList }: MarketMapProps) {
   const ui = getUiCopy(locale);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<NaverMapInstance | null>(null);
@@ -260,13 +266,14 @@ export function MarketMap({ locale = "ko", overlay, fitMarkets, markets, searchM
         const selected = market.id === selectedId;
         const timing = formatMarketTiming(market, referenceDate, locale);
         const actionLabel = ui.mapPreview;
+        const hasStory = storyMarketIds.has(market.id);
         const marker = new naver.maps.Marker({
           map,
           position: new naver.maps.LatLng(market.latitude, market.longitude),
           title: `${market.name} · ${timing}`,
           zIndex: selected ? 20 : 10,
           icon: {
-            content: `<button class="map-marker${selected ? " is-selected" : ""}" data-market-id="${escapeHtml(market.id)}" type="button" aria-label="${escapeHtml(market.name)} ${escapeHtml(actionLabel)}, ${escapeHtml(ui.scheduleLabel)} ${escapeHtml(timing)}"><span${locale === "en" ? ' lang="ko"' : ""}>${escapeHtml(market.name)}</span><strong>${escapeHtml(timing)}</strong></button>`,
+            content: `<button class="map-marker${selected ? " is-selected" : ""}" data-market-id="${escapeHtml(market.id)}" type="button" aria-label="${escapeHtml(market.name)} ${escapeHtml(actionLabel)}, ${escapeHtml(ui.scheduleLabel)} ${escapeHtml(timing)}${hasStory ? ", 방문자 이야기 있음" : ""}">${hasStory ? storyIcon : ""}<span${locale === "en" ? ' lang="ko"' : ""}>${escapeHtml(market.name)}</span><strong>${escapeHtml(timing)}</strong></button>`,
             anchor: new naver.maps.Point(0, 38),
           },
         });
@@ -282,7 +289,7 @@ export function MarketMap({ locale = "ko", overlay, fitMarkets, markets, searchM
       naver.maps.Event.removeListener(idleListener);
       clearMarkers();
     };
-  }, [locale, markets, onSelect, referenceDate, selectedId, status, ui.mapPreview, ui.scheduleLabel, ui.viewDetail]);
+  }, [locale, markets, onSelect, referenceDate, selectedId, status, storyMarketIds, ui.mapPreview, ui.scheduleLabel, ui.viewDetail]);
 
   useEffect(() => {
     if (status !== "ready" || !mapRef.current || !window.naver?.maps || mobileOcclusion === undefined || mobileOcclusion === null) return;

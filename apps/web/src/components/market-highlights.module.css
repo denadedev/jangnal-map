@@ -1,46 +1,32 @@
-/* "방문자가 알려 준 것" 섹션과 제보 시트. Open Design 시안(2026-10-21 방문자 제보) 기준. */
+/* "방문자가 알려 준 것" 블록과 제보 시트. Open Design 시안(2026-10-21 방문자 제보, 2026-10-27 지도 위 이야기) 기준. */
 /* 여백과 구분선은 감싸는 쪽(상세 페이지 .editorial-section, 지도 패널 .detail-section)이 정한다. */
+.head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
 .section .title { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
-.source { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 5px 10px 5px 8px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--muted); font-size: 13px; font-weight: 500; }
-.source :global(.icon) { width: 16px; height: 16px; }
-.category { margin-top: 20px; }
-.categoryHead { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-.section .categoryHead h3, .section .categoryHead h4 { margin: 0; font-size: 15px; font-weight: 700; }
-.categoryIcon { width: 32px; height: 32px; border-radius: var(--r-s); background: var(--surface-2); display: grid; place-items: center; }
+.source { color: var(--muted); font-size: 13px; }
+.categoryIcon { width: 40px; height: 40px; flex: none; border-radius: var(--r-s); background: var(--surface-2); display: grid; place-items: center; }
 .categoryIcon :global(.icon) { width: 18px; height: 18px; }
 .count { color: var(--muted); font-size: 13px; }
-.items { list-style: none; margin: 0; padding: 0 0 0 42px; }
-.items li { padding: 10px 0; border-bottom: 1px solid var(--line); }
-.items li:last-child { border-bottom: 0; }
+.items { list-style: none; margin: 12px 0 0; padding: 0; }
+.items li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.items li[hidden] { display: none; }
+.items li:last-child, .items li:has(+ li[hidden]) { border-bottom: 0; }
 /* 지도의 "새 이야기"로 들어온 항목 (Open Design 2026-10-26 새 이야기 시안). */
-.items li.focused { margin-left: -8px; padding: 10px 8px; border: 1.5px solid var(--muted); border-radius: var(--r-s); background: var(--surface-2); }
+.items li.focused { margin-left: -8px; margin-right: -8px; padding: 10px 8px; border: 1.5px solid var(--muted); border-radius: var(--r-s); background: var(--surface-2); }
 .newTag { display: inline-flex; align-items: center; height: 22px; margin-left: 8px; padding: 0 8px; border-radius: var(--r-s); background: var(--ink); color: #fff; font-size: 14px; font-weight: 600; vertical-align: 2px; }
 .what { display: block; font-size: 16px; font-weight: 600; line-height: 1.4; }
 .description { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); line-height: 1.55; }
 /* 제보 유도 (Open Design 2026-10-22 제보 진입점 시안). 빈 상태는 질문 + 카테고리 칩, 있으면 조용한 칩 줄. */
-.question { margin: 14px 0 0; font-size: 16px; font-weight: 600; line-height: 1.5; }
-.questionHint { margin: 2px 0 0; font-size: 14px; line-height: 1.55; color: var(--muted); }
-.entryChips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
-.entryChip { min-height: 48px; padding: 0 12px 0 16px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--surface); color: var(--ink); display: flex; align-items: center; gap: 8px; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; text-align: left; white-space: nowrap; }
-.entryChip:hover { background: var(--surface-2); border-color: var(--muted); }
-.entryChip :global(.icon) { width: 20px; height: 20px; flex: none; }
-.entryChip span { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.question { display: flex; align-items: center; gap: 6px; margin: 12px 0 10px; font-size: 15px; font-weight: 600; line-height: 1.5; }
+.question :global(.icon) { width: 18px; height: 18px; }
+.showAll { min-height: 44px; margin-top: 4px; padding: 0; border: 0; background: transparent; color: var(--ink); display: inline-flex; align-items: center; gap: 2px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .chevron { width: 16px; height: 16px; flex: none; color: var(--muted); }
-.writeButton { min-height: 44px; margin-top: 12px; padding: 0 16px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--surface); color: var(--ink); display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
-.writeButton:hover { background: var(--surface-2); }
-.writeButton :global(.icon) { width: 16px; height: 16px; }
-.more { margin-top: 24px; }
+.more { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 .moreLabel { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
 .quietChips, .contextChips { display: flex; flex-wrap: wrap; gap: 8px; }
-.quietChip { min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.quietChip { min-height: 40px; padding: 0 14px; display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .quietChip:hover { background: var(--surface-2); border-color: var(--muted); }
+.quietChip :global(.icon) { width: 16px; height: 16px; }
 
-/* 다음 장날 아래 한 줄 티저. 버튼이 아닌 행처럼 보여 장날 카드의 무게를 빼앗지 않는다. */
-.teaser { width: 100%; min-height: 44px; margin: 8px 0 0; padding: 0 4px; border: 0; border-radius: var(--r-s); background: transparent; color: var(--ink); display: flex; align-items: center; gap: 8px; font: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; }
-.teaser:hover { background: var(--surface-2); }
-.teaser > :global(.icon):first-child { width: 20px; height: 20px; flex: none; color: var(--muted); }
-.teaser > span { flex: 1; }
-.teaserSep { color: var(--muted); font-weight: 400; }
 /* 장날 당일·다음 날 카드. 당일만 인주색으로 강조한다. */
 .context { position: relative; margin: 12px 0 0; padding: 16px; border-radius: var(--r-m); background: var(--accent-soft); }
 .contextQuiet { background: var(--surface-2); }
@@ -144,3 +130,23 @@
 @media (prefers-reduced-motion: reduce) { .mapButton, .mapButtonStory { animation: none; } }
 .pickerEmpty { margin: 16px 0 0; font-size: 14px; color: var(--muted); }
 .visuallyHidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* 메인 지도 결과 목록 위 "이 장들의 이야기" 카드와 더 보기 시트 (Open Design 2026-10-27 시안 2). 빨강은 쓰지 않는다. */
+.storyCard { position: relative; margin: 16px 0 0; padding: 16px 16px 8px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--surface); }
+.storyCard .contextTitle { margin-right: 44px; color: var(--ink); }
+.storyRows { list-style: none; margin: 4px 0 0; padding: 0; }
+.storyRows li + li { border-top: 1px solid var(--line); }
+.storyRow { width: 100%; min-height: 60px; padding: 10px 0; border: 0; background: transparent; color: var(--ink); display: flex; align-items: center; gap: 12px; font: inherit; text-align: left; cursor: pointer; }
+.storyRow:hover { background: var(--surface-2); }
+.storyCopy { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.storyMarket { font-size: 13px; color: var(--muted); }
+.storyCopy .description { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.storyMore { min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--ink); display: inline-flex; align-items: center; gap: 2px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.pickerList .storyRow { border-bottom: 1px solid var(--line); padding: 10px 4px; }
+.pickerList .storyMore { width: 100%; justify-content: center; }
+.pickerSheet > .primary { margin-top: 12px; }
+/* 보낸 뒤 "올라가면 이렇게 보여요": 지도 마커와 이야기 한 줄을 미리 보여 준다. */
+.preview { margin: 20px 0 0; padding: 14px 16px 16px; border-radius: var(--r-m); background: var(--surface-2); text-align: left; }
+.done .previewLabel { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+.previewMarker { display: inline-flex; margin-bottom: 14px; }
+.preview .sent { margin: 0; padding: 12px 14px; background: var(--surface); }

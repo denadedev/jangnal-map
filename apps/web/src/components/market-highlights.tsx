@@ -13,15 +13,15 @@ import { getMarketDates } from "../lib/schedule";
 import { Icon, type IconName } from "./icon";
 import styles from "./market-highlights.module.css";
 
-const CATEGORY_ICONS: Record<HighlightCategoryCode, IconName> = { specialty: "sprout", food: "bowl", tip: "bulb", sight: "star" };
+export const CATEGORY_ICONS: Record<HighlightCategoryCode, IconName> = { specialty: "sprout", food: "bowl", tip: "bulb", sight: "star" };
 const CATEGORIES = Object.keys(HIGHLIGHT_CATEGORY_LABELS) as HighlightCategoryCode[];
 const NAME_PLACEHOLDERS: Record<HighlightCategoryCode, string> = { specialty: "예: 미나리", food: "예: 수수 부꾸미", tip: "예: 주차", sight: "예: 장터 공연" };
-/** 상단 티저의 "보기"가 스크롤해 갈 섹션. 한 화면에 섹션은 하나뿐이다. */
+/** 지도의 "새 이야기"로 들어오면 스크롤해 갈 섹션. 한 화면에 섹션은 하나뿐이다. */
 const SECTION_ID = "visitor-highlights";
 const CONTEXT_DISMISS_KEY = "jangnal:highlight-context-dismissed";
 
 /** 제보 시트가 어디서 열렸는지. Umami 이벤트의 source로 남겨 진입점별로 비교한다. */
-export type SubmissionSource = "section" | "section_chip" | "more_chip" | "teaser" | "context" | "followup" | "map_today" | "map_button" | "menu" | "map_set" | "latest";
+export type SubmissionSource = "section_chip" | "more_chip" | "context" | "followup" | "map_today" | "map_button" | "menu" | "map_set" | "latest" | "story_list";
 
 /** 제보 시트가 다루는 시장. 완료 화면의 "같은 지역 다른 장"에도 쓴다. */
 export interface HighlightMarketRef {
@@ -79,9 +79,22 @@ function useMarketHighlights(marketId: string, initialHighlights?: MarketHighlig
 
 type OpenSheet = { category: HighlightCategoryCode | null; source: SubmissionSource } | null;
 
+type MarketDayContext = { kind: "today" | "yesterday"; marketDay: string } | null;
+
+const getMarketDayContext = (market: Pick<PublicMarket, "id" | "name" | "schedule">, today: Date): MarketDayContext => {
+  if (market.schedule.kind !== "digit-pair") return null;
+  if (getMarketDates(market, { start: today, end: today }).length > 0) return { kind: "today", marketDay: toIsoDate(today) };
+  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  if (getMarketDates(market, { start: yesterday, end: yesterday }).length > 0) return { kind: "yesterday", marketDay: toIsoDate(yesterday) };
+  return null;
+};
+
+const contextDismissKey = (marketId: string) => `${CONTEXT_DISMISS_KEY}:${marketId}`;
+/** 처음 펼쳐 보여 주는 이야기 수. 나머지는 "모두 보기"로 연다(HTML에는 남겨 검색에 보인다). */
+const VISIBLE_STORIES = 2;
+
 interface MarketHighlightsProps {
-  marketId: string;
-  marketName: string;
+  market: Pick<PublicMarket, "id" | "name" | "schedule">;
   scheduleLabel: string;
   /** 서버에서 그릴 때 넘긴다. 없으면 지도 패널처럼 열 때 읽어 온다. */
   initialHighlights?: MarketHighlight[];
@@ -94,10 +107,15 @@ interface MarketHighlightsProps {
   headingLevel?: 2 | 3;
 }
 
-/** 시장 상세·지도 패널의 "방문자가 알려 준 것" 섹션과 제보 시트. */
-export function MarketHighlights({ marketId, marketName, scheduleLabel, initialHighlights, submissionsEnabled = false, nearbyMarkets, focusName, headingLevel = 2 }: MarketHighlightsProps) {
-  const highlights = useMarketHighlights(marketId, initialHighlights);
+/**
+ * 다음 장날 바로 아래의 "방문자가 알려 준 것" 블록과 제보 시트.
+ * 이야기는 최근 순으로 두 개만 펼치고, 장날 당일·다음 날에는 "다녀오셨나요?"를 먼저 묻는다.
+ */
+export function MarketHighlights({ market, scheduleLabel, initialHighlights, submissionsEnabled = false, nearbyMarkets, focusName, headingLevel = 2 }: MarketHighlightsProps) {
+  const highlights = useMarketHighlights(market.id, initialHighlights);
   const [sheet, setSheet] = useState<OpenSheet>(null);
+  const [context, setContext] = useState<MarketDayContext>(null);
+  const [expanded, setExpanded] = useState(false);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const headingId = useId();
@@ -105,110 +123,6 @@ export function MarketHighlights({ marketId, marketName, scheduleLabel, initialH
   useEffect(() => {
     if (hasFocus) sectionRef.current?.scrollIntoView({ block: "start" });
   }, [hasFocus]);
-
-  if (!highlights || (highlights.length === 0 && !submissionsEnabled)) return null;
-
-  const Heading = headingLevel === 2 ? "h2" : "h3";
-  const Sub = headingLevel === 2 ? "h3" : "h4";
-  const groups = CATEGORIES.map((category) => ({ category, items: highlights.filter((item) => item.category === category) }))
-    .filter((group) => group.items.length > 0);
-  const open = (category: HighlightCategoryCode | null, source: SubmissionSource, target: HTMLElement) => {
-    returnFocusRef.current = target;
-    setSheet({ category, source });
-  };
-
-  return (
-    <section ref={sectionRef} id={SECTION_ID} className={styles.section} aria-labelledby={headingId}>
-      <Heading id={headingId} className={styles.title}>방문자가 알려 준 것</Heading>
-      {groups.length > 0 ? (
-        <>
-          <span className={styles.source}><Icon name="person" />방문자 제보 · 운영자 확인</span>
-          {groups.map(({ category, items }) => (
-            <div key={category} className={styles.category}>
-              <div className={styles.categoryHead}>
-                <span className={styles.categoryIcon}><Icon name={CATEGORY_ICONS[category]} /></span>
-                <Sub>{HIGHLIGHT_CATEGORY_LABELS[category]}</Sub>
-                <span className={styles.count}>{items.length}</span>
-              </div>
-              <ul className={styles.items}>
-                {items.map((item) => (
-                  <li key={item.name} className={item.name === focusName ? styles.focused : undefined} aria-current={item.name === focusName ? "true" : undefined}>
-                    <span className={styles.what}>{item.name}{item.name === focusName ? <span className={styles.newTag}>새 이야기</span> : null}</span>
-                    {item.description ? <span className={styles.description}>{item.description}</span> : null}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-          {submissionsEnabled ? (
-            <div className={styles.more} role="group" aria-label="더 알려 주기">
-              <span className={styles.moreLabel} aria-hidden="true">더 알려 주기</span>
-              <div className={styles.quietChips}>
-                {CATEGORIES.map((code) => (
-                  <button key={code} type="button" className={styles.quietChip} aria-label={`${HIGHLIGHT_CATEGORY_LABELS[code]} 알려 주기`} onClick={(event) => open(code, hasFocus ? "latest" : "more_chip", event.currentTarget)}>
-                    {HIGHLIGHT_CATEGORY_LABELS[code]}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </>
-      ) : (
-        <>
-          <p className={styles.question}>이 장에서 꼭 사야 하는 건 뭐예요?</p>
-          <p className={styles.questionHint}>산 것, 먹은 것, 알아 두면 좋은 걸 골라서 한 줄로 알려 주세요.</p>
-          <div className={styles.entryChips}>
-            {CATEGORIES.map((code) => (
-              <button key={code} type="button" className={styles.entryChip} aria-label={`${HIGHLIGHT_CATEGORY_LABELS[code]} 알려 주기`} onClick={(event) => open(code, "section_chip", event.currentTarget)}>
-                <Icon name={CATEGORY_ICONS[code]} /><span>{HIGHLIGHT_CATEGORY_LABELS[code]}</span>
-              </button>
-            ))}
-          </div>
-          <button type="button" className={styles.writeButton} onClick={(event) => open(null, "section", event.currentTarget)}>
-            <Icon name="pen" />직접 쓰기
-          </button>
-        </>
-      )}
-      {sheet ? (
-        <HighlightSubmissionSheet
-          market={{ id: marketId, name: marketName, scheduleLabel }}
-          initialCategory={sheet.category}
-          source={sheet.source}
-          nearbyMarkets={nearbyMarkets}
-          onClose={() => { setSheet(null); returnFocusRef.current?.focus(); }}
-        />
-      ) : null}
-    </section>
-  );
-}
-
-interface MarketHighlightsTeaserProps {
-  market: Pick<PublicMarket, "id" | "name" | "schedule">;
-  scheduleLabel: string;
-  initialHighlights?: MarketHighlight[];
-  submissionsEnabled?: boolean;
-  nearbyMarkets?: HighlightMarketRef[];
-}
-
-type MarketDayContext = { kind: "today" | "yesterday"; marketDay: string } | null;
-
-const getMarketDayContext = (market: MarketHighlightsTeaserProps["market"], today: Date): MarketDayContext => {
-  if (market.schedule.kind !== "digit-pair") return null;
-  if (getMarketDates(market, { start: today, end: today }).length > 0) return { kind: "today", marketDay: toIsoDate(today) };
-  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
-  if (getMarketDates(market, { start: yesterday, end: yesterday }).length > 0) return { kind: "yesterday", marketDay: toIsoDate(yesterday) };
-  return null;
-};
-
-const contextDismissKey = (marketId: string) => `${CONTEXT_DISMISS_KEY}:${marketId}`;
-
-/** 다음 장날 바로 아래의 한 줄 진입점. 장날 당일과 다음 날에는 "다녀오셨나요?" 카드로 바뀐다. */
-export function MarketHighlightsTeaser({ market, scheduleLabel, initialHighlights, submissionsEnabled = false, nearbyMarkets }: MarketHighlightsTeaserProps) {
-  const highlights = useMarketHighlights(market.id, initialHighlights);
-  const [context, setContext] = useState<MarketDayContext>(null);
-  const [sheet, setSheet] = useState<OpenSheet>(null);
-  const returnFocusRef = useRef<HTMLElement | null>(null);
-
   // 날짜는 브라우저에서 정한다. 서버에서 그린 페이지가 캐시돼도 오늘 기준으로 보인다.
   useEffect(() => {
     if (!submissionsEnabled) return;
@@ -216,64 +130,83 @@ export function MarketHighlightsTeaser({ market, scheduleLabel, initialHighlight
     setContext(next && readStorage(contextDismissKey(market.id)) !== next.marketDay ? next : null);
   }, [market, submissionsEnabled]);
 
-  if (!highlights) return null;
-  const count = highlights.length;
+  if (!highlights || (highlights.length === 0 && !submissionsEnabled)) return null;
+
+  const Heading = headingLevel === 2 ? "h2" : "h3";
+  const stories = [...highlights].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const focusIndex = stories.findIndex((item) => item.name === focusName);
+  const showAll = expanded || focusIndex >= VISIBLE_STORIES;
   const open = (category: HighlightCategoryCode | null, source: SubmissionSource, target: HTMLElement) => {
     returnFocusRef.current = target;
     setSheet({ category, source });
   };
-  const sheetElement = sheet ? (
-    <HighlightSubmissionSheet
-      market={{ id: market.id, name: market.name, scheduleLabel }}
-      initialCategory={sheet.category}
-      source={sheet.source}
-      nearbyMarkets={nearbyMarkets}
-      onClose={() => { setSheet(null); returnFocusRef.current?.focus(); }}
-    />
-  ) : null;
+  const chips = (source: SubmissionSource) => CATEGORIES.map((code) => (
+    <button key={code} type="button" className={styles.quietChip} aria-label={`${HIGHLIGHT_CATEGORY_LABELS[code]} 알려 주기`} onClick={(event) => open(code, source, event.currentTarget)}>
+      <Icon name={CATEGORY_ICONS[code]} />{HIGHLIGHT_CATEGORY_LABELS[code]}
+    </button>
+  ));
 
-  if (context) {
-    const dismiss = () => {
-      writeStorage(contextDismissKey(market.id), context.marketDay);
-      track("highlight_context_dismiss", { day: context.kind });
-      setContext(null);
-    };
-    return (
-      <div className={`${styles.context} ${context.kind === "yesterday" ? styles.contextQuiet : ""}`} role="group" aria-labelledby={`${SECTION_ID}-context`}>
-        <button type="button" className={styles.contextClose} aria-label="닫기" onClick={dismiss}><Icon name="close" /></button>
-        <p id={`${SECTION_ID}-context`} className={styles.contextTitle}>{context.kind === "today" ? "오늘 장날이에요" : "어제 장날 다녀오셨나요?"}</p>
-        <p className={styles.contextBody}>{context.kind === "today" ? "다녀오셨다면 좋았던 걸 하나만 알려 주세요" : "기억나는 걸 하나만 알려 주세요"}</p>
-        <div className={styles.contextChips}>
-          {CATEGORIES.map((code) => (
-            <button key={code} type="button" className={styles.quietChip} aria-label={`${HIGHLIGHT_CATEGORY_LABELS[code]} 알려 주기`} onClick={(event) => open(code, "context", event.currentTarget)}>
-              {HIGHLIGHT_CATEGORY_LABELS[code]}
-            </button>
-          ))}
-        </div>
-        {sheetElement}
-      </div>
-    );
-  }
-
-  if (count > 0) {
-    return (
-      <button type="button" className={styles.teaser} onClick={() => {
-        track("highlight_teaser_read", { count: String(count) });
-        document.getElementById(SECTION_ID)?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }}>
-        <Icon name="person" /><span>방문자 이야기 {count}개<span className={styles.teaserSep}> · </span>보기</span><Icon name="more" className={styles.chevron} />
-      </button>
-    );
-  }
-
-  if (!submissionsEnabled) return null;
   return (
-    <>
-      <button type="button" className={styles.teaser} onClick={(event) => open(null, "teaser", event.currentTarget)}>
-        <Icon name="pen" /><span>이 장 이야기를 처음 남겨 주세요</span><Icon name="more" className={styles.chevron} />
-      </button>
-      {sheetElement}
-    </>
+    <section ref={sectionRef} id={SECTION_ID} className={styles.section} aria-labelledby={headingId}>
+      <div className={styles.head}>
+        <Heading id={headingId} className={styles.title}>방문자가 알려 준 것</Heading>
+        {stories.length > 0 ? <span className={styles.source}>방문자 제보 · 운영자 확인</span> : null}
+      </div>
+      {context ? (
+        <div className={`${styles.context} ${context.kind === "yesterday" ? styles.contextQuiet : ""}`} role="group" aria-labelledby={`${SECTION_ID}-context`}>
+          <button type="button" className={styles.contextClose} aria-label="닫기" onClick={() => {
+            writeStorage(contextDismissKey(market.id), context.marketDay);
+            track("highlight_context_dismiss", { day: context.kind });
+            setContext(null);
+          }}><Icon name="close" /></button>
+          <p id={`${SECTION_ID}-context`} className={styles.contextTitle}>{context.kind === "today" ? "오늘 장날이에요" : "어제 장날 다녀오셨나요?"}</p>
+          <p className={styles.contextBody}>{context.kind === "today" ? "다녀오셨다면 좋았던 걸 하나만 알려 주세요" : "기억나는 걸 하나만 알려 주세요"}</p>
+          <div className={styles.contextChips}>{chips("context")}</div>
+        </div>
+      ) : null}
+      {stories.length > 0 ? (
+        <>
+          <ul className={styles.items}>
+            {stories.map((item, index) => (
+              <li key={item.name} hidden={!showAll && index >= VISIBLE_STORIES} className={item.name === focusName ? styles.focused : undefined} aria-current={item.name === focusName ? "true" : undefined}>
+                <span className={styles.categoryIcon} aria-hidden="true"><Icon name={CATEGORY_ICONS[item.category]} /></span>
+                <span>
+                  <span className={styles.what}>{item.name}{item.name === focusName ? <span className={styles.newTag}>새 이야기</span> : null}</span>
+                  <span className={styles.visuallyHidden}>{HIGHLIGHT_CATEGORY_LABELS[item.category]}</span>
+                  {item.description ? <span className={styles.description}>{item.description}</span> : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {!showAll && stories.length > VISIBLE_STORIES ? (
+            <button type="button" className={styles.showAll} onClick={() => {
+              track("story_block_more", { count: String(stories.length) });
+              setExpanded(true);
+            }}>모두 보기 {stories.length}<Icon name="more" className={styles.chevron} /></button>
+          ) : null}
+          {submissionsEnabled && !context ? (
+            <div className={styles.more} role="group" aria-label="나도 알려 주기">
+              <span className={styles.moreLabel} aria-hidden="true">나도 알려 주기</span>
+              <div className={styles.quietChips}>{chips(hasFocus ? "latest" : "more_chip")}</div>
+            </div>
+          ) : null}
+        </>
+      ) : !context ? (
+        <>
+          <p className={styles.question}><Icon name="chat" />이 장 첫 이야기를 남겨 주세요</p>
+          <div className={styles.quietChips}>{chips("section_chip")}</div>
+        </>
+      ) : null}
+      {sheet ? (
+        <HighlightSubmissionSheet
+          market={{ id: market.id, name: market.name, scheduleLabel }}
+          initialCategory={sheet.category}
+          source={sheet.source}
+          nearbyMarkets={nearbyMarkets}
+          onClose={() => { setSheet(null); returnFocusRef.current?.focus(); }}
+        />
+      ) : null}
+    </section>
   );
 }
 
@@ -432,10 +365,14 @@ export function HighlightSubmissionSheet({ market: initialMarket, initialCategor
           <div className={styles.done} role="status">
             <div className={styles.doneBadge}><Icon name="check" /></div>
             <p className={styles.doneTitle}>보냈어요</p>
-            <p>검토 후 반영돼요.<br />운영자가 확인하면 이 장 정보에 올라가요.</p>
-            <div className={styles.sent}>
-              <Icon name={CATEGORY_ICONS[state.category]} />
-              <div><div className={styles.what}>{state.name}</div><div className={styles.meta}>{HIGHLIGHT_CATEGORY_LABELS[state.category]} · {market.name}</div></div>
+            <p>운영자가 확인하면 이 장에 올라가요.</p>
+            <div className={styles.preview}>
+              <p className={styles.previewLabel}>올라가면 이렇게 보여요</p>
+              <span className={`map-marker ${styles.previewMarker}`} aria-hidden="true"><Icon name="chat" className="map-marker-story" /><span>{market.name}</span></span>
+              <div className={styles.sent}>
+                <Icon name={CATEGORY_ICONS[state.category]} />
+                <div><div className={styles.what}>{state.name}</div><div className={styles.meta}>{HIGHLIGHT_CATEGORY_LABELS[state.category]} · {market.name}</div></div>
+              </div>
             </div>
           </div>
           {followUps.length > 0 ? (

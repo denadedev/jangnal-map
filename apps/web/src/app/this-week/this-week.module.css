@@ -1,0 +1,55 @@
+/* 이번 주 장보기(/this-week)와 전단 보기. 시안: design/2026-10-27-mart-flyer-open-design.html */
+.page { min-height: 100dvh; padding-bottom: var(--tab-bar-height); background: var(--surface); color: var(--ink); }
+.main { width: min(430px, 100%); margin: 0 auto; padding-bottom: 32px; }
+.period { padding: 20px 16px 8px; }
+.periodLabel { margin: 0; color: var(--muted); font-size: 14px; }
+.periodValue { display: block; margin: 4px 0 0; font-weight: 800; font-size: 28px; line-height: 1.2; }
+.periodValue .weekday { font-family: var(--f-body); font-size: 22px; font-weight: 700; }
+.sec { padding: 16px 16px 0; }
+.sec h2 { margin: 0 0 8px; font-size: 18px; font-weight: 800; }
+.brandCard { display: flex; align-items: center; gap: 12px; min-height: 92px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--surface); }
+.brandCard + .brandCard { margin-top: 8px; }
+.brandCard:hover { background: var(--surface-2); }
+.thumb { flex: none; width: 56px; aspect-ratio: 3 / 4; border-radius: var(--r-s); background: var(--surface-2); object-fit: cover; object-position: top; }
+.brandText { display: grid; flex: 1; min-width: 0; gap: 2px; }
+.brandName { font-size: 18px; font-weight: 800; }
+.sub { color: var(--muted); font-size: 14px; word-break: keep-all; }
+.chev { flex: none; color: var(--muted); font-size: 20px; }
+.pending { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 12px 0 0; padding: 0 4px; color: var(--muted); font-size: 14px; word-break: keep-all; }
+.textLink { display: inline-flex; min-height: 44px; align-items: center; color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.days { margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--r-m); list-style: none; overflow: hidden; }
+.day { display: grid; grid-template-columns: 96px 1fr auto; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px; }
+.day + .day { border-top: 1px solid var(--line); }
+.day .jn { font-size: 16px; }
+.dayDate { font-family: var(--f-body); font-size: 16px; font-weight: 600; white-space: nowrap; }
+.dayMark { display: flex; align-items: center; gap: 8px; }
+.dayCount { color: var(--muted); font-size: 14px; white-space: nowrap; }
+.isToday .dayDate { font-weight: 800; }
+.badgeToday { padding: 2px 8px; border-radius: var(--r-pill); background: var(--accent); color: var(--surface); font-size: 12px; font-weight: 700; line-height: 1.4; }
+.cta { padding: 24px 16px 0; }
+.primary { display: flex; width: 100%; min-height: 52px; align-items: center; justify-content: center; border: 0; border-radius: var(--r-m); background: var(--accent); color: var(--surface); font-size: 16px; font-weight: 700; }
+.primary:disabled { opacity: .6; }
+.secondary { display: flex; min-height: 52px; align-items: center; justify-content: center; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--surface); font-size: 16px; font-weight: 700; }
+.note { margin: 24px 16px 0; color: var(--muted); font-size: 14px; line-height: 1.6; word-break: keep-all; }
+
+/* 전단 보기 */
+/* 전역 html·body의 overflow-x: hidden 때문에 문서 스크롤에서는 sticky가 안 붙어서, 보기 화면이 자기 스크롤을 갖는다. */
+.viewer { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; background: var(--bg); color: var(--ink); }
+.source { position: sticky; top: 0; z-index: 2; padding: 12px 16px 4px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.source h1 { display: flex; align-items: center; gap: 4px; margin: 0; font-size: 18px; font-weight: 800; }
+.back { display: inline-grid; flex: none; width: 44px; height: 44px; margin-left: -12px; place-items: center; }
+.back svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.source h1 .jn { font-size: 16px; }
+.source .sub { margin: 4px 0 0; font-size: 13px; }
+.source .textLink { min-height: 36px; font-size: 14px; }
+.flyerList { position: relative; display: grid; gap: 12px; width: min(430px, 100%); margin: 0 auto; padding: 12px 16px 16px; }
+/* 지금 보는 쪽수. 스크롤해도 출처 띠 아래에 붙어 있다. 첫 장 위에 겹치도록 아래 여백을 당긴다. */
+.pageCount { position: sticky; top: 128px; z-index: 1; align-self: start; justify-self: end; line-height: 20px; margin: 8px 8px -48px 0; padding: 4px 10px; border-radius: var(--r-pill); background: var(--ink); color: var(--surface); font-size: 14px; }
+.flyerPage { display: block; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--surface-2); overflow: hidden; cursor: zoom-in; }
+.flyerPage img { display: block; width: 100%; height: auto; }
+.zoomHint { margin: 0; color: var(--muted); font-size: 13px; text-align: center; }
+.footer { position: sticky; bottom: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--surface); }
+.footer > * { min-width: 0; }
+.footer > :only-child { grid-column: 1 / -1; }
+.footer .primary { padding: 0 12px; }
+.empty { margin: 24px 16px 0; padding: 16px; border: 1px dashed var(--line); border-radius: var(--r-m); background: var(--surface); color: var(--muted); font-size: 15px; line-height: 1.6; }

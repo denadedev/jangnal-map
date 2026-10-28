@@ -476,13 +476,10 @@ describe("MarketExplorer", () => {
     await waitFor(() => expect(window.location.search).toBe(""));
   });
 
-  it("links service feedback and the selected market to the unified report page", async () => {
+  it("links the selected market to the unified report page", async () => {
     const user = userEvent.setup();
     render(<MarketExplorer today={new Date(2026, 8, 4)} mapClientId="" />);
 
-    await user.click(screen.getByRole("button", { name: "메뉴 열기" }));
-    expect(screen.getByRole("link", { name: "정보 수정·불편 신고" })).toHaveAttribute("href", "/report?kind=service");
-    await user.click(screen.getByRole("button", { name: "메뉴 닫기" }));
     await user.click(await screen.findByRole("link", { name: /운천전통시장/ }));
     expect(screen.getByRole("link", { name: "정보가 다른가요? 수정 제보" })).toHaveAttribute(
       "href",
@@ -519,11 +516,15 @@ describe("MarketExplorer", () => {
     expect(window.location.search).not.toContain("market=");
   });
 
-  it("홈 메뉴에서 온누리상품권 사용처 허브로 연결한다", async () => {
+  it("한국어 지도는 ☰ 대신 하단 탭으로 다른 화면에 간다", async () => {
     render(<MarketExplorer today={new Date(2026, 8, 3)} mapClientId="" />);
 
-    await userEvent.click(screen.getByRole("button", { name: "메뉴 열기" }));
-    expect(screen.getByRole("link", { name: "온누리상품권 가맹시장" })).toHaveAttribute("href", "/onnuri");
+    expect(screen.queryByRole("button", { name: "메뉴 열기" })).not.toBeInTheDocument();
+    const tabs = screen.getByRole("navigation", { name: "주요 화면" });
+    expect(within(tabs).getByRole("link", { name: "지도" })).toHaveAttribute("aria-current", "page");
+    expect(within(tabs).getByRole("link", { name: "이번 주" })).toHaveAttribute("href", "/this-week");
+    expect(within(tabs).getByRole("link", { name: "장 이야기" })).toHaveAttribute("href", "/stories");
+    expect(within(tabs).getByRole("link", { name: "더보기" })).toHaveAttribute("href", "/more");
   });
 
   describe("market set links from Threads", () => {

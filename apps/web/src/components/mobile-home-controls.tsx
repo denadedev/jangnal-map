@@ -2,34 +2,30 @@
 
 import { useState } from "react";
 
-import type { PublicMarket } from "../lib/market";
-import type { Coordinates } from "../lib/market-view";
 import { MarketFilters, type MarketFiltersProps } from "./market-filters";
 import { MobileMenu } from "./mobile-menu";
 import { useInstallPrompt } from "./install-prompt";
 import { InstallBanner, InstallGuideSheet, InstallWelcomeToast } from "./install-ui";
 import { getUiCopy } from "../lib/ui-copy";
 import { Icon } from "./icon";
-import { MenuSubmissionFlow } from "./today-highlight-prompt";
 
 type MobileHomeControlsProps = Omit<MarketFiltersProps, "mobileMenuControl"> & {
   languageSwitchHref?: string;
-  /** 제보를 받을 수 있을 때만 넘긴다. 메뉴에 "다녀온 장 이야기 들려주기"가 생긴다. */
-  participate?: { markets: PublicMarket[]; today: Date; currentLocation: Coordinates | null } | null;
 };
 
-export function MobileHomeControls({ languageSwitchHref, participate, ...props }: MobileHomeControlsProps) {
+export function MobileHomeControls({ languageSwitchHref, ...props }: MobileHomeControlsProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [participating, setParticipating] = useState(false);
   const ui = getUiCopy(props.locale ?? "ko");
   const installPrompt = useInstallPrompt();
+  // 한국어 지도는 하단 탭의 더보기가 메뉴를 대신한다. 영어 지도만 ☰를 둔다.
+  const hasMenu = props.locale === "en";
 
   return (
     <>
       <div className="mobile-home-controls">
         <MarketFilters
           {...props}
-          mobileMenuControl={<button
+          mobileMenuControl={hasMenu ? <button
             type="button"
             className="mobile-app-bar-menu"
             aria-label={ui.openMenu}
@@ -38,20 +34,17 @@ export function MobileHomeControls({ languageSwitchHref, participate, ...props }
             onClick={() => setMenuOpen(true)}
           >
             <Icon name="menu" />
-          </button>}
+          </button> : null}
         />
       </div>
-      <MobileMenu
-        locale={props.locale}
-        languageSwitchHref={languageSwitchHref}
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        onParticipate={participate ? () => {
-          setMenuOpen(false);
-          setParticipating(true);
-        } : undefined}
-      />
-      {participate && participating ? <MenuSubmissionFlow {...participate} onClose={() => setParticipating(false)} /> : null}
+      {hasMenu ? (
+        <MobileMenu
+          locale={props.locale}
+          languageSwitchHref={languageSwitchHref}
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+        />
+      ) : null}
       <InstallBanner locale={props.locale} install={installPrompt} />
       <InstallGuideSheet locale={props.locale} install={installPrompt} />
       <InstallWelcomeToast locale={props.locale} visible={installPrompt.welcomeVisible} />

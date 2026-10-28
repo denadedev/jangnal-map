@@ -14,6 +14,7 @@ import { parseMarketSetLink, type MarketSetLink } from "../lib/market-set";
 import { resolveRegionAlias } from "../lib/region-aliases";
 import { getUiCopy } from "../lib/ui-copy";
 import { MobileHomeControls } from "./mobile-home-controls";
+import { MobileTabBar } from "./mobile-tab-bar";
 import { MobileMarketSheet, type SheetMode, type SheetSnap } from "./mobile-market-sheet";
 import { MobileSearchScreen } from "./mobile-search-screen";
 import { MarketDetail } from "./market-detail";
@@ -496,7 +497,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
 
   return (
     <>
-    <main className="explorer-shell" inert={isSearchOpen}>
+    <main className={`explorer-shell ${locale === "ko" ? "has-tab-bar" : ""}`} inert={isSearchOpen}>
       <MobileHomeControls
         locale={locale}
         languageSwitchHref={buildExplorerPath(locale === "en" ? "ko" : "en", { query, mode, marketId: selectedId })}
@@ -508,7 +509,6 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
           setMode(nextMode);
         }}
         onQueryChange={setQuery}
-        participate={submissionsEnabled && locale === "ko" && dateReady && !isPending && !isError ? { markets, today, currentLocation } : null}
       />
       {locale === "en" ? <p className="english-map-note">Market names and addresses are in Korean. Dates use Korea time (KST). <a href="/en">How market days work</a></p> : null}
       {urlNotice ? <p className="english-map-note" role="status">{urlNotice}</p> : null}
@@ -656,7 +656,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
           </MobileMarketSheet>
         ) : null}
       </div>
-
+      {locale === "ko" ? <MobileTabBar active="map" /> : null}
     </main>
     {isSearchOpen ? <MobileSearchScreen
       locale={locale}

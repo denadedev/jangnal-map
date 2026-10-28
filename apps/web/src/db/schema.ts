@@ -175,6 +175,44 @@ export const marketNearby = pgTable("market_nearby", {
   check("market_nearby_position_range", sql`${t.position} >= 0`),
 ]);
 
+export const martBrands = pgTable("mart_brands", {
+  ...base,
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  officialFlyerUrl: text("official_flyer_url").notNull(),
+  hidden: boolean("hidden").notNull().default(false),
+  position: smallint("position").notNull().unique(),
+}, (t) => [check("mart_brands_official_flyer_url_https", sql`${t.officialFlyerUrl} like 'https://%'`)]);
+
+export const martFlyers = pgTable("mart_flyers", {
+  ...base,
+  brandId: uuid("brand_id").notNull().references(() => martBrands.id),
+  startsOn: date("starts_on").notNull(),
+  endsOn: date("ends_on").notNull(),
+  baseStoreName: text("base_store_name"),
+  status: text("status").notNull(),
+  uploadedBySlackUser: text("uploaded_by_slack_user").notNull(),
+  slackMessageTs: text("slack_message_ts"),
+}, (t) => [
+  index("mart_flyers_brand_id_ends_on_idx").on(t.brandId, t.endsOn),
+  check("mart_flyers_period", sql`${t.endsOn} >= ${t.startsOn} and ${t.endsOn} - ${t.startsOn} <= 31`),
+]);
+
+export const martFlyerPages = pgTable("mart_flyer_pages", {
+  ...base,
+  flyerId: uuid("flyer_id").notNull().references(() => martFlyers.id, { onDelete: "cascade" }),
+  position: position(),
+  storageKey: text("storage_key").notNull().unique(),
+  contentType: text("content_type").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  byteSize: integer("byte_size").notNull(),
+}, (t) => [
+  unique("mart_flyer_pages_flyer_id_position_key").on(t.flyerId, t.position),
+  check("mart_flyer_pages_position_range", sql`${t.position} >= 0`),
+  check("mart_flyer_pages_size_range", sql`${t.width} > 0 and ${t.height} > 0 and ${t.byteSize} between 1 and 2000000`),
+]);
+
 export const tableNames = [
   "sources",
   "market_districts",
@@ -188,4 +226,7 @@ export const tableNames = [
   "market_highlights",
   "market_highlight_submissions",
   "market_nearby",
+  "mart_brands",
+  "mart_flyers",
+  "mart_flyer_pages",
 ] as const;

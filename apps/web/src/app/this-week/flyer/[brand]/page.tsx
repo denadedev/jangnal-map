@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { FlyerPages } from "../../../../components/flyer-pages";
 import { Icon } from "../../../../components/icon";
-import { ThisWeekStoryButton } from "../../../../components/this-week-story-button";
+import { StoryPickerButton } from "../../../../components/story-picker-button";
 import { MART_BRAND_LABELS } from "../../../../db/codes";
 import { formatFlyerPeriod, isMartBrand } from "../../../../lib/flyers";
 import { highlightSubmissionsEnabled } from "../../../../lib/highlight-submission-handler";
@@ -45,7 +45,7 @@ export default async function FlyerViewerPage({ params }: Props) {
 
       <footer className={styles.footer}>
         <a className={styles.secondary} href="/this-week#days">이번 주 장날 보기</a>
-        {highlightSubmissionsEnabled() ? <ThisWeekStoryButton className={styles.primary} label="다녀온 장 이야기" /> : null}
+        {highlightSubmissionsEnabled() ? <StoryPickerButton className={styles.primary} source="this_week">다녀온 장 이야기</StoryPickerButton> : null}
       </footer>
     </div>
   );

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
-import { MobileAppBar } from "../../components/mobile-app-bar";
+import { MobileTabBar } from "../../components/mobile-tab-bar";
 import { SiteFooter } from "../../components/site-footer";
-import { ThisWeekStoryButton } from "../../components/this-week-story-button";
+import { StoryPickerButton } from "../../components/story-picker-button";
 import { loadCatalog } from "../../lib/catalog/load";
 import { flyerPagePath, flyerViewerPath, flyerWeekOf, koreaToday } from "../../lib/flyers";
 import { highlightSubmissionsEnabled } from "../../lib/highlight-submission-handler";
@@ -32,15 +32,15 @@ export default async function ThisWeekPage() {
 
   return (
     <div className={styles.page}>
-      <MobileAppBar title="이번 주 장보기" backHref="/" />
       <main className={styles.main}>
+        <h1 className="tab-page-title">이번 주 장보기</h1>
         <div className={styles.period}>
           <p className={styles.periodLabel}>이번 주</p>
-          <h1 className={styles.periodValue}>
+          <p className={styles.periodValue}>
             <span className="jn">{startDate}</span> <span className={styles.weekday}>{startDay}</span>
             {" ~ "}
             <span className="jn">{endDate}</span> <span className={styles.weekday}>{endDay}</span>
-          </h1>
+          </p>
         </div>
 
         {brands.length > 0 ? (
@@ -83,7 +83,7 @@ export default async function ThisWeekPage() {
         </section>
 
         {highlightSubmissionsEnabled() ? (
-          <div className={styles.cta}><ThisWeekStoryButton className={styles.primary} /></div>
+          <div className={styles.cta}><StoryPickerButton className={styles.primary} source="this_week" /></div>
         ) : null}
 
         <p className={styles.note}>
@@ -92,6 +92,7 @@ export default async function ThisWeekPage() {
         </p>
       </main>
       <SiteFooter />
+      <MobileTabBar active="week" />
     </div>
   );
 }

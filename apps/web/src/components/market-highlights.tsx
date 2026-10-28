@@ -21,7 +21,7 @@ const SECTION_ID = "visitor-highlights";
 const CONTEXT_DISMISS_KEY = "jangnal:highlight-context-dismissed";
 
 /** 제보 시트가 어디서 열렸는지. Umami 이벤트의 source로 남겨 진입점별로 비교한다. */
-export type SubmissionSource = "section_chip" | "more_chip" | "context" | "followup" | "map_today" | "map_button" | "menu" | "map_set" | "latest" | "story_list" | "this_week";
+export type SubmissionSource = "section_chip" | "more_chip" | "context" | "followup" | "map_today" | "map_button" | "menu" | "map_set" | "latest" | "story_list" | "this_week" | "stories_tab";
 
 /** 제보 시트가 다루는 시장. 완료 화면의 "같은 지역 다른 장"에도 쓴다. */
 export interface HighlightMarketRef {

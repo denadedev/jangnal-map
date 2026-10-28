@@ -1,9 +1,9 @@
 /* 이번 주 장보기(/this-week)와 전단 보기. 시안: design/2026-10-27-mart-flyer-open-design.html */
-.page { min-height: 100dvh; background: var(--surface); color: var(--ink); }
+.page { min-height: 100dvh; padding-bottom: var(--tab-bar-height); background: var(--surface); color: var(--ink); }
 .main { width: min(430px, 100%); margin: 0 auto; padding-bottom: 32px; }
 .period { padding: 20px 16px 8px; }
 .periodLabel { margin: 0; color: var(--muted); font-size: 14px; }
-.periodValue { display: block; margin-top: 4px; font-size: 28px; line-height: 1.2; }
+.periodValue { display: block; margin: 4px 0 0; font-weight: 800; font-size: 28px; line-height: 1.2; }
 .periodValue .weekday { font-family: var(--f-body); font-size: 22px; font-weight: 700; }
 .sec { padding: 16px 16px 0; }
 .sec h2 { margin: 0 0 8px; font-size: 18px; font-weight: 800; }

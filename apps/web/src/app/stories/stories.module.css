@@ -1,0 +1,16 @@
+/* 장 이야기 탭(/stories). 시안: design/2026-10-28-nav-open-design.html ③ */
+.main { width: min(430px, 100%); margin: 0 auto; padding-bottom: 24px; }
+.cta { padding: 20px 16px 0; }
+.primary { display: flex; width: 100%; min-height: 52px; align-items: center; justify-content: center; border: 0; border-radius: var(--r-m); background: var(--accent); color: var(--surface); font-size: 17px; font-weight: 700; }
+.primary:disabled { opacity: .6; }
+.list { display: grid; gap: 10px; margin: 20px 0 0; padding: 0 16px; list-style: none; }
+.story { display: grid; gap: 8px; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--surface); color: var(--ink); }
+.story:hover { background: var(--surface-2); }
+.head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.market { min-width: 0; font-size: 16px; font-weight: 800; }
+.market :global(.jn) { color: var(--muted); font-size: 15px; font-weight: 400; }
+.age { flex: none; color: var(--muted); font-size: 14px; }
+.category { justify-self: start; padding: 2px 10px; border-radius: var(--r-pill); background: var(--surface-2); font-size: 14px; font-weight: 600; }
+.what { font-size: 17px; line-height: 1.5; word-break: keep-all; }
+.description { color: var(--muted); font-size: 15px; line-height: 1.5; word-break: keep-all; }
+.empty { margin: 24px 16px 0; padding: 16px; border: 1px dashed var(--line); border-radius: var(--r-m); background: var(--surface); color: var(--muted); font-size: 15px; }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { addDays, flyerDeleteBefore, flyerWeekOf, formatFlyerPeriod, isFlyerCurrent, koreaToday, parseIsoDate, validateFlyerUpload } from "./flyers";
-import { getWeekDays } from "./this-week";
+import { currentFlyersKey, getWeekDays } from "./this-week";
 
 describe("flyer dates", () => {
   it("uses the Korean date across UTC midnight", () => {
@@ -63,5 +63,13 @@ describe("getWeekDays", () => {
     expect(days.map((day) => day.pattern)).toEqual(["4-9", "5-10", "1-6", "1-6", "2-7", "3-8", "4-9"]);
     expect(days.find((day) => day.isToday)).toMatchObject({ date: "2026-10-30", count: 1 });
     expect(days[0].count).toBe(0);
+  });
+});
+
+describe("currentFlyersKey", () => {
+  it("joins the ids of brands with a flyer and is null without one", () => {
+    const brand = (id: string | null) => ({ code: "emart", name: "이마트", officialFlyerUrl: "https://example.com", flyer: id ? { id, startsOn: "2026-10-29", endsOn: "2026-11-04", baseStoreName: null, pages: [] } : null }) as Parameters<typeof currentFlyersKey>[0][number];
+    expect(currentFlyersKey([brand("b"), brand(null), brand("a")])).toBe("a,b");
+    expect(currentFlyersKey([brand(null)])).toBeNull();
   });
 });

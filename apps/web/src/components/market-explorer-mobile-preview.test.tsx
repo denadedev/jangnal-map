@@ -141,10 +141,12 @@ describe("MarketExplorer map-origin selection", () => {
     const marketsMock = vi.fn<() => Promise<Response>>()
       .mockRejectedValueOnce(new Error("temporary network failure"))
       .mockResolvedValueOnce({ ok: true, json: async () => [market] } as Response);
-    // 지도는 방문자 이야기도 따로 읽는다. 이 테스트는 시장 목록 요청만 센다.
+    // 지도는 방문자 이야기와 하단 탭의 새 전단도 따로 읽는다. 이 테스트는 시장 목록 요청만 센다.
     vi.stubGlobal("fetch", (url: string) => url === "/api/highlights"
       ? Promise.resolve({ ok: true, json: async () => ({ highlights: [] }) } as Response)
-      : marketsMock());
+      : url === "/api/flyers/current"
+        ? Promise.resolve({ ok: true, json: async () => ({ key: null }) } as Response)
+        : marketsMock());
     const user = userEvent.setup();
     render(<MarketExplorer today={new Date(2026, 8, 5)} mapClientId="" />);
 

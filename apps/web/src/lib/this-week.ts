@@ -27,6 +27,10 @@ export async function loadBrandFlyers(now: Date): Promise<BrandFlyers[]> {
   }
 }
 
+/** 지금 걸린 전단 묶음을 가리키는 값. 전단이 없으면 null. 하단 탭이 본 적 있는 값과 비교해 새 전단 점을 띄운다. */
+export const currentFlyersKey = (brands: BrandFlyers[]): string | null =>
+  brands.flatMap((brand) => brand.flyer ? [brand.flyer.id] : []).sort().join(",") || null;
+
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 /** "10/29 목" */

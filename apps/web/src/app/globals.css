@@ -934,3 +934,24 @@ a { color: inherit; text-decoration: none; }
 .install-welcome { position: fixed; z-index: 60; right: calc(var(--app-side) + 12px); bottom: calc(108px + env(safe-area-inset-bottom)); left: calc(var(--app-side) + 12px); display: flex; align-items: center; gap: 12px; border-radius: var(--r-m); padding: 14px 16px; background: var(--ink); color: var(--surface); box-shadow: var(--shadow-float); }
 .install-welcome b { display: block; font-size: 16px; line-height: 24px; }
 .install-welcome span { display: block; color: oklch(0.88 0.006 260); font-size: 14px; line-height: 20px; }
+
+/* 하단 탭(지도·이번 주·장 이야기·더보기). 시안: design/2026-10-28-nav-open-design.html
+   지도에서는 화면 맨 아래 줄로 들어가 지도와 결과 시트를 밀어 올리고, 다른 탭 화면에서는 아래에 붙는다. */
+:root { --tab-bar-height: calc(57px + env(safe-area-inset-bottom)); }
+.mobile-tab-bar { position: fixed; z-index: 50; right: var(--app-side); bottom: 0; left: var(--app-side); display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); background: var(--surface); }
+.explorer-shell .mobile-tab-bar { position: relative; flex: 0 0 auto; }
+.mobile-tab { position: relative; display: flex; min-height: 56px; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--muted); font-size: 14px; font-weight: 500; line-height: 1.2; }
+.mobile-tab[aria-current="page"] { color: var(--ink); font-weight: 800; }
+.mobile-tab[aria-current="page"] .icon { stroke-width: 2.4; }
+.mobile-tab-dot { position: absolute; top: 6px; left: calc(50% + 9px); width: 10px; height: 10px; border: 2px solid var(--surface); border-radius: 50%; background: var(--accent); }
+.has-tab-bar .results-sheet { height: 96px; }
+.has-tab-bar .results-sheet-body { padding-bottom: 24px; }
+.has-tab-bar .install-banner, .has-tab-bar .install-welcome { bottom: calc(108px + var(--tab-bar-height)); }
+.tab-page { min-height: 100dvh; padding-bottom: var(--tab-bar-height); background: var(--bg); color: var(--ink); }
+.tab-page-title { margin: 0; padding: calc(16px + env(safe-area-inset-top)) 16px 0; font-size: 26px; font-weight: 800; line-height: 1.3; letter-spacing: -0.02em; }
+.tab-page-desc { margin: 4px 0 0; padding: 0 16px; color: var(--muted); font-size: 16px; }
+/* 더보기는 ☰ 드로어 내용을 화면 전체로 보여 준다. */
+.more-page { position: relative; width: min(430px, 100%); margin: 0 auto; }
+.more-page .mobile-menu-today { padding-top: 16px; }
+.more-page .mobile-menu-today p:first-child { font-size: 18px; color: var(--ink); }
+.more-page .mobile-menu-toast { position: fixed; bottom: calc(24px + var(--tab-bar-height)); }

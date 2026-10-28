@@ -21,6 +21,7 @@ beforeEach(() => {
   vi.stubEnv("SLACK_SIGNING_SECRET", SECRET);
   vi.stubEnv("SLACK_APPROVER_IDS", "U_OK");
   vi.stubEnv("SLACK_CHANNEL_ID", "C_FLYER");
+  for (const key of ["FLYER_S3_ENDPOINT", "FLYER_S3_BUCKET", "FLYER_S3_ACCESS_KEY_ID", "FLYER_S3_SECRET_ACCESS_KEY"]) vi.stubEnv(key, "set");
 });
 afterEach(() => vi.unstubAllEnvs());
 
@@ -46,6 +47,14 @@ describe("POST /api/slack/commands", () => {
     const openView = vi.fn(async () => undefined);
     const response = await createSlackCommandsHandler({ openView })(commandRequest(fields));
     expect(await response.json()).toEqual({ response_type: "ephemeral", text });
+    expect(openView).not.toHaveBeenCalled();
+  });
+
+  it("refuses before opening the modal when the image storage is not configured", async () => {
+    vi.stubEnv("FLYER_S3_BUCKET", "");
+    const openView = vi.fn(async () => undefined);
+    const response = await createSlackCommandsHandler({ openView })(commandRequest({}));
+    expect(await response.json()).toEqual({ response_type: "ephemeral", text: "전단 이미지 저장소(FLYER_S3_*) 설정이 없어 올릴 수 없어요." });
     expect(openView).not.toHaveBeenCalled();
   });
 

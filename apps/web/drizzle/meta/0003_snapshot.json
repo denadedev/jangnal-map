@@ -1,5 +1,5 @@
 {
-  "id": "64bb8579-1e61-4a93-8c27-ee7bf328ed37",
+  "id": "ff25fee8-291b-4959-aa95-1ae1fa44b014",
   "prevId": "ba29b869-59ea-4a4a-8edd-3fea2c952111",
   "version": "7",
   "dialect": "postgresql",
@@ -1379,9 +1379,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "image": {
-          "name": "image",
-          "type": "bytea",
+        "storage_key": {
+          "name": "storage_key",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -1428,6 +1428,13 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
+        "mart_flyer_pages_storage_key_unique": {
+          "name": "mart_flyer_pages_storage_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "storage_key"
+          ]
+        },
         "mart_flyer_pages_flyer_id_position_key": {
           "name": "mart_flyer_pages_flyer_id_position_key",
           "nullsNotDistinct": false,

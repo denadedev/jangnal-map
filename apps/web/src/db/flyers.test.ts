@@ -2,13 +2,14 @@
 import { eq, inArray } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 
-import type { FlyerPageImage } from "../lib/flyer-image";
 import type { FlyerUploadInput } from "../lib/flyers";
 import { createDb } from "./client";
-import { findFlyerPageImage, listBrandFlyers, publishFlyer, removeFlyer, setBrandHidden } from "./flyers";
+import { findFlyerPageImage, listBrandFlyers, publishFlyer, removeFlyer, setBrandHidden, type StoredFlyerPage } from "./flyers";
 import * as schema from "./schema";
 
-const page = (byte: number): FlyerPageImage => ({ image: Buffer.from([byte, 1, 2]), contentType: "image/webp", width: 10, height: 16, byteSize: 3 });
+// 키는 실행마다 달라야 unique에 걸리지 않는다. 저장소에는 올리지 않는다 (DB만 본다).
+const run = Date.now();
+const page = (n: number): StoredFlyerPage => ({ storageKey: `test/${run}/${n}.webp`, contentType: "image/webp", width: 10, height: 16, byteSize: 3 });
 
 describe.skipIf(!process.env.DATABASE_URL)("mart flyers on PostgreSQL", () => {
   const { db, pool } = process.env.DATABASE_URL ? createDb() : ({} as ReturnType<typeof createDb>);
@@ -22,7 +23,7 @@ describe.skipIf(!process.env.DATABASE_URL)("mart flyers on PostgreSQL", () => {
     await pool.end();
   });
 
-  const publish = async (input: FlyerUploadInput, pages: FlyerPageImage[], today = "2026-10-29") => {
+  const publish = async (input: FlyerUploadInput, pages: StoredFlyerPage[], today = "2026-10-29") => {
     const result = await publishFlyer(db, input, pages, "U_TEST", today);
     if (result.status === "published") created.push(result.flyerId);
     return result;
@@ -36,7 +37,7 @@ describe.skipIf(!process.env.DATABASE_URL)("mart flyers on PostgreSQL", () => {
     const homeplus = (await listBrandFlyers(db, "2026-10-30")).find((brand) => brand.code === "homeplus")!;
     expect(homeplus.flyer).toMatchObject({ id: second.status === "published" ? second.flyerId : "", baseStoreName: "금천점", startsOn: "2026-10-29", endsOn: "2026-11-04" });
     expect(homeplus.flyer!.pages).toHaveLength(2);
-    expect((await findFlyerPageImage(db, homeplus.flyer!.pages[0].id))?.image[0]).toBe(2);
+    expect(await findFlyerPageImage(db, homeplus.flyer!.pages[0].id)).toEqual({ storageKey: `test/${run}/2.webp`, contentType: "image/webp" });
 
     const [old] = await db.select().from(schema.martFlyers).where(eq(schema.martFlyers.id, first.status === "published" ? first.flyerId : ""));
     expect(old.status).toBe("removed");
@@ -62,7 +63,7 @@ describe.skipIf(!process.env.DATABASE_URL)("mart flyers on PostgreSQL", () => {
   it("deletes flyers that ended more than 30 days before the upload day", async () => {
     const old = await publish({ ...week, brand: "emart", startsOn: "2026-09-01", endsOn: "2026-09-07" }, [page(5)], "2026-09-01");
     const fresh = await publish({ ...week, brand: "emart", startsOn: "2026-10-08", endsOn: "2026-10-14" }, [page(6)], "2026-10-08");
-    expect(fresh).toMatchObject({ deleted: 1 });
+    expect(fresh).toMatchObject({ deleted: 1, deletedKeys: [`test/${run}/5.webp`] });
     const rows = await db.select({ id: schema.martFlyers.id }).from(schema.martFlyers).where(eq(schema.martFlyers.id, old.status === "published" ? old.flyerId : ""));
     expect(rows).toEqual([]);
     const pages = await db.select({ id: schema.martFlyerPages.id }).from(schema.martFlyerPages).where(eq(schema.martFlyerPages.flyerId, old.status === "published" ? old.flyerId : ""));

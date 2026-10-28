@@ -2,7 +2,6 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
-  customType,
   date,
   doublePrecision,
   foreignKey,
@@ -22,9 +21,6 @@ const base = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 };
-
-// drizzle에 bytea 컬럼 타입이 없어서 만든다. pg는 bytea를 Buffer로 주고받는다.
-const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => "bytea" });
 
 const position = () => smallint("position").notNull();
 
@@ -206,7 +202,7 @@ export const martFlyerPages = pgTable("mart_flyer_pages", {
   ...base,
   flyerId: uuid("flyer_id").notNull().references(() => martFlyers.id, { onDelete: "cascade" }),
   position: position(),
-  image: bytea("image").notNull(),
+  storageKey: text("storage_key").notNull().unique(),
   contentType: text("content_type").notNull(),
   width: integer("width").notNull(),
   height: integer("height").notNull(),

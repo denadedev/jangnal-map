@@ -113,8 +113,14 @@ GitOps의 이미지 SHA를 검증된 이전 값으로 변경한다.
 | `SLACK_CHANNEL_ID` | 승인 요청을 보낼 채널 id |
 | `SLACK_SIGNING_SECRET` | `POST /api/slack/actions` 서명 검증용 |
 | `SLACK_APPROVER_IDS` | 승인·반려할 수 있는 슬랙 user id (쉼표로 구분) |
+| `FLYER_S3_ENDPOINT` | 마트 전단 이미지를 두는 S3 호환 저장소 주소 (운영: Garage, 예 `http://garage:3900`) |
+| `FLYER_S3_BUCKET` | 전단 이미지 버킷. 공개하지 않는다. 사이트는 `/api/flyers/pages/{id}`로 넘겨준다 |
+| `FLYER_S3_ACCESS_KEY_ID`, `FLYER_S3_SECRET_ACCESS_KEY` | 그 버킷을 읽고 쓰고 지울 수 있는 키 |
+| `FLYER_S3_REGION` | 선택. 기본 `garage` |
 
 `POST /api/submissions`는 `DATABASE_URL`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`가 모두 있어야 받는다(없으면 503, 화면의 제보 버튼도 숨는다). 슬랙 앱의 Interactivity Request URL은 `https://kmarketday.com/api/slack/actions`다. 승인하면 스냅샷을 바로 다시 읽는다. 승인한 메시지에 남는 [삭제] 버튼을 누르면 그 항목을 `market_highlights`에서 지우고 스냅샷을 다시 읽는다(제보 행은 approved로 남고 `highlight_id`만 비워진다). 버튼이 없는 예전 메시지는 `market_highlights`에서 직접 지우고 `/api/revalidate`를 부른다.
+
+슬랙 `/flyer`(마트 전단 올리기)는 `FLYER_S3_*` 4개가 없으면 입력 창을 열지 않는다. 이미지는 `flyers/{업로드 id}/{순서}.webp`로 올라가고 DB `mart_flyer_pages.storage_key`에 키만 남는다. 종료일이 30일 넘게 지난 전단은 새 전단을 올릴 때 DB 행과 이미지를 함께 지운다.
 
 - 스냅샷은 프로세스 메모리에 1시간 둔다(레플리카 1개). 1시간이 지나면 기존 스냅샷으로 응답하면서 뒤에서 다시 읽고, 실패하면 기존 것을 계속 쓴다. 캐시가 빈 상태에서 DB를 못 읽으면 페이지는 500, `/api/health`·`/api/markets`는 503이다.
 - 시장 데이터를 쓰는 페이지는 요청 때 스냅샷으로 그린다. 빌드는 데이터를 읽지 않는다.

@@ -1,3 +1,4 @@
+import { flyerStorageConfigured } from "./flyer-storage";
 import { slackApproverIds, verifySlackSignature } from "./slack";
 import { callSlack, flyerUploadView } from "./slack-flyers";
 
@@ -31,6 +32,7 @@ export function createSlackCommandsHandler(overrides: Partial<SlackCommandsDeps>
     const channelId = form.get("channel_id") ?? "";
     if (!process.env.SLACK_CHANNEL_ID || channelId !== process.env.SLACK_CHANNEL_ID) return ephemeral("전단은 제보 채널에서만 올릴 수 있어요.");
     if (!slackApproverIds().includes(form.get("user_id") ?? "")) return ephemeral("전단을 올릴 권한이 없어요.");
+    if (!flyerStorageConfigured()) return ephemeral("전단 이미지 저장소(FLYER_S3_*) 설정이 없어 올릴 수 없어요.");
 
     try {
       await deps.openView(form.get("trigger_id") ?? "", flyerUploadView(deps.now(), channelId));

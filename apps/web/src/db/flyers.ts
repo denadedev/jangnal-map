@@ -1,7 +1,6 @@
 // 대형마트 주간 전단 읽기·쓰기. 날짜 인자는 한국 날짜 "YYYY-MM-DD".
 import { and, asc, desc, eq, gte, inArray, lt, lte } from "drizzle-orm";
 
-import type { FlyerPageImage } from "../lib/flyer-image";
 import { flyerDeleteBefore, type FlyerUploadInput } from "../lib/flyers";
 import type { Db } from "./client";
 import type { MartBrandCode } from "./codes";
@@ -63,10 +62,10 @@ export async function listBrandFlyers(db: Db, today: string): Promise<BrandFlyer
   });
 }
 
-/** 게시 중이고 브랜드가 숨김이 아닌 전단의 페이지 이미지. 아니면 undefined. */
-export async function findFlyerPageImage(db: Db, pageId: string): Promise<{ image: Buffer; contentType: string } | undefined> {
+/** 게시 중이고 브랜드가 숨김이 아닌 전단 페이지의 저장소 키. 아니면 undefined. */
+export async function findFlyerPageImage(db: Db, pageId: string): Promise<{ storageKey: string; contentType: string } | undefined> {
   if (!uuidPattern.test(pageId)) return undefined;
-  const [row] = await db.select({ image: schema.martFlyerPages.image, contentType: schema.martFlyerPages.contentType })
+  const [row] = await db.select({ storageKey: schema.martFlyerPages.storageKey, contentType: schema.martFlyerPages.contentType })
     .from(schema.martFlyerPages)
     .innerJoin(schema.martFlyers, eq(schema.martFlyers.id, schema.martFlyerPages.flyerId))
     .innerJoin(schema.martBrands, eq(schema.martBrands.id, schema.martFlyers.brandId))
@@ -74,13 +73,24 @@ export async function findFlyerPageImage(db: Db, pageId: string): Promise<{ imag
   return row;
 }
 
-export type PublishResult = { status: "published"; flyerId: string; replaced: number; deleted: number } | { status: "missing-brand" };
+/** 저장소에 올려 둔 페이지 이미지 한 장. */
+export interface StoredFlyerPage {
+  storageKey: string;
+  contentType: string;
+  width: number;
+  height: number;
+  byteSize: number;
+}
+
+/** deletedKeys는 지운 전단의 이미지 키. 커밋 뒤 저장소에서 지운다. */
+export type PublishResult = { status: "published"; flyerId: string; replaced: number; deleted: number; deletedKeys: string[] } | { status: "missing-brand" };
 
 /**
  * 전단을 게시한다. 같은 브랜드에 기간이 겹치는 게시 중 전단은 내리고(다시 올리면 교체),
  * 종료일이 30일 넘게 지난 전단은 페이지와 함께 지운다. 정리 전용 예약 작업은 두지 않는다.
+ * 이미지는 부르는 쪽이 미리 저장소에 올리고, 지운 전단의 이미지도 부르는 쪽이 저장소에서 지운다.
  */
-export async function publishFlyer(db: Db, input: FlyerUploadInput, pages: FlyerPageImage[], uploadedBy: string, today: string): Promise<PublishResult> {
+export async function publishFlyer(db: Db, input: FlyerUploadInput, pages: StoredFlyerPage[], uploadedBy: string, today: string): Promise<PublishResult> {
   if (pages.length === 0) throw new Error("A flyer needs at least one page");
   return db.transaction(async (tx) => {
     const [brand] = await tx.select({ id: schema.martBrands.id }).from(schema.martBrands).where(eq(schema.martBrands.code, input.brand));
@@ -103,8 +113,11 @@ export async function publishFlyer(db: Db, input: FlyerUploadInput, pages: Flyer
     }).returning({ id: schema.martFlyers.id });
     await tx.insert(schema.martFlyerPages).values(pages.map((page, position) => ({ flyerId: flyer.id, position, ...page })));
 
-    const deleted = await tx.delete(schema.martFlyers).where(lt(schema.martFlyers.endsOn, flyerDeleteBefore(today))).returning({ id: schema.martFlyers.id });
-    return { status: "published", flyerId: flyer.id, replaced: replaced.length, deleted: deleted.length } as const;
+    const expired = lt(schema.martFlyers.endsOn, flyerDeleteBefore(today));
+    const deletedKeys = await tx.select({ storageKey: schema.martFlyerPages.storageKey }).from(schema.martFlyerPages)
+      .innerJoin(schema.martFlyers, eq(schema.martFlyers.id, schema.martFlyerPages.flyerId)).where(expired);
+    const deleted = await tx.delete(schema.martFlyers).where(expired).returning({ id: schema.martFlyers.id });
+    return { status: "published", flyerId: flyer.id, replaced: replaced.length, deleted: deleted.length, deletedKeys: deletedKeys.map((row) => row.storageKey) } as const;
   });
 }
 

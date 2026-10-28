@@ -1,4 +1,4 @@
--- 대형마트 주간 전단. 운영자가 슬랙 /flyer로 올리고, 이미지는 DB(bytea)에 둔다. 브랜드 3행을 함께 넣는다.
+-- 대형마트 주간 전단. 운영자가 슬랙 /flyer로 올리고, 이미지는 S3 호환 저장소(Garage)에 두고 키만 적는다. 브랜드 3행을 함께 넣는다.
 CREATE TABLE "mart_brands" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -19,11 +19,12 @@ CREATE TABLE "mart_flyer_pages" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"flyer_id" uuid NOT NULL,
 	"position" smallint NOT NULL,
-	"image" "bytea" NOT NULL,
+	"storage_key" text NOT NULL,
 	"content_type" text NOT NULL,
 	"width" integer NOT NULL,
 	"height" integer NOT NULL,
 	"byte_size" integer NOT NULL,
+	CONSTRAINT "mart_flyer_pages_storage_key_unique" UNIQUE("storage_key"),
 	CONSTRAINT "mart_flyer_pages_flyer_id_position_key" UNIQUE("flyer_id","position"),
 	CONSTRAINT "mart_flyer_pages_position_range" CHECK ("mart_flyer_pages"."position" >= 0),
 	CONSTRAINT "mart_flyer_pages_size_range" CHECK ("mart_flyer_pages"."width" > 0 and "mart_flyer_pages"."height" > 0 and "mart_flyer_pages"."byte_size" between 1 and 2000000)
@@ -86,7 +87,7 @@ comment on column mart_flyer_pages.flyer_id is '전단 (mart_flyers.id). 전단�
 --> statement-breakpoint
 comment on column mart_flyer_pages.position is '페이지 순서 (0부터)';
 --> statement-breakpoint
-comment on column mart_flyer_pages.image is '페이지 이미지 바이트 (가로 1,600px 이하로 줄인 WebP)';
+comment on column mart_flyer_pages.storage_key is '페이지 이미지의 저장소 키 (FLYER_S3_BUCKET 안, 예: flyers/{업로드 id}/0.webp). 가로 1,600px 이하로 줄인 WebP';
 --> statement-breakpoint
 comment on column mart_flyer_pages.content_type is '이미지 MIME 타입 (image/webp)';
 --> statement-breakpoint

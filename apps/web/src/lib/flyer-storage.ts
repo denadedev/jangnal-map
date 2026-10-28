@@ -2,21 +2,21 @@
 // 사이트는 이미지를 /api/flyers/pages/{id}로 받아 보여 주므로 버킷은 공개하지 않는다.
 import { DeleteObjectsCommand, GetObjectCommand, NoSuchKey, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-const ENV_KEYS = ["FLYER_S3_ENDPOINT", "FLYER_S3_BUCKET", "FLYER_S3_ACCESS_KEY_ID", "FLYER_S3_SECRET_ACCESS_KEY"] as const;
+const ENV_KEYS = ["S3_ENDPOINT", "S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"] as const;
 
 export const flyerStorageConfigured = (): boolean => ENV_KEYS.every((key) => Boolean(process.env[key]?.trim()));
 
 let client: S3Client | undefined;
-const bucket = () => process.env.FLYER_S3_BUCKET!;
+const bucket = () => process.env.S3_BUCKET!;
 
 function storage(): S3Client {
-  if (!flyerStorageConfigured()) throw new Error("Flyer storage is not configured (FLYER_S3_*)");
+  if (!flyerStorageConfigured()) throw new Error("Flyer storage is not configured (S3_*)");
   // Garage는 리전 이름을 검사하지 않고 경로 방식 주소만 받는다.
   client ??= new S3Client({
-    endpoint: process.env.FLYER_S3_ENDPOINT,
-    region: process.env.FLYER_S3_REGION || "garage",
+    endpoint: process.env.S3_ENDPOINT,
+    region: process.env.S3_REGION || "garage",
     forcePathStyle: true,
-    credentials: { accessKeyId: process.env.FLYER_S3_ACCESS_KEY_ID!, secretAccessKey: process.env.FLYER_S3_SECRET_ACCESS_KEY! },
+    credentials: { accessKeyId: process.env.S3_ACCESS_KEY_ID!, secretAccessKey: process.env.S3_SECRET_ACCESS_KEY! },
   });
   return client;
 }

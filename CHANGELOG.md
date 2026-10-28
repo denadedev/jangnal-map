@@ -4,7 +4,7 @@
 
 ### Added
 
-- 대형마트 주간 전단을 싣는 테이블 `mart_brands`, `mart_flyers`, `mart_flyer_pages` (마이그레이션 0003). 이미지는 S3 호환 저장소(운영: Garage)에 두고 DB에는 키(`storage_key`)만 둔다. 설정은 `FLYER_S3_ENDPOINT`, `FLYER_S3_BUCKET`, `FLYER_S3_ACCESS_KEY_ID`, `FLYER_S3_SECRET_ACCESS_KEY`(선택 `FLYER_S3_REGION`)이고, 없으면 `/flyer`가 입력 창을 열지 않는다. 브랜드 3행(이마트, 홈플러스, 롯데마트)과 공식 전단 링크를 마이그레이션에서 넣는다.
+- 대형마트 주간 전단을 싣는 테이블 `mart_brands`, `mart_flyers`, `mart_flyer_pages` (마이그레이션 0003). 이미지는 S3 호환 저장소(운영: Garage)에 두고 DB에는 키(`storage_key`)만 둔다. 설정은 `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`(선택 `S3_REGION`)이고, 없으면 `/flyer`가 입력 창을 열지 않는다. 브랜드 3행(이마트, 홈플러스, 롯데마트)과 공식 전단 링크를 마이그레이션에서 넣는다.
 - 슬랙 `/flyer` 명령(`POST /api/slack/commands`): 제보 채널에서 승인 권한이 있는 사람만 입력 창을 연다. 브랜드, 기간(기본값은 오늘이 든 목~수), 기준 매장(선택), 이미지 최대 10장을 받는다. 제출하면 이미지를 가로 1,600px 이하 WebP로 줄여 저장소에 올린 뒤 게시하고, 같은 브랜드에 기간이 겹치는 게시 중 전단은 내리며, 종료일이 30일 넘게 지난 전단은 이미지와 함께 지운다. 채널 확인 메시지에 [내리기]와 [브랜드 숨기기]·[다시 보이기] 버튼이 붙는다.
 - 전단 이미지 `GET /api/flyers/pages/{id}`. 버킷은 공개하지 않고 여기서 저장소 이미지를 넘겨준다. 내렸거나 숨긴 브랜드의 이미지는 404이고, 하루만 캐시한다.
 - `/this-week` 이번 주 장보기(마트 전단 카드, 전단이 없는 브랜드는 공식 링크 한 줄, 요일별 5일장 수, 방문 이야기 들려주기)와 `/this-week/flyer/{brand}` 전단 보기(출처 띠와 쪽수 고정, 누르면 원본 크기). 둘 다 시험 운영 동안 `noindex`이고 sitemap에는 아직 넣지 않았다. 여기서 연 제보 폼은 `source=this_week`.

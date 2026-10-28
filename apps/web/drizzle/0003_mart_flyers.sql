@@ -87,7 +87,7 @@ comment on column mart_flyer_pages.flyer_id is '전단 (mart_flyers.id). 전단�
 --> statement-breakpoint
 comment on column mart_flyer_pages.position is '페이지 순서 (0부터)';
 --> statement-breakpoint
-comment on column mart_flyer_pages.storage_key is '페이지 이미지의 저장소 키 (FLYER_S3_BUCKET 안, 예: flyers/{업로드 id}/0.webp). 가로 1,600px 이하로 줄인 WebP';
+comment on column mart_flyer_pages.storage_key is '페이지 이미지의 저장소 키 (S3_BUCKET 안, 예: flyers/{업로드 id}/0.webp). 가로 1,600px 이하로 줄인 WebP';
 --> statement-breakpoint
 comment on column mart_flyer_pages.content_type is '이미지 MIME 타입 (image/webp)';
 --> statement-breakpoint

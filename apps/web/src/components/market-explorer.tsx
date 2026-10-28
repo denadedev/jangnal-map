@@ -623,7 +623,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
           {marketListContent}
           {reviewedGuides.length > 0 ? <ReviewedMarketGuides guides={reviewedGuides} /> : null}
         </section>
-        <SiteFooter locale={locale} />
+        {/* 한국어는 하단 탭의 더보기에 같은 링크가 있어 footer를 두지 않는다. */}
+        {locale === "en" ? <SiteFooter locale={locale} /> : null}
         </div>
         </section>
 

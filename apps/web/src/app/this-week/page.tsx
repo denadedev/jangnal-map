@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import { MobileTabBar } from "../../components/mobile-tab-bar";
-import { SiteFooter } from "../../components/site-footer";
 import { StoryPickerButton } from "../../components/story-picker-button";
 import { loadCatalog } from "../../lib/catalog/load";
 import { flyerPagePath, flyerViewerPath, flyerWeekOf, koreaToday } from "../../lib/flyers";
@@ -91,7 +90,6 @@ export default async function ThisWeekPage() {
           장날 수는 5일장 기준이에요.
         </p>
       </main>
-      <SiteFooter />
       <MobileTabBar active="week" />
     </div>
   );

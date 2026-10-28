@@ -33,7 +33,9 @@ describe("HomePage SEO", () => {
     expect(html).not.toContain("2000-01-15");
     expect(html).not.toContain("시장 0곳");
     expect(html).toContain("시장 정보를 불러오는 중입니다.");
-    expect(html).toContain('href="/about#data-policy"');
+    // 정책 링크는 footer 대신 하단 탭의 더보기(/more)에 있다.
+    expect(html).toContain('href="/more"');
+    expect(html).not.toContain('href="/about#data-policy"');
     expect(html).toContain('href="#reviewed-market-guides-heading"');
   });
 

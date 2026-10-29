@@ -68,4 +68,11 @@ export const editorialHighlightCategories: Record<string, Record<string, Highlig
   "market-bce7d94ed3dd046e": { "〈갯마을 차차차〉 촬영지": "sight", "농수산물·건어물": "specialty", "1·6일 오일장": "tip" },
   "market-c1bdb90b0aee2a24": { "고령 큰장": "sight", "중앙네거리~고령지구대 시장길": "tip", "4·9일 오일장": "tip" },
   "market-b6ae8f703b2f9521": { "문경사과·오미자": "specialty", "약돌한우·약돌돼지": "specialty", "백두대간 제철 산나물": "specialty" },
+  "market-8cdaed119306675d": { "대관령길 옛 큰장": "sight", "3·8일 오일장": "tip", "평창·정선 산지 장보기": "specialty" },
+  "market-7135505a40ee733c": { "지역 농민의 채소·과일": "specialty", "장수철공 대장간 농기구": "sight", "5·10일 오일장": "tip" },
+  "market-cf6ee1cadd50f341": { "실치·주꾸미·꽃게": "specialty", "어란": "specialty", "5·10일 오일장": "tip" },
+  "market-23aef33a6c7b3b38": { "병천순대": "food", "유관순 3·1 만세운동 장터": "sight", "1·6일 아우내장": "tip" },
+  "market-380fc44e140f40f2": { "한글 조형물·세종대왕 벽화": "sight", "한글빵": "food", "5·10일 여주장": "tip" },
+  "market-c1599911a16641bc": { "어물전·옹기전·싸전": "specialty", "농민 직판 시골 장터": "specialty", "3·8일 오일장": "tip" },
+  "market-3951be244225aa7c": { "옛 오라니장터·우시장": "sight", "1919년 만세운동 장터": "sight", "가을 오라니장터 축제": "sight" },
 };

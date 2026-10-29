@@ -16,6 +16,12 @@ describe("nationwide market-day hub", () => {
     );
   });
 
+  it("opens today's map with a button instead of a crawlable query link", async () => {
+    const { container } = render(await JangnalHubPage());
+    expect(screen.getByRole("button", { name: "지도에서 오늘 열리는 장 보기" })).toBeInTheDocument();
+    expect(container.querySelector('a[href*="when="]')).toBeNull();
+  });
+
   it("has canonical metadata", async () => {
     expect((await generateMetadata()).alternates?.canonical).toBe("https://kmarketday.com/jangnal");
   });

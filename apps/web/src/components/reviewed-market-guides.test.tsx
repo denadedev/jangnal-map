@@ -17,7 +17,13 @@ describe("ReviewedMarketGuides", () => {
     expect(screen.getByText("주소·주차·교통·방문 팁을 정리했어요.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /첫 시장.*4·9일장/ })).toHaveAttribute("href", guides[0].href);
     expect(screen.getByText(guides[0].summary!)).toBeVisible();
-    expect(screen.getAllByRole("link", { hidden: true })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { hidden: true })).toHaveLength(3);
+  });
+
+  it("links the regional market-day hub so the home page reaches it", () => {
+    render(<ReviewedMarketGuides guides={guides} />);
+
+    expect(screen.getByRole("link", { name: "지역별 장날 보기 ›" })).toHaveAttribute("href", "/jangnal");
   });
 
   it("uses a native disclosure for the remaining guides", async () => {

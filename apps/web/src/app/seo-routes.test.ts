@@ -19,7 +19,7 @@ describe("SEO metadata routes", () => {
       .map((market) => `${SITE_URL}${getMarketPagePath(market)}`)
       .sort();
 
-    expect(entries).toHaveLength(75);
+    expect(entries).toHaveLength(85);
     expect(new Set(urls)).toHaveLength(entries.length);
     const landingUrls = [
       `${SITE_URL}/jangnal`,

@@ -19,8 +19,8 @@ describe("market detail route", () => {
   it("publishes a page for every reviewed public market", async () => {
     const slugs = publicMarkets.filter(isMarketIndexable).map(createMarketSlug);
 
-    expect(slugs).toHaveLength(55);
-    expect(new Set(slugs)).toHaveLength(55);
+    expect(slugs).toHaveLength(65);
+    expect(new Set(slugs)).toHaveLength(65);
     expect(slugs).toContain("용인중앙시장-389b4a24");
     await expect(MarketPage({ params: Promise.resolve({ slug: "없는-시장-00000000" }) })).rejects.toThrow();
   });

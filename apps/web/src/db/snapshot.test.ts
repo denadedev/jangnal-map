@@ -43,7 +43,7 @@ describe("DB snapshot", () => {
     const fromDb = assembleSnapshot(draft);
 
     expect(snapshotDifferences(fromDb, loadJsonSnapshot())).toEqual([
-      "editorial: 54 in DB, 55 in JSON",
+      "editorial: 64 in DB, 65 in JSON",
       `editorial ${marketEditorialEntries.find((entry) => !fromDb.editorial.some(({ marketId }) => marketId === entry.marketId))!.marketId}`,
     ]);
   });

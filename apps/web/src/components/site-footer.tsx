@@ -11,7 +11,7 @@ export function SiteFooter({ locale = "ko" }: { locale?: Locale }) {
         <a href="/privacy">{ui.privacy}</a>
         <a href="/terms">{ui.terms}</a>
         <a href="/about#data-policy">{ui.dataPolicy}</a>
-        <a href="/report?kind=service">{ui.reportInfo}</a>
+        <a href="/report?kind=service" rel="nofollow">{ui.reportInfo}</a>
         <a href={locale === "en" ? "/" : "/en"}>{locale === "en" ? "한국어" : "English guide"}</a>
       </nav>
       <p>{locale === "en" ? "K Market Day · Market information from public data and official tourism sources." : "오늘 장날 운영자 · 공공데이터와 공식 관광 자료를 확인해 제공합니다."}</p>

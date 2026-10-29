@@ -23,13 +23,15 @@ describe("region landing route", () => {
     expect(String(metadata.description)).not.toMatch(/\d+월 \d+일/);
   });
 
-  it("lists every market by district with reviewed and map links", async () => {
-    render(await RegionPage(params("gyeongbuk")));
+  it("lists every market by district with reviewed links and map buttons", async () => {
+    const { container } = render(await RegionPage(params("gyeongbuk")));
     const list = screen.getByRole("region", { name: "시·군별 전체 목록" });
     expect(list).toHaveTextContent("79곳");
     expect(within(list).getByText("경주시")).toBeInTheDocument();
-    expect(within(list).getByRole("link", { name: /안강공설시장/ }).getAttribute("href")).toMatch(/^\/\?when=all&market=/);
+    expect(within(list).getByRole("button", { name: /안강공설시장/ })).toBeInTheDocument();
+    expect(within(list).queryByRole("link", { name: /안강공설시장/ })).not.toBeInTheDocument();
     expect(within(list).getByRole("link", { name: /청도공설시장/ }).getAttribute("href")).toMatch(/^\/markets\//);
+    expect(container.querySelector('a[href*="market="]')).toBeNull();
   });
 
   it("renders the data-based introduction and its sources", async () => {

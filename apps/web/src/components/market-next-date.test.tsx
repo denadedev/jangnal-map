@@ -48,4 +48,11 @@ describe("MarketNextDate", () => {
     expect(screen.getByText("9월 10일 목요일")).toBeInTheDocument();
     expect(screen.getByText("D-3")).toBeInTheDocument();
   });
+
+  it("puts the next date from the server's Korean date into the server HTML", () => {
+    const staticMarkup = renderToStaticMarkup(<MarketNextDate market={periodicMarket} initialToday="2026-09-07" />);
+
+    expect(staticMarkup).toContain("9월 10일 목요일");
+    expect(staticMarkup).toContain("D-3");
+  });
 });

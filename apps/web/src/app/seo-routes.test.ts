@@ -16,7 +16,7 @@ describe("SEO metadata routes", () => {
     const urls = entries.map(({ url }) => url);
     const indexableUrls = reviewedMarkets
       .filter(isMarketIndexable)
-      .map((market) => `${SITE_URL}${getMarketPagePath(market)}`)
+      .map((market) => `${SITE_URL}${encodeURI(getMarketPagePath(market))}`)
       .sort();
 
     expect(entries).toHaveLength(75);
@@ -27,7 +27,8 @@ describe("SEO metadata routes", () => {
       ...["1-6", "2-7", "3-8", "4-9", "5-10"].map((pattern) => `${SITE_URL}/jangnal/days/${pattern}`),
     ];
     expect(urls.sort()).toEqual([SITE_URL, `${SITE_URL}/about`, `${SITE_URL}/en`, `${SITE_URL}/onnuri`, `${SITE_URL}/privacy`, `${SITE_URL}/terms`, ...landingUrls, ...indexableUrls].sort());
-    expect(urls).not.toContain(`${SITE_URL}/markets/삽교시장-09e8d20c`);
+    expect(urls).not.toContain(`${SITE_URL}${encodeURI("/markets/삽교시장-09e8d20c")}`);
+    expect(urls.filter((url) => /[가-힣]/.test(url))).toEqual([]);
   });
 
   it("publishes the canonical home page as the highest-priority sitemap entry", async () => {
@@ -49,12 +50,12 @@ describe("SEO metadata routes", () => {
   it("uses durable catalog metadata for periodic and daily sitemap entries", async () => {
     const entries = (await sitemap());
 
-    expect(entries.find(({ url }) => url === `${SITE_URL}/markets/용인중앙시장-389b4a24`)).toMatchObject({
+    expect(entries.find(({ url }) => url === `${SITE_URL}${encodeURI("/markets/용인중앙시장-389b4a24")}`)).toMatchObject({
       lastModified: findMarketEditorial("market-389b4a24f06ccd11")?.reviewedAt,
       changeFrequency: "monthly",
       priority: 0.8,
     });
-    expect(entries.find(({ url }) => url === `${SITE_URL}/markets/광명전통시장-d8d1a37e`)).toMatchObject({
+    expect(entries.find(({ url }) => url === `${SITE_URL}${encodeURI("/markets/광명전통시장-d8d1a37e")}`)).toMatchObject({
       lastModified: findMarketEditorial("market-d8d1a37e4d63609b")?.reviewedAt,
       changeFrequency: "monthly",
       priority: 0.6,

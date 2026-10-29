@@ -33,7 +33,7 @@ export default async function OnnuriPage() {
         <a className={styles.brand} href="/">오늘 장날</a>
         <nav aria-label="보조 메뉴">
           <a href="/?when=all">전국 지도</a>
-          <a href="/report?kind=service">불편 신고</a>
+          <a href="/report?kind=service" rel="nofollow">불편 신고</a>
         </nav>
       </header>
       <main className={styles.main}>

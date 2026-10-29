@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { PatternTag } from "../../../components/jangnal-market-row";
 import { DataBasis, Faq, LandingHero, LandingShell, LinkRow, MarketGroups, landingStyles as styles } from "../../../components/jangnal-page-parts";
 import { RegionToday } from "../../../components/jangnal-today";
+import { MapLinkButton } from "../../../components/map-link-button";
 import type { Catalog } from "../../../lib/catalog/catalog";
 import { loadCatalog } from "../../../lib/catalog/load";
 import { DAY_PATTERNS, formatPatternLabel, groupByDistrict } from "../../../lib/jangnal-landing";
@@ -79,7 +80,7 @@ export default async function RegionPage({ params }: RegionPageProps) {
         <ul>
           {guide.highlights.map(({ marketId, note }) => {
             const link = linkById.get(marketId)!;
-            return <li key={marketId}><a href={link.href}><b>{link.name}</b></a> ({link.district}) · {note}</li>;
+            return <li key={marketId}>{link.reviewed ? <a href={link.href}><b>{link.name}</b></a> : <MapLinkButton href={link.href}><b>{link.name}</b></MapLinkButton>} ({link.district}) · {note}</li>;
           })}
         </ul>
         <h3>방문 팁</h3>

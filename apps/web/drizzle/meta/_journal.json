@@ -43,6 +43,13 @@
       "when": 1793243021927,
       "tag": "0005_reviewed_markets_search_batch",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793243487536,
+      "tag": "0006_reviewed_markets_south",
+      "breakpoints": true
     }
   ]
 }

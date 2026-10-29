@@ -4,7 +4,7 @@
 .primary { display: flex; width: 100%; min-height: 52px; align-items: center; justify-content: center; border: 0; border-radius: var(--r-m); background: var(--accent); color: var(--surface); font-size: 17px; font-weight: 700; }
 .primary:disabled { opacity: .6; }
 .list { display: grid; gap: 10px; margin: 20px 0 0; padding: 0 16px; list-style: none; }
-.story { display: grid; gap: 8px; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--surface); color: var(--ink); }
+.story { display: grid; width: 100%; gap: 8px; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--surface); color: var(--ink); }
 .story:hover { background: var(--surface-2); }
 .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .market { min-width: 0; font-size: 16px; font-weight: 800; }

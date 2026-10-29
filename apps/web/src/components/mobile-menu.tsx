@@ -170,7 +170,7 @@ export function ServiceMenuContent({ locale = "ko", languageSwitchHref, todayIso
           </div>
           <div className="mobile-menu-group">
             {participate}
-            <a className="mobile-menu-link" href="/report?kind=service"><Icon name="flag" /><span>{ui.report}</span><Icon name="more" className="mobile-menu-chevron" /></a>
+            <a className="mobile-menu-link" href="/report?kind=service" rel="nofollow"><Icon name="flag" /><span>{ui.report}</span><Icon name="more" className="mobile-menu-chevron" /></a>
           </div>
         </nav>
       </div>

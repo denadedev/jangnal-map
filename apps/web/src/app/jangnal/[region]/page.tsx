@@ -98,7 +98,7 @@ export default async function RegionPage({ params }: RegionPageProps) {
       <section className={styles.sec} aria-labelledby="links-heading">
         <h2 id="links-heading">더 찾아보기</h2>
         <div className={styles.stack}>
-          <a className={styles.primary} href={`/?when=all&q=${encodeURIComponent((markets[0].roadAddress ?? markets[0].lotAddress ?? "").split(/\s+/)[0])}`} data-umami-event="region-map-open">지도에서 {region.shortName} 보기</a>
+          <MapLinkButton className={styles.primary} href={`/?when=all&q=${encodeURIComponent((markets[0].roadAddress ?? markets[0].lotAddress ?? "").split(/\s+/)[0])}`} data-umami-event="region-map-open">지도에서 {region.shortName} 보기</MapLinkButton>
         </div>
         {others.length > 0 ? (
           <>

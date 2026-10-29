@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { PatternTag } from "../../components/jangnal-market-row";
 import { DataBasis, Faq, LandingHero, LandingShell, LinkRow, landingStyles as styles } from "../../components/jangnal-page-parts";
 import { HubToday } from "../../components/jangnal-today";
+import { MapLinkButton } from "../../components/map-link-button";
 import { loadCatalog } from "../../lib/catalog/load";
 import { DAY_PATTERNS } from "../../lib/jangnal-landing";
 import { SITE_URL } from "../../lib/market-seo";
@@ -58,7 +59,7 @@ export default async function JangnalHubPage() {
       <section className={styles.sec} aria-labelledby="map-heading">
         <h2 id="map-heading">지도로 찾기</h2>
         <div className={styles.stack}>
-          <a className={styles.primary} href="/?when=today" data-umami-event="region-map-open">지도에서 오늘 열리는 장 보기</a>
+          <MapLinkButton className={styles.primary} href="/?when=today" data-umami-event="region-map-open">지도에서 오늘 열리는 장 보기</MapLinkButton>
         </div>
       </section>
     </LandingShell>

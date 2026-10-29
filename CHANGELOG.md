@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.19.1] - 2026-10-29
+
+### Changed
+
+- 하위 페이지가 홈의 canonical과 og:url(`https://kmarketday.com`)을 물려받지 않게 했다. 루트 layout에서 canonical과 og:url을 빼고 홈에서 직접 지정하며, `/stories`, `/this-week`, `/more`, `/privacy`, `/terms`는 자기 주소의 canonical과 og:url, og:title을 갖는다. 이전에는 이 페이지들이 홈 주소와 홈 제목을 그대로 내보냈다.
+- `robots.txt`에서 `Host:` 줄을 뺐다. 얀덱스 전용 지시어라 네이버와 구글에는 의미가 없다.
+
 ## [0.4.19.0] - 2026-10-29
 
 ### Added

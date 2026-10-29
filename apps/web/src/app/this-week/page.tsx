@@ -6,6 +6,7 @@ import { loadCatalog } from "../../lib/catalog/load";
 import { flyerPagePath, flyerViewerPath, flyerWeekOf, koreaToday } from "../../lib/flyers";
 import { highlightSubmissionsEnabled } from "../../lib/highlight-submission-handler";
 import { formatWeekDay, getWeekDays, loadBrandFlyers } from "../../lib/this-week";
+import { SITE_OPEN_GRAPH } from "../../lib/site-config";
 import styles from "./this-week.module.css";
 
 // 요청 때 그린다. 전단은 DB에서, 장날은 메모리의 시장 스냅샷에서 읽는다.
@@ -16,6 +17,8 @@ export const metadata: Metadata = {
   title: "이번 주 장보기 · 마트 전단과 장날 | 오늘 장날",
   description: "이번 주 대형마트 전단과 요일별 장날을 한곳에서 확인하세요.",
   robots: { index: false, follow: true },
+  alternates: { canonical: "/this-week" },
+  openGraph: { ...SITE_OPEN_GRAPH, title: "이번 주 장보기 · 마트 전단과 장날 | 오늘 장날", description: "이번 주 대형마트 전단과 요일별 장날을 한곳에서 확인하세요.", url: "/this-week" },
 };
 
 const brandSub = (baseStoreName: string | null, pageCount: number) => `${baseStoreName ? `기준 매장 ${baseStoreName}` : "전국 공통"} · ${pageCount}장`;

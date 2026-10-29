@@ -6,6 +6,7 @@ import { MobileTabBar } from "../../components/mobile-tab-bar";
 import { StoryPickerButton } from "../../components/story-picker-button";
 import { koreaToday } from "../../lib/flyers";
 import { highlightSubmissionsEnabled } from "../../lib/highlight-submission-handler";
+import { SITE_OPEN_GRAPH } from "../../lib/site-config";
 
 // 오늘 장날 끝자리를 요청 때 정한다.
 export const dynamic = "force-dynamic";
@@ -13,6 +14,8 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "더보기 | 오늘 장날",
   robots: { index: false, follow: true },
+  alternates: { canonical: "/more" },
+  openGraph: { ...SITE_OPEN_GRAPH, title: "더보기 | 오늘 장날", url: "/more" },
 };
 
 /** 하단 탭의 더보기. ☰ 드로어와 같은 내용을 화면 전체로 보여 준다. */

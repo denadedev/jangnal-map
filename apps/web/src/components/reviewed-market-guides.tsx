@@ -38,6 +38,7 @@ export function ReviewedMarketGuides({ guides }: ReviewedMarketGuidesProps) {
           ))}
         </div>
       </details>
+      <a className="reviewed-market-guides-region-link" href="/jangnal">지역별 장날 보기 ›</a>
     </section>
   );
 }

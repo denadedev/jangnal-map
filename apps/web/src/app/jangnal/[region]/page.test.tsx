@@ -32,6 +32,8 @@ describe("region landing route", () => {
     expect(within(list).queryByRole("link", { name: /안강공설시장/ })).not.toBeInTheDocument();
     expect(within(list).getByRole("link", { name: /청도공설시장/ }).getAttribute("href")).toMatch(/^\/markets\//);
     expect(container.querySelector('a[href*="market="]')).toBeNull();
+    expect(container.querySelector('a[href*="when="]')).toBeNull();
+    expect(screen.getByRole("button", { name: "지도에서 경북 보기" })).toBeInTheDocument();
   });
 
   it("renders the data-based introduction and its sources", async () => {

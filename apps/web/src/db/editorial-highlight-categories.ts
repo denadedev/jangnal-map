@@ -75,4 +75,12 @@ export const editorialHighlightCategories: Record<string, Record<string, Highlig
   "market-380fc44e140f40f2": { "한글 조형물·세종대왕 벽화": "sight", "한글빵": "food", "5·10일 여주장": "tip" },
   "market-c1599911a16641bc": { "어물전·옹기전·싸전": "specialty", "농민 직판 시골 장터": "specialty", "3·8일 오일장": "tip" },
   "market-3951be244225aa7c": { "옛 오라니장터·우시장": "sight", "1919년 만세운동 장터": "sight", "가을 오라니장터 축제": "sight" },
+  "market-a9fb2a38a92e44c8": { "합천·함양·산청 장꾼이 모이던 장": "sight", "청년몰": "sight", "1·6일 오일장": "tip" },
+  "market-db175b498c2c0d46": { "옛 양산우시장 터": "sight", "골목·도로변 노점장": "sight", "1·6일 오일장": "tip" },
+  "market-1fa559134e5986d4": { "광양 닭구이": "food", "농수산물 장보기": "specialty", "1·6일 오일장": "tip" },
+  "market-a50e6a3f09290dbe": { "500년 옥실장": "sight", "주민 직판 농수산물": "specialty", "지하주차장·비 가림 시설": "tip" },
+  "market-6a95347b99ffa190": { "층별 시장 건물": "tip", "2층 먹거리 야시장": "food", "4·9일 오일장": "tip" },
+  "market-3a89105daad39f5b": { "어시장 좌판 해산물": "specialty", "멸치쌈밥·도다리쑥국": "food", "2·7일 오일장": "tip" },
+  "market-6328449811d9f47a": { "토종꿀": "specialty", "돌실 삼베": "specialty", "곡물·밤·죽공예품": "specialty" },
+  "market-71be3409d13899e2": { "국밥골목 돼지국밥·수육": "food", "제철 농수산물": "specialty", "5·10일 오일장": "tip" },
 };

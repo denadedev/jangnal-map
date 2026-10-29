@@ -20,13 +20,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/privacy`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/terms`, changeFrequency: "yearly", priority: 0.3 },
     ...markets.filter(isMarketIndexable).map((market) => ({
-      url: `${SITE_URL}${getMarketPagePath(market)}`,
-      // 방문자 제보가 승인되면 페이지 내용이 바뀌므로 승인 시각도 후보에 넣는다.
+      // 페이지 canonical과 같은 퍼센트 인코딩 주소로 낸다.
+      url: `${SITE_URL}${encodeURI(getMarketPagePath(market))}`,
+      // 방문자 제보가 승인되면 페이지 내용이 바뀌므로 승인 시각도 후보에 넣는다. 형식은 YYYY-MM-DD로 맞춘다.
       lastModified: [
         market.referenceDate ?? market.source.referenceDate ?? "",
         findMarketEditorial(market.id)!.reviewedAt,
         ...findMarketHighlights(market.id).map((highlight) => highlight.createdAt),
-      ].sort().at(-1),
+      ].sort().at(-1)?.slice(0, 10),
       changeFrequency: "monthly" as const,
       priority: market.schedule.kind === "digit-pair" ? 0.8 : 0.6,
     })),

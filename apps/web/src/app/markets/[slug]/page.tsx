@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { MapLinkButton } from "../../../components/map-link-button";
 import { MarketNextDate } from "../../../components/market-next-date";
 import { MarketShareButton } from "../../../components/market-share-button";
 import { MarketEditorialSections } from "../../../components/market-editorial-sections";
@@ -31,6 +32,9 @@ type MarketPageProps = { params: Promise<{ slug: string }> };
 const formatSourceDate = (value: string | null): string => value
   ? value.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$1.$2.$3")
   : "확인일 정보 없음";
+
+// 요청 시점의 한국 날짜(YYYY-MM-DD). 다음 장날을 서버 HTML에 넣는 데 쓴다.
+const koreaToday = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" });
 
 export async function generateMetadata({ params }: MarketPageProps): Promise<Metadata> {
   const catalog = await loadCatalog();
@@ -113,13 +117,13 @@ export default async function MarketPage({ params }: MarketPageProps) {
 
   return (
     <div className={styles.page}>
-      <MobileAppBar title="시장 정보" backHref={mapHref} />
+      <MobileAppBar title="시장 정보" backHref={mapHref} backAsButton />
       <header className={`${styles.header} desktop-route-header`}>
         <a href="/">오늘 장날</a>
         <nav aria-label="보조 메뉴">
           <a href="/onnuri">온누리상품권</a>
-          <a href="/report?kind=service">불편 신고</a>
-          <a href={mapHref}>전국 지도</a>
+          <a href="/report?kind=service" rel="nofollow">불편 신고</a>
+          <a href="/">전국 지도</a>
         </nav>
       </header>
       <main className={styles.main}>
@@ -146,7 +150,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
             </section> : null}
           </section>
           <div className={`${styles.section} ${styles.nextDate}`}>
-            <MarketNextDate market={market} />
+            <MarketNextDate market={market} initialToday={koreaToday.format(new Date())} />
           </div>
           <div className="editorial-section">
             <MarketHighlights
@@ -166,10 +170,10 @@ export default async function MarketPage({ params }: MarketPageProps) {
               {!hasCoordinates ? <div><dt>지도</dt><dd>위치 확인 필요</dd></div> : null}
             </dl>
             <div className={styles.actions} data-mobile-action-bar>
-              <a className={styles.primary} href={mapHref}>전국 장날 지도에서 보기</a>
+              <MapLinkButton className={styles.primary} href={mapHref}>전국 장날 지도에서 보기</MapLinkButton>
               {hasCoordinates ? <MarketDirectionsMenu market={market} className={styles.secondary} mobilePrimary /> : null}
               <MarketShareButton market={market} sharePath={getMarketPagePath(market)} className={styles.secondary} />
-              <a className={styles.secondary} href={`/report?kind=market&market=${encodeURIComponent(market.id)}`}>
+              <a className={styles.secondary} href={`/report?kind=market&market=${encodeURIComponent(market.id)}`} rel="nofollow">
                 정보가 다른가요? 수정 제보
               </a>
             </div>

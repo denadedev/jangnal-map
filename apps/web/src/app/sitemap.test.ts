@@ -15,9 +15,9 @@ vi.mock("../lib/catalog/load", () => ({
 const { default: sitemap } = await import("./sitemap");
 
 describe("sitemap", () => {
-  it("moves lastModified to the latest approved visitor story", async () => {
+  it("moves lastModified to the latest approved visitor story, as a YYYY-MM-DD date", async () => {
     const entries = await sitemap();
 
-    expect(entries.find(({ url }) => url === `${SITE_URL}/markets/용인중앙시장-389b4a24`)?.lastModified).toBe("2099-01-02T03:04:05.000Z");
+    expect(entries.find(({ url }) => url === `${SITE_URL}${encodeURI("/markets/용인중앙시장-389b4a24")}`)?.lastModified).toBe("2099-01-02");
   });
 });

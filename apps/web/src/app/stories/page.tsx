@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { formatPatternDigits } from "../../components/jangnal-number";
+import { MapLinkButton } from "../../components/map-link-button";
 import { MobileTabBar } from "../../components/mobile-tab-bar";
 import { StoryPickerButton } from "../../components/story-picker-button";
 import { HIGHLIGHT_CATEGORY_LABELS } from "../../db/codes";
@@ -41,17 +42,21 @@ export default async function StoriesPage() {
           <ul className={styles.list}>
             {stories.map(({ highlight, market }) => {
               const digits = formatPatternDigits(market);
+              const link = catalog.toMarketLink(market);
+              const content = (
+                <>
+                  <span className={styles.head}>
+                    <span className={styles.market}>{market.name}{digits ? <> · <span className="jn">{digits}</span></> : null}</span>
+                    <span className={styles.age}>{formatStoryAge(highlight.createdAt, now)}</span>
+                  </span>
+                  <span className={styles.category}>{HIGHLIGHT_CATEGORY_LABELS[highlight.category]}</span>
+                  <strong className={styles.what}>{highlight.name}</strong>
+                  {highlight.description ? <span className={styles.description}>{highlight.description}</span> : null}
+                </>
+              );
               return (
                 <li key={`${highlight.marketId}:${highlight.name}:${highlight.createdAt}`}>
-                  <a className={styles.story} href={catalog.toMarketLink(market).href}>
-                    <span className={styles.head}>
-                      <span className={styles.market}>{market.name}{digits ? <> · <span className="jn">{digits}</span></> : null}</span>
-                      <span className={styles.age}>{formatStoryAge(highlight.createdAt, now)}</span>
-                    </span>
-                    <span className={styles.category}>{HIGHLIGHT_CATEGORY_LABELS[highlight.category]}</span>
-                    <strong className={styles.what}>{highlight.name}</strong>
-                    {highlight.description ? <span className={styles.description}>{highlight.description}</span> : null}
-                  </a>
+                  {link.reviewed ? <a className={styles.story} href={link.href}>{content}</a> : <MapLinkButton className={styles.story} href={link.href}>{content}</MapLinkButton>}
                 </li>
               );
             })}

@@ -58,18 +58,18 @@ describe("market detail route", () => {
     expect(screen.getByRole("link", { name: "카카오맵 — 길찾기" })).toBeInTheDocument();
   });
 
-  it("renders a selected-map link for a valid market", async () => {
+  it("renders a selected-map button for a valid market without crawlable map query links", async () => {
     const market = reviewedMarkets.find((item) => item.schedule.kind === "digit-pair")!;
 
-    render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
+    const { container } = render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
 
     expect(screen.getByRole("heading", { name: new RegExp(`${market.name} 장날 날짜`) })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "장날 날짜" })).toBeInTheDocument();
     expect(screen.getByText(/장날은 매월|매일 운영|운영 일정은 확인이 필요/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "전국 장날 지도에서 보기" })).toHaveAttribute(
-      "href",
-      `/?when=all&market=${market.id}`,
-    );
+    expect(screen.getByRole("button", { name: "전국 장날 지도에서 보기" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "이전 화면" })).toBeInTheDocument();
+    expect(container.querySelector('a[href*="when="]')).toBeNull();
+    for (const report of container.querySelectorAll('a[href^="/report"]')) expect(report).toHaveAttribute("rel", "nofollow");
     expect(screen.getByRole("button", { name: "공유하기" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "지도·길찾기" }).closest("[data-mobile-action-bar]")).toBeInTheDocument();
   });

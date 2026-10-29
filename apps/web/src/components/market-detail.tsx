@@ -174,7 +174,7 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
       </div>
 
       <footer className="source-note">
-        <a className="report-link" href={`/report?kind=market&market=${encodeURIComponent(market.id)}`}>
+        <a className="report-link" href={`/report?kind=market&market=${encodeURIComponent(market.id)}`} rel="nofollow">
           {ui.reportCorrection}
         </a>
       </footer>

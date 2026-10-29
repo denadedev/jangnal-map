@@ -27,7 +27,7 @@ export default function AboutPage() {
         <a href="/">오늘 장날</a>
         <nav aria-label="보조 메뉴">
           <a href="/onnuri">온누리상품권</a>
-          <a href="/report?kind=service">제보하기</a>
+          <a href="/report?kind=service" rel="nofollow">제보하기</a>
         </nav>
       </header>
       <main className={styles.main}>
@@ -54,7 +54,7 @@ export default function AboutPage() {
           <section className={styles.section} aria-labelledby="correction-heading">
             <h2 id="correction-heading">정보 수정과 제보</h2>
             <p>시장 일정, 주소, 전화, 주차 정보가 실제와 다르면 근거 URL과 함께 제보해 주세요. 확인 후 반영하며, 제보만으로 정보가 즉시 변경되지는 않습니다.</p>
-            <a className={styles.primary} href="/report?kind=service">정보 수정 제보하기</a>
+            <a className={styles.primary} href="/report?kind=service" rel="nofollow">정보 수정 제보하기</a>
           </section>
         </article>
       </main>

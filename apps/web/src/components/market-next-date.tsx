@@ -3,18 +3,26 @@
 import { useEffect, useState } from "react";
 
 import type { PublicMarket } from "../lib/market";
+import { getKoreaCalendarDate } from "../lib/korea-date";
 import { formatKoreanDate, formatSchedulePattern, getDday } from "../lib/market-view";
 import { getNextMarketDate } from "../lib/schedule";
 
 interface MarketNextDateProps {
   market: PublicMarket;
+  /** 서버가 계산한 한국 날짜(YYYY-MM-DD). 검색엔진이 받는 HTML에도 다음 장날이 들어가게 한다. */
+  initialToday?: string;
 }
 
-export function MarketNextDate({ market }: MarketNextDateProps) {
-  const [today, setToday] = useState<Date | null>(null);
+const parseCalendarDate = (value: string): Date => {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
+export function MarketNextDate({ market, initialToday }: MarketNextDateProps) {
+  const [today, setToday] = useState<Date | null>(() => (initialToday ? parseCalendarDate(initialToday) : null));
 
   useEffect(() => {
-    setToday(new Date());
+    setToday(getKoreaCalendarDate(new Date()));
   }, []);
 
   if (market.schedule.kind === "daily") {

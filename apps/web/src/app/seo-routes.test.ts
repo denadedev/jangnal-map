@@ -5,6 +5,12 @@ import { createCatalog } from "../lib/catalog/catalog";
 import { loadJsonSnapshot } from "../lib/catalog/json-source";
 import { getMarketPagePath, SITE_URL } from "../lib/market-seo";
 import { metadata } from "./layout";
+import { metadata as moreMetadata } from "./more/page";
+import { metadata as homeMetadata } from "./page";
+import { metadata as privacyMetadata } from "./privacy/page";
+import { metadata as storiesMetadata } from "./stories/page";
+import { metadata as termsMetadata } from "./terms/page";
+import { metadata as thisWeekMetadata } from "./this-week/page";
 import robots from "./robots";
 import sitemap from "./sitemap";
 
@@ -66,7 +72,6 @@ describe("SEO metadata routes", () => {
     expect(robots()).toEqual({
       rules: { userAgent: "*", allow: "/" },
       sitemap: "https://kmarketday.com/sitemap.xml",
-      host: "https://kmarketday.com",
     });
   });
 
@@ -97,14 +102,24 @@ describe("SEO metadata routes", () => {
     });
   });
 
+  it("gives the home page and tab pages their own canonical and og:url instead of inheriting the home URL", () => {
+    expect(homeMetadata.alternates?.canonical).toBe("/");
+    expect(homeMetadata.openGraph?.url).toBe("/");
+    for (const [page, path] of [[storiesMetadata, "/stories"], [thisWeekMetadata, "/this-week"], [moreMetadata, "/more"], [privacyMetadata, "/privacy"], [termsMetadata, "/terms"]] as const) {
+      expect(page.alternates?.canonical).toBe(path);
+      expect(page.openGraph?.url).toBe(path);
+      expect(page.openGraph?.title).toBe(page.title);
+    }
+  });
+
   it("defines production root metadata defaults", () => {
     expect(metadata.metadataBase).toEqual(new URL("https://kmarketday.com"));
     expect(metadata.verification?.google).toBe("iTnI4yy_bzEL-eOrfqhBfEo6VusJEs7MgkVCrZpgV_U");
     expect(metadata.verification?.other).toEqual({
       "naver-site-verification": "474ca7369654e9ba939c810a7988fdd9ae455a95",
     });
-    expect(metadata.alternates?.canonical).toBe("/");
-    expect(metadata.openGraph?.url).toBe("/");
+    expect(metadata.alternates?.canonical).toBeUndefined();
+    expect(metadata.openGraph?.url).toBeUndefined();
     expect(metadata.title).toEqual({
       default: "오늘 장날 | 전국 5일장·전통시장 일정 지도",
       template: "%s",

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { addDays, flyerDeleteBefore, flyerWeekOf, formatFlyerPeriod, isFlyerCurrent, koreaToday, parseIsoDate, validateFlyerUpload } from "./flyers";
-import { currentFlyersKey, getWeekDays } from "./this-week";
+import { currentFlyersKey, flyerEndingLabel } from "./this-week";
 
 describe("flyer dates", () => {
   it("uses the Korean date across UTC midnight", () => {
@@ -55,14 +55,11 @@ describe("validateFlyerUpload", () => {
   });
 });
 
-describe("getWeekDays", () => {
-  it("lists Thursday to Wednesday with the day pattern and marks today", () => {
-    const market = { schedule: { kind: "digit-pair", days: [5, 0] } } as Parameters<typeof getWeekDays>[0][number];
-    const days = getWeekDays([market], "2026-10-30");
-    expect(days.map((day) => day.date)).toEqual(["2026-10-29", "2026-10-30", "2026-10-31", "2026-11-01", "2026-11-02", "2026-11-03", "2026-11-04"]);
-    expect(days.map((day) => day.pattern)).toEqual(["4-9", "5-10", "1-6", "1-6", "2-7", "3-8", "4-9"]);
-    expect(days.find((day) => day.isToday)).toMatchObject({ date: "2026-10-30", count: 1 });
-    expect(days[0].count).toBe(0);
+describe("flyerEndingLabel", () => {
+  it("speaks only on the last two days of the flyer week", () => {
+    expect(flyerEndingLabel("2026-11-04", "2026-11-04")).toBe("오늘 끝나요");
+    expect(flyerEndingLabel("2026-11-03", "2026-11-04")).toBe("내일 끝나요");
+    expect(flyerEndingLabel("2026-11-02", "2026-11-04")).toBeNull();
   });
 });
 

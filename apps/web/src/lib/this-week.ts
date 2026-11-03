@@ -1,21 +1,8 @@
-// /this-week 화면 데이터. 이번 주(목~수) 장날은 메모리의 시장 스냅샷으로, 전단은 DB에서 읽는다.
+// 마트 전단 탭(/this-week) 화면 데이터. 전단은 DB에서 읽는다.
 import type { BrandFlyers } from "../db/flyers";
-import { getMarketsOpenOn, getPatternForDate, type DayPattern } from "./jangnal-dates";
-import { addDays, flyerWeekOf, koreaToday, parseIsoDate } from "./flyers";
-import type { PublicMarket } from "./market";
+import { addDays, koreaToday, parseIsoDate } from "./flyers";
 
-export interface WeekDay { date: string; pattern: DayPattern; count: number; isToday: boolean }
-
-export function getWeekDays(markets: Pick<PublicMarket, "schedule">[], today: string): WeekDay[] {
-  const { start } = flyerWeekOf(today);
-  return Array.from({ length: 7 }, (_, index) => {
-    const date = addDays(start, index);
-    const day = parseIsoDate(date)!;
-    return { date, pattern: getPatternForDate(day), count: getMarketsOpenOn(markets, day).length, isToday: date === today };
-  });
-}
-
-/** DB가 없거나 읽지 못하면 전단 없이 그린다 (장날 목록과 공식 링크는 보인다). */
+/** DB가 없거나 읽지 못하면 빈 목록을 돌려준다. 화면은 안내 문구만 보인다. */
 export async function loadBrandFlyers(now: Date): Promise<BrandFlyers[]> {
   if (!process.env.DATABASE_URL) return [];
   try {
@@ -37,4 +24,11 @@ const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 export function formatWeekDay(value: string): string {
   const date = parseIsoDate(value)!;
   return `${date.getMonth() + 1}/${date.getDate()} ${WEEKDAYS[date.getDay()]}`;
+}
+
+/** 전단 주간이 끝나는 날과 그 전날에만 붙이는 말. 그 밖에는 null. */
+export function flyerEndingLabel(today: string, endsOn: string): "오늘 끝나요" | "내일 끝나요" | null {
+  if (today === endsOn) return "오늘 끝나요";
+  if (addDays(today, 1) === endsOn) return "내일 끝나요";
+  return null;
 }

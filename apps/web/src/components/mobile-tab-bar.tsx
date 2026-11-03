@@ -10,15 +10,15 @@ export type MobileTab = "map" | "week" | "stories" | "more";
 
 const TABS: { tab: MobileTab; href: string; label: string; icon: IconName }[] = [
   { tab: "map", href: "/", label: "지도", icon: "map" },
-  { tab: "week", href: "/this-week", label: "이번 주", icon: "calendar" },
+  { tab: "week", href: "/this-week", label: "마트 전단", icon: "flyer" },
   { tab: "stories", href: "/stories", label: "장 이야기", icon: "chat" },
   { tab: "more", href: "/more", label: "더보기", icon: "dots" },
 ];
 
-/** 이번 주 탭을 열었을 때 걸려 있던 전단 id들(쉼표로 이음). */
+/** 마트 전단 탭을 열었을 때 걸려 있던 전단 id들(쉼표로 이음). */
 const SEEN_FLYERS_KEY = "jangnal:seen-flyers";
 
-/** 지금 걸린 전단 가운데 이번 주 탭에서 아직 못 본 것이 있는지. 이번 주 탭에서는 본 것으로 적는다. */
+/** 지금 걸린 전단 가운데 이번 주 탭에서 아직 못 본 것이 있는지. 마트 전단 탭에서는 본 것으로 적는다. */
 function useNewFlyer(active: MobileTab): boolean {
   const [isNew, setIsNew] = useState(false);
   useEffect(() => {
@@ -40,7 +40,7 @@ function useNewFlyer(active: MobileTab): boolean {
   return isNew;
 }
 
-/** 한국어 모바일의 하단 탭 4개. 지도·이번 주·장 이야기·더보기 화면에만 둔다. */
+/** 한국어 모바일의 하단 탭 4개. 지도·마트 전단·장 이야기·더보기 화면에만 둔다. */
 export function MobileTabBar({ active }: { active: MobileTab }) {
   const newFlyer = useNewFlyer(active);
   return (

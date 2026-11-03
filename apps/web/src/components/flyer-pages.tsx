@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { flyerPagePath } from "../lib/flyers";
 import styles from "../app/this-week/this-week.module.css";
 
-/** 전단 페이지를 세로로 늘어놓는다. 지금 보고 있는 쪽수는 위에 고정해서 보여 준다. 누르면 원본 크기로 연다. */
+/** 전단 페이지를 세로로 늘어놓는다. 쪽마다 #page-N 앵커가 있어 목록의 쪽 썸네일에서 그 쪽으로 바로 온다. 지금 보고 있는 쪽수는 위에 고정해서 보여 준다. 누르면 원본 크기로 연다. */
 export function FlyerPages({ brandName, pages }: { brandName: string; pages: { id: string; width: number; height: number }[] }) {
   const [current, setCurrent] = useState(1);
   const refs = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -28,6 +28,7 @@ export function FlyerPages({ brandName, pages }: { brandName: string; pages: { i
         <a
           key={page.id}
           ref={(element) => { refs.current[index] = element; }}
+          id={`page-${index + 1}`}
           data-page={index + 1}
           className={styles.flyerPage}
           href={flyerPagePath(page.id)}

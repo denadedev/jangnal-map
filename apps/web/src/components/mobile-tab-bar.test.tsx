@@ -20,13 +20,13 @@ describe("MobileTabBar", () => {
 
     expect(screen.getByRole("link", { name: "장 이야기" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "지도" })).not.toHaveAttribute("aria-current");
-    const week = screen.getByRole("link", { name: "이번 주" });
+    const week = screen.getByRole("link", { name: "마트 전단" });
     week.addEventListener("click", (event) => event.preventDefault());
     await userEvent.click(week);
     expect(track).toHaveBeenCalledWith("nav-tab", { tab: "week" });
   });
 
-  it("shows a dot on 이번 주 until the new flyers are seen there", async () => {
+  it("shows a dot on 마트 전단 until the new flyers are seen there", async () => {
     serveFlyers("a,b");
     window.localStorage.setItem("jangnal:seen-flyers", "a");
     const { unmount } = render(<MobileTabBar active="map" />);

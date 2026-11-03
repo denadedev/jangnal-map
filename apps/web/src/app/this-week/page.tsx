@@ -45,36 +45,34 @@ export default async function FlyersPage() {
         </p>
         <p className={styles.caveat}>점포마다 상품과 가격이 다를 수 있어요</p>
 
-        {brands.filter((brand) => brand.flyer).map(({ code, name, officialFlyerUrl, flyer }) => (
+        {/* 올린 전단이 없는 마트도 같은 틀(이름 줄 + 가로 카드 자리)로 그리고, 카드 자리에 공식 전단 링크를 둔다. */}
+        {brands.map(({ code, name, officialFlyerUrl, flyer }) => (
           <section key={code} className={styles.brand} aria-labelledby={`brand-${code}`}>
             <div className={styles.brandHead}>
-              <h2 id={`brand-${code}`}>{name}<span className={styles.sub}>{scopeLabel(flyer!.baseStoreName)}</span></h2>
-              <a className={styles.count} href={flyerViewerPath(code)}><span className="jn">{flyer!.pages.length}</span>쪽 ›</a>
+              <h2 id={`brand-${code}`}>{name}<span className={styles.sub}>{flyer ? scopeLabel(flyer.baseStoreName) : "이번 주 전단 준비 중"}</span></h2>
+              {flyer ? <a className={styles.count} href={flyerViewerPath(code)}><span className="jn">{flyer.pages.length}</span>쪽 ›</a> : null}
             </div>
             <ul className={styles.rail}>
-              {flyer!.pages.map((page, index) => (
+              {flyer ? flyer.pages.map((page, index) => (
                 <li key={page.id}>
                   <a className={styles.railPage} href={`${flyerViewerPath(code)}#page-${index + 1}`}>
                     <img src={flyerPagePath(page.id)} width={page.width} height={page.height} alt={`${name} 전단 ${index + 1}쪽`} loading={index === 0 ? "eager" : "lazy"} />
-                    <span className={`${styles.railBadge} jn`}>{index + 1}/{flyer!.pages.length}</span>
+                    <span className={`${styles.railBadge} jn`}>{index + 1}/{flyer.pages.length}</span>
                   </a>
                 </li>
-              ))}
+              )) : (
+                <li>
+                  <a className={styles.railPending} href={officialFlyerUrl} target="_blank" rel="noopener">
+                    <strong>아직 올리지 않았어요</strong>
+                    <span>{name} 공식 전단에서 먼저 볼 수 있어요</span>
+                    <span className={styles.railPendingLink}>공식 전단 보기 ↗</span>
+                  </a>
+                </li>
+              )}
             </ul>
-            <a className={styles.textLink} href={officialFlyerUrl} target="_blank" rel="noopener">출처: {name} 공식 전단 ↗</a>
+            {flyer ? <a className={styles.textLink} href={officialFlyerUrl} target="_blank" rel="noopener">출처: {name} 공식 전단 ↗</a> : null}
           </section>
         ))}
-
-        {brands.some((brand) => !brand.flyer) ? (
-          <div className={styles.pendingList}>
-            {brands.filter((brand) => !brand.flyer).map(({ code, name, officialFlyerUrl }) => (
-              <p key={code} className={styles.pending}>
-                <span>{name} · 이번 주 전단 준비 중 ·</span>
-                <a className={styles.textLink} href={officialFlyerUrl} target="_blank" rel="noopener">공식 전단 ↗</a>
-              </p>
-            ))}
-          </div>
-        ) : null}
 
         {brands.length === 0 ? <p className={styles.empty}>지금은 전단을 불러오지 못했어요. 잠시 뒤에 다시 열어 주세요.</p> : null}
 

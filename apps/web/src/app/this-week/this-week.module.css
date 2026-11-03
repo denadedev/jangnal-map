@@ -22,9 +22,10 @@
 .railPage { position: relative; display: block; width: min(72vw, 280px); border: 1px solid var(--line); border-radius: var(--r-m); background: var(--surface-2); overflow: hidden; }
 .railPage img { display: block; width: 100%; height: auto; }
 .railBadge { position: absolute; top: 10px; left: 10px; padding: 4px 10px; border-radius: var(--r-pill); background: var(--ink); color: var(--surface); font-size: 14px; line-height: 20px; }
+.railPending { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; width: min(72vw, 280px); aspect-ratio: 1 / 1.4; padding: 16px; border: 2px dashed var(--line); border-radius: var(--r-m); color: var(--muted); font-size: 15px; text-align: center; word-break: keep-all; }
+.railPending strong { color: var(--ink); font-size: 18px; }
+.railPendingLink { margin-top: 8px; color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .brand > .textLink { justify-self: start; margin: 0 16px; color: var(--muted); font-size: 14px; }
-.pendingList { margin-top: 12px; padding: 8px 16px 0; border-top: 1px solid var(--line); }
-.pending { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 0; color: var(--muted); font-size: 14px; word-break: keep-all; }
 .textLink { display: inline-flex; min-height: 44px; align-items: center; color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .mapLine { display: block; padding: 12px 16px; text-align: center; margin-top: 16px; color: var(--muted); font-size: 14px; font-weight: 600; }
 .mapLine .jn { font-size: 14px; color: var(--ink); }

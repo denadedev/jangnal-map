@@ -8,6 +8,7 @@ import { HIGHLIGHT_CATEGORY_LABELS } from "../../db/codes";
 import { loadCatalog } from "../../lib/catalog/load";
 import { highlightSubmissionsEnabled } from "../../lib/highlight-submission-handler";
 import { formatStoryAge } from "../../lib/market-highlight";
+import { SITE_OPEN_GRAPH } from "../../lib/site-config";
 import styles from "./stories.module.css";
 
 // 승인하면 바로 보이도록 요청 때 그린다.
@@ -18,6 +19,8 @@ export const metadata: Metadata = {
   title: "장 이야기 · 다녀온 분들이 들려준 이야기 | 오늘 장날",
   description: "전국 5일장과 전통시장을 다녀온 분들이 들려준 이야기를 최근 순으로 모았어요.",
   robots: { index: false, follow: true },
+  alternates: { canonical: "/stories" },
+  openGraph: { ...SITE_OPEN_GRAPH, title: "장 이야기 · 다녀온 분들이 들려준 이야기 | 오늘 장날", description: "전국 5일장과 전통시장을 다녀온 분들이 들려준 이야기를 최근 순으로 모았어요.", url: "/stories" },
 };
 
 const STORY_LIMIT = 50;

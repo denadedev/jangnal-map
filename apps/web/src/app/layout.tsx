@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import { ServiceWorkerRegister } from "../components/service-worker-register";
-import { OG_IMAGE, SITE_HOST, SITE_URL } from "../lib/site-config";
+import { SITE_HOST, SITE_OPEN_GRAPH, SITE_URL } from "../lib/site-config";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -28,16 +28,8 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "오늘 장날",
   },
-  alternates: { canonical: "/" },
-  openGraph: {
-    images: [OG_IMAGE],
-    title: "오늘 장날 | 전국 5일장·전통시장 일정 지도",
-    description: "오늘·이번 주·주말에 열리는 전국 5일장과 전통시장을 지도에서 확인하세요.",
-    url: "/",
-    siteName: "오늘 장날",
-    locale: "ko_KR",
-    type: "website",
-  },
+  // canonical과 og:url은 하위 페이지가 홈 주소를 물려받지 않게 페이지마다 둔다.
+  openGraph: SITE_OPEN_GRAPH,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

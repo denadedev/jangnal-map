@@ -522,7 +522,7 @@ describe("MarketExplorer", () => {
     expect(screen.queryByRole("button", { name: "메뉴 열기" })).not.toBeInTheDocument();
     const tabs = screen.getByRole("navigation", { name: "주요 화면" });
     expect(within(tabs).getByRole("link", { name: "지도" })).toHaveAttribute("aria-current", "page");
-    expect(within(tabs).getByRole("link", { name: "이번 주" })).toHaveAttribute("href", "/this-week");
+    expect(within(tabs).getByRole("link", { name: "마트 전단" })).toHaveAttribute("href", "/this-week");
     expect(within(tabs).getByRole("link", { name: "장 이야기" })).toHaveAttribute("href", "/stories");
     expect(within(tabs).getByRole("link", { name: "더보기" })).toHaveAttribute("href", "/more");
   });

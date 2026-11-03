@@ -32,7 +32,7 @@ export default async function FlyerViewerPage({ params }: Props) {
     <div className={styles.viewer}>
       <header className={styles.source}>
         <h1>
-          <a className={styles.back} href="/this-week" aria-label="이번 주 장보기로"><Icon name="back" /></a>
+          <a className={styles.back} href="/this-week" aria-label="마트 전단으로"><Icon name="back" /></a>
           {name}{flyer ? <> · <span className="jn">{formatFlyerPeriod(flyer.startsOn, flyer.endsOn)}</span></> : null}
         </h1>
         {flyer ? <p className={styles.sub}>{flyer.baseStoreName ? `기준 매장 ${flyer.baseStoreName}` : "전국 공통 전단"} · 점포마다 상품과 가격이 다를 수 있어요</p> : null}
@@ -44,7 +44,7 @@ export default async function FlyerViewerPage({ params }: Props) {
       )}
 
       <footer className={styles.footer}>
-        <a className={styles.secondary} href="/this-week#days">이번 주 장날 보기</a>
+        <a className={styles.secondary} href="/">지도에서 장날 보기</a>
         {highlightSubmissionsEnabled() ? <StoryPickerButton className={styles.primary} source="this_week">다녀온 장 이야기</StoryPickerButton> : null}
       </footer>
     </div>

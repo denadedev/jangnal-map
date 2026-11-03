@@ -1,9 +1,17 @@
+import type { Metadata } from "next";
+
 import { MarketExplorer } from "../components/market-explorer";
 import { loadCatalog } from "../lib/catalog/load";
 import { formatSchedulePattern } from "../lib/market-view";
 import { getMarketPagePath } from "../lib/market-path";
 import { SITE_URL } from "../lib/market-seo";
 import { highlightSubmissionsEnabled } from "../lib/highlight-submission-handler";
+import { SITE_OPEN_GRAPH } from "../lib/site-config";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: { ...SITE_OPEN_GRAPH, url: "/" },
+};
 
 const websiteJsonLd = {
   "@context": "https://schema.org",

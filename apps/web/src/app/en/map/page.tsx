@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { MarketExplorer } from "../../../components/market-explorer";
+import { preloadMapResources } from "../../../lib/map-preload";
 import { loadCatalog } from "../../../lib/catalog/load";
 import { OG_IMAGE } from "../../../lib/site-config";
 
@@ -24,12 +25,14 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function EnglishMarketMapPage() {
+  const mapClientId = process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID ?? "";
+  preloadMapResources(mapClientId);
   const { reviewedMarkets, isMarketIndexable } = await loadCatalog();
   return (
     <div lang="en">
       <MarketExplorer
         locale="en"
-        mapClientId={process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID ?? ""}
+        mapClientId={mapClientId}
         reviewedMarketIds={reviewedMarkets.filter(isMarketIndexable).map((market) => market.id)}
       />
     </div>

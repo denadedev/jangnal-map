@@ -40,6 +40,8 @@ interface MarketExplorerProps {
   reviewedMarketIds?: string[];
   reviewedGuides?: ReviewedMarketGuide[];
   submissionsEnabled?: boolean;
+  /** 서버가 HTML에 넣어 주는 오늘 장. 전국 목록이 오기 전에 "오늘" 지도를 바로 그린다. */
+  todayMarkets?: PublicMarket[];
 }
 
 const validModes = new Set<DateFilterMode>(["all", "today", "weekend"]);
@@ -75,6 +77,7 @@ async function fetchStories(): Promise<MarketHighlight[]> {
 const STORY_LIST_TITLES: Record<DateFilterMode, string> = { today: "오늘 서는 장 이야기", weekend: "이번 주말 장 이야기", all: "방문자 이야기" };
 
 const emptyReviewedMarketIds: string[] = [];
+const emptyMarkets: PublicMarket[] = [];
 const sheetSnaps: SheetSnap[] = ["collapsed", "half", "full"];
 const nextSheetSnap = (snap: SheetSnap, direction: "up" | "down"): SheetSnap => {
   const index = sheetSnaps.indexOf(snap);
@@ -82,7 +85,7 @@ const nextSheetSnap = (snap: SheetSnap, direction: "up" | "down"): SheetSnap => 
 };
 type SelectionOrigin = { id: string; source: "map" | "list" };
 
-function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientId = "", initialState, reviewedMarketIds = emptyReviewedMarketIds, reviewedGuides = [], submissionsEnabled }: MarketExplorerProps) {
+function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientId = "", initialState, reviewedMarketIds = emptyReviewedMarketIds, reviewedGuides = [], submissionsEnabled, todayMarkets }: MarketExplorerProps) {
   const ui = getUiCopy(locale);
   const reviewedMarketIdSet = useMemo(() => new Set(reviewedMarketIds), [reviewedMarketIds]);
   const [today, setToday] = useState(() => providedToday ?? staticRenderDate);
@@ -118,12 +121,17 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   useLayoutEffect(() => {
     if (sheetMode !== "results" && mobileSheetContentRef.current) mobileSheetContentRef.current.scrollTop = 0;
   }, [selectedId, sheetMode]);
-  const { data: markets = [], isPending, isError, refetch } = useQuery({
+  const { data: allMarkets, isPending: allMarketsPending, isError, refetch } = useQuery({
     queryKey: ["public-markets"],
     queryFn: fetchMarkets,
     staleTime: Number.POSITIVE_INFINITY,
     retry: false,
   });
+  // 전국 목록(약 100KB)이 오기 전에는 서버가 넣어 준 오늘 장으로 "오늘" 화면만 먼저 그린다.
+  // 검색·주말·전체·링크 묶음은 전국 목록이 있어야 맞으므로 그때까지 기다린다. 날짜를 알기 전(서버 렌더)에도 기다린다.
+  const showsTodayMarkets = allMarketsPending && Boolean(todayMarkets) && (hasRestoredUrl || Boolean(providedToday)) && mode === "today" && !query.trim() && !marketSet;
+  const markets = allMarkets ?? (showsTodayMarkets && todayMarkets ? todayMarkets : emptyMarkets);
+  const isPending = allMarketsPending && !showsTodayMarkets;
 
   const { data: stories = [] } = useQuery({
     queryKey: ["visitor-stories"],
@@ -210,7 +218,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
   }, [focusResultControl]);
 
   useEffect(() => {
-    if (!isPending && selectedId && !queryMatches.some((market) => market.id === selectedId)) {
+    if (!allMarketsPending && selectedId && !queryMatches.some((market) => market.id === selectedId)) {
       if (locale === "en") {
         const message = "That market is not available with the current filters. Showing the market list instead.";
         setUrlNotice((current) => current.includes(message) ? current : [current, message].filter(Boolean).join(" "));
@@ -221,7 +229,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
       selectedOrigin.current = null;
       returnToSearchRef.current = false;
     }
-  }, [hasRestoredUrl, isPending, locale, queryMatches, selectedId]);
+  }, [allMarketsPending, hasRestoredUrl, locale, queryMatches, selectedId]);
 
   useEffect(() => {
     const clientToday = providedToday ?? getKoreaCalendarDate(new Date());

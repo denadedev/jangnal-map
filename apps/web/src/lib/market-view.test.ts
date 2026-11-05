@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { PublicMarket } from "./market";
-import { filterMarkets, formatDistance, formatMarketTiming, formatMarketType, formatScheduleDates, formatSchedulePattern, getDateRange, sortMarketsByDistance } from "./market-view";
+import { filterMarkets, formatDistance, formatMarketTiming, formatMarketType, formatScheduleDates, formatSchedulePattern, getDateRange, getTodayMarkets, sortMarketsByDistance } from "./market-view";
 
 const market: PublicMarket = {
   id: "market",
@@ -113,5 +113,15 @@ describe("market explorer date semantics", () => {
 
   it("spells out the month for English travelers", () => {
     expect(formatMarketTiming(market, new Date(2026, 8, 8), "en")).toBe("Sep 12");
+  });
+});
+
+describe("getTodayMarkets", () => {
+  it("keeps only markets whose market day is today in Korea, without daily markets", () => {
+    const daily = { ...market, id: "daily", schedule: { kind: "daily" as const } };
+    const other = { ...market, id: "other", schedule: { kind: "digit-pair" as const, days: [3, 8] as [number, number] } };
+    // 2026-11-01 23:30 UTC는 한국 시각 11월 2일 08:30이다.
+    const today = getTodayMarkets([market, daily, other], new Date(Date.UTC(2026, 10, 1, 23, 30)));
+    expect(today.map((entry) => entry.id)).toEqual(["market"]);
   });
 });

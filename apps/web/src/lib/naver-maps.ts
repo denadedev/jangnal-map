@@ -61,6 +61,9 @@ declare global {
   }
 }
 
+export const naverMapsSdkUrl = (clientId: string): string =>
+  `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${encodeURIComponent(clientId)}`;
+
 let sdkPromise: Promise<NaverMapsNamespace> | null = null;
 const sdkLoadTimeoutMs = 10_000;
 
@@ -103,7 +106,7 @@ export function loadNaverMaps(clientId: string): Promise<NaverMapsNamespace> {
     if (!existingScript) {
       script.dataset.naverMaps = "true";
       script.async = true;
-      script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${encodeURIComponent(clientId)}`;
+      script.src = naverMapsSdkUrl(clientId);
       document.head.append(script);
     }
     timeoutId = window.setTimeout(rejectLoad, sdkLoadTimeoutMs);

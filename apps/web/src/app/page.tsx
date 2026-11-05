@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 
 import { MarketExplorer } from "../components/market-explorer";
+import { preloadMapResources } from "../lib/map-preload";
 import { loadCatalog } from "../lib/catalog/load";
-import { formatSchedulePattern } from "../lib/market-view";
+import { formatSchedulePattern, getTodayMarkets } from "../lib/market-view";
 import { getMarketPagePath } from "../lib/market-path";
 import { SITE_URL } from "../lib/market-seo";
 import { highlightSubmissionsEnabled } from "../lib/highlight-submission-handler";
@@ -33,7 +34,9 @@ const featuredMarketIds = new Set([
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const { reviewedMarkets, isMarketIndexable, findMarketEditorial } = await loadCatalog();
+  const mapClientId = process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID ?? "";
+  preloadMapResources(mapClientId);
+  const { markets, reviewedMarkets, isMarketIndexable, findMarketEditorial } = await loadCatalog();
   const indexableReviewedMarkets = reviewedMarkets.filter(isMarketIndexable);
 
   return (
@@ -43,7 +46,8 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c") }}
       />
       <MarketExplorer
-        mapClientId={process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID ?? ""}
+        mapClientId={mapClientId}
+        todayMarkets={getTodayMarkets(markets, new Date())}
         submissionsEnabled={highlightSubmissionsEnabled()}
         reviewedMarketIds={indexableReviewedMarkets.map((market) => market.id)}
         reviewedGuides={indexableReviewedMarkets.map((market) => ({

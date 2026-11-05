@@ -1,4 +1,5 @@
 import type { PublicMarket } from "./market";
+import { getKoreaCalendarDate } from "./korea-date";
 import { getMarketDates, getNextMarketDate, type DateRange } from "./schedule";
 
 import type { DateFilterMode } from "../components/market-filters";
@@ -125,4 +126,9 @@ export function formatKoreanDate(date: Date, locale: Locale = "ko"): string {
 export function getDday(date: Date, from: Date): number {
   const millisecondsPerDay = 24 * 60 * 60 * 1000;
   return Math.round((atStartOfDay(date).getTime() - atStartOfDay(from).getTime()) / millisecondsPerDay);
+}
+
+/** 한국 날짜로 오늘 장이 서는 시장. 지도 첫 화면("오늘", 검색 없음)이 보여 주는 목록과 같다. */
+export function getTodayMarkets(markets: PublicMarket[], now: Date): PublicMarket[] {
+  return filterMarkets(markets, "", getDateRange("today", getKoreaCalendarDate(now)), { includeDaily: false });
 }

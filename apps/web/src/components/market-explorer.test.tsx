@@ -120,6 +120,25 @@ describe("MarketExplorer", () => {
     expect(results).not.toHaveTextContent("0곳");
   });
 
+  it("shows today's markets from the page before the full list arrives", () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+    render(<MarketExplorer today={new Date(2026, 9, 4)} todayMarkets={[markets[0]]} />);
+
+    const results = screen.getByRole("region", { name: "시장 결과" });
+    expect(results).toHaveTextContent("조건에 맞는 시장 1곳");
+    expect(within(results).getByText("운천전통시장")).toBeInTheDocument();
+  });
+
+  it("waits for the full list outside the today view", () => {
+    window.history.replaceState(null, "", "/?when=all");
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+    render(<MarketExplorer today={new Date(2026, 9, 4)} todayMarkets={[markets[0]]} />);
+
+    const results = screen.getByRole("region", { name: "시장 결과" });
+    expect(results).toHaveTextContent("시장 정보를 불러오는 중입니다.");
+    window.history.replaceState(null, "", "/");
+  });
+
   it("does not announce empty results when data loading fails", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
     render(<MarketExplorer today={new Date(2026, 9, 2)} />);

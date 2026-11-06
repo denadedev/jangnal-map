@@ -102,12 +102,11 @@ GitOps의 이미지 SHA를 검증된 이전 값으로 변경한다.
 
 ## 시장 데이터 DB (PostgreSQL, Drizzle)
 
-시장 데이터를 JSON에서 PostgreSQL로 옮기는 중이다. 화면은 `loadCatalog()`(`src/lib/catalog/`)로 시장 데이터 스냅샷을 읽고, 스냅샷의 출처는 환경변수로 고른다.
+화면은 `loadCatalog()`(`src/lib/catalog/`)로 시장 데이터 스냅샷을 PostgreSQL에서 읽는다. `data/markets.json`·`data/market-editorial.json`은 빈 DB 시드, `db:verify`·`db:parity` 비교 기준, 테스트 데이터로만 쓰고 사이트에서 공개하지 않는다.
 
 | 환경변수 | 뜻 |
 |---|---|
-| `CATALOG_SOURCE` | `json`(기본, `public/data` JSON) 또는 `db` |
-| `DATABASE_URL` | `CATALOG_SOURCE=db`일 때 읽을 PostgreSQL. 운영은 DB를 소유한 `jangnal` 계정 하나를 앱과 마이그레이션이 함께 쓴다 |
+| `DATABASE_URL` | 시장 데이터를 읽을 PostgreSQL. 운영은 DB를 소유한 `jangnal` 계정 하나를 앱과 마이그레이션이 함께 쓴다 |
 | `REVALIDATE_TOKEN` | `POST /api/revalidate`의 Bearer 토큰. 없으면 그 엔드포인트는 404 |
 | `SLACK_BOT_TOKEN` | 제보 승인 요청을 보내는 슬랙 봇 토큰 (`chat:write`) |
 | `SLACK_CHANNEL_ID` | 승인 요청을 보낼 채널 id |
@@ -125,7 +124,7 @@ GitOps의 이미지 SHA를 검증된 이전 값으로 변경한다.
 - 스냅샷은 프로세스 메모리에 1시간 둔다(레플리카 1개). 1시간이 지나면 기존 스냅샷으로 응답하면서 뒤에서 다시 읽고, 실패하면 기존 것을 계속 쓴다. 캐시가 빈 상태에서 DB를 못 읽으면 페이지는 500, `/api/health`·`/api/markets`는 503이다.
 - 시장 데이터를 쓰는 페이지는 요청 때 스냅샷으로 그린다. 빌드는 데이터를 읽지 않는다.
 - DB를 고친 뒤 바로 반영: `curl -X POST -H "Authorization: Bearer $REVALIDATE_TOKEN" https://kmarketday.com/api/revalidate`
-- K3s readiness probe는 `GET /api/health`(`{"status":"ok","source":"db","markets":1393}`).
+- K3s readiness probe는 `GET /api/health`(`{"status":"ok","markets":1393}`).
 - 지도는 `GET /api/markets`를 읽는다. 응답 모양은 예전 `/data/markets.json`과 같고 `Cache-Control: public, s-maxage=3600, stale-while-revalidate=86400`이다.
 스키마 설계와 결정 사항은 프로젝트 문서 `2026-10-21-db-schema-draft.md`, 이전 계획은 `2026-10-21-prd-db-migration.md`를 따른다.
 
@@ -133,15 +132,15 @@ GitOps의 이미지 SHA를 검증된 이전 값으로 변경한다.
 cd apps/web
 export DATABASE_URL=postgres://<user>:<password>@<host>:5432/<db>
 pnpm db:migrate   # drizzle/ 마이그레이션 적용 (테이블 + comment)
-pnpm db:seed      # 빈 DB에 public/data JSON을 넣는다. 검사 실패나 기존 데이터가 있으면 아무것도 넣지 않는다
+pnpm db:seed      # 빈 DB에 data/ JSON을 넣는다. 검사 실패나 기존 데이터가 있으면 아무것도 넣지 않는다
 pnpm db:verify    # 행 수가 JSON과 같은지, uuid 단일 PK·comment·트리거/enum/배열 없음 규칙을 지키는지 확인
 pnpm db:parity    # 화면이 읽는 DB 스냅샷이 JSON 스냅샷과 같은지 확인 (합쳐진 출처 이름은 DB 쪽에 맞춰 비교)
 
 # 두 배포가 같은 내용을 내는지 비교 (사이트맵의 모든 페이지 글자 + 시장 목록)
-node scripts/compare-sites.mjs https://<JSON 모드 배포> https://<DB 모드 배포>
+node scripts/compare-sites.mjs https://<기준 배포> https://<비교할 배포>
 ```
 
-- 운영 배포에서는 GitOps의 PreSync Job(`migrate-job.yaml`)이 같은 이미지로 `node apps/web/migrate.mjs`를 실행해 마이그레이션을 적용하고, DB가 비어 있으면 `public/data` JSON 시드도 넣는다(데이터가 있으면 건너뜀). Job은 앱과 같은 `jangnal-web-env` Secret의 `DATABASE_URL`을 읽는다. 실패하면 Argo CD 동기화가 멈추고 기존 Pod가 계속 응답한다.
+- 운영 배포에서는 GitOps의 PreSync Job(`migrate-job.yaml`)이 같은 이미지로 `node apps/web/migrate.mjs`를 실행해 마이그레이션을 적용하고, DB가 비어 있으면 `data/` JSON 시드도 넣는다(이미지에 번들된 것)(데이터가 있으면 건너뜀). Job은 앱과 같은 `jangnal-web-env` Secret의 `DATABASE_URL`을 읽는다. 실패하면 Argo CD 동기화가 멈추고 기존 Pod가 계속 응답한다.
 - 스키마는 `src/db/schema.ts`, 코드값과 화면 이름은 `src/db/codes.ts`에서 관리한다. DB에는 enum 대신 코드값 text를 저장한다.
 - `updated_at`은 DB 트리거 없이 Drizzle `$onUpdate`가 갱신한다. 그래서 DB 수정은 모두 Drizzle을 거친다.
 - 스키마를 바꾸면 `pnpm db:generate`로 마이그레이션을 만들고, 새 테이블·컬럼의 comment는 SQL 마이그레이션에 함께 넣는다.

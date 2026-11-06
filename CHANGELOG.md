@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.21.4] - 2026-11-06
+
+### Removed
+
+- 시장 데이터를 JSON에서 읽는 모드(`CATALOG_SOURCE=json`)를 없앴다. 화면과 API는 PostgreSQL에서만 읽는다(운영은 이미 `db`였다). `/api/health` 응답에서 `source`도 뺐다.
+- `/data/markets.json`(1.4MB)과 `/data/market-editorial.json`을 더 이상 공개 주소로 내보내지 않는다. 두 파일은 `apps/web/data/`로 옮겨 빈 DB 시드, `db:verify`·`db:parity` 비교 기준, 테스트 데이터로만 쓴다. 스레드 자동 게시(n8n)는 2026-11-06부터 `/api/markets`를 읽는다.
+
 ## [0.4.21.3] - 2026-11-05
 
 ### Changed

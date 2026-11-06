@@ -1,4 +1,4 @@
-import marketData from "../../public/data/markets.json";
+import marketData from "../../data/markets.json";
 
 import type { PublicMarket } from "./market";
 

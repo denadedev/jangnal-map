@@ -3,7 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CatalogSnapshot } from "./catalog";
 
 const snapshots = vi.hoisted(() => ({ next: [] as (() => CatalogSnapshot)[] }));
-vi.mock("./json-source", () => ({ loadJsonSnapshot: () => snapshots.next.shift()!() }));
+vi.unmock("./load");
+vi.mock("../../db/client", () => ({ sharedDb: () => ({}) }));
+vi.mock("../../db/snapshot", () => ({ readDbSnapshot: async () => snapshots.next.shift()!() }));
 
 const snapshot = (count: number): CatalogSnapshot => ({
   markets: Array.from({ length: count }, (_, index) => ({ id: `m${index}`, name: `시장${index}` }) as CatalogSnapshot["markets"][number]),

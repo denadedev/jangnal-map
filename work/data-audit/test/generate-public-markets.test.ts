@@ -25,7 +25,7 @@ describe("generatePublicMarkets", () => {
       scheduleSource: { name: "제주관광공사 비짓제주 서귀포향토오일시장", url: "https://www.visitjeju.net/kr/detail/view?contentsid=CONT_000000000500732", checkedAt: "2026-10-02" },
     };
     expect(corrected).toMatchObject(expected);
-    const artifact = JSON.parse(await readFile("../../apps/web/public/data/markets.json", "utf8"));
+    const artifact = JSON.parse(await readFile("../../apps/web/data/markets.json", "utf8"));
     expect(artifact.find((market: { id: string }) => market.id === corrected.id)).toMatchObject(expected);
   });
 
@@ -48,7 +48,7 @@ describe("generatePublicMarkets", () => {
       scheduleSource: { name: "제주관광공사 비짓제주 대정오일시장", url: "https://www.visitjeju.net/kr/detail/view?contentsid=CNTS_200000000012266", checkedAt: "2026-10-11" },
     };
     expect(corrected).toMatchObject(expected);
-    const artifact = JSON.parse(await readFile("../../apps/web/public/data/markets.json", "utf8"));
+    const artifact = JSON.parse(await readFile("../../apps/web/data/markets.json", "utf8"));
     expect(artifact.find((market: { id: string }) => market.id === corrected.id)).toMatchObject(expected);
   });
 
@@ -127,7 +127,7 @@ describe("generatePublicMarkets", () => {
   });
 
   it("커밋된 공개 산출물이 게시 계약을 만족한다", async () => {
-    const artifact = JSON.parse(await readFile("../../apps/web/public/data/markets.json", "utf8")) as Array<{
+    const artifact = JSON.parse(await readFile("../../apps/web/data/markets.json", "utf8")) as Array<{
       id: string;
       latitude: number | null;
       longitude: number | null;

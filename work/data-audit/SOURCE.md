@@ -22,5 +22,5 @@
 최신 CSV를 `/tmp/onnuri-merchants-20250731.csv`에 받은 뒤 다음 명령으로 공개 시장 데이터와 품질 보고서를 갱신한다.
 
 ```bash
-pnpm enrich:onnuri -- --markets ../../apps/web/public/data/markets.json --onnuri /tmp/onnuri-merchants-20250731.csv --onnuri-encoding utf8 --onnuri-reference-date 2025-07-31 --overrides data/onnuri-market-overrides.json --output ../../apps/web/public/data/markets.json --report ../../outputs/온누리상품권-매칭-결과.md
+pnpm enrich:onnuri -- --markets ../../apps/web/data/markets.json --onnuri /tmp/onnuri-merchants-20250731.csv --onnuri-encoding utf8 --onnuri-reference-date 2025-07-31 --overrides data/onnuri-market-overrides.json --output ../../apps/web/data/markets.json --report ../../outputs/온누리상품권-매칭-결과.md
 ```

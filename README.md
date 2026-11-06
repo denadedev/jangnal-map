@@ -10,7 +10,7 @@ NAVER Maps 키가 없거나 지도 SDK를 불러오지 못해도 시장 목록, 
 |---|---|
 | 화면 | Next.js 16(App Router), React 19, Tailwind CSS 4, TanStack Query |
 | 지도 | NAVER Maps Web Dynamic Map (선택) |
-| 데이터 | 운영은 PostgreSQL + Drizzle ORM, 로컬 기본값은 `public/data` JSON |
+| 데이터 | PostgreSQL + Drizzle ORM |
 | 제보 | 장 정보 제보는 DB 저장 + 슬랙 승인, 정보 수정·불편 신고는 Gmail SMTP 메일 |
 | 테스트 | Vitest + Testing Library, Playwright(e2e) |
 | 배포 | GitHub Actions → Harbor → GitOps(`denadedev/gitops`) → Argo CD → K3s |
@@ -25,7 +25,7 @@ apps/web/            Next.js 앱 (화면, API, DB 스키마·마이그레이션)
   src/lib/           장날 계산, 카탈로그 로딩, 제보·슬랙·SEO 로직
   src/db/            Drizzle 스키마, 코드값, 시드·검증 CLI
   drizzle/           SQL 마이그레이션
-  public/data/       시장 데이터 JSON (DB 시드 원본, 로컬 기본 출처)
+  data/              시장 데이터 JSON (빈 DB 시드·테스트용, 공개하지 않음)
   e2e/               Playwright 테스트
 work/data-audit/     원본 CSV → 공개용 JSON 생성·온누리 매칭 도구
 scripts/             CI가 쓰는 GitOps 갱신·Release 생성 스크립트
@@ -44,7 +44,7 @@ cp apps/web/.env.example apps/web/.env.local   # 필요한 값만 채웁니다
 pnpm --filter @jangnal-map/web dev
 ```
 
-환경변수를 하나도 넣지 않아도 `public/data` JSON으로 홈, 지도 목록, 상세, 지역 페이지를 볼 수 있습니다. 지도, 메일 제보, 장 정보 제보는 아래 환경변수가 있을 때만 켜집니다.
+화면을 보려면 시드한 PostgreSQL의 `DATABASE_URL`이 있어야 합니다(아래 '시장 데이터' 참고). 지도, 메일 제보, 장 정보 제보는 아래 환경변수가 있을 때만 켜집니다.
 
 프로덕션 빌드와 로컬 프로덕션 서버는 다음과 같습니다. 포트를 바꿀 때는 `apps/web`에서 `pnpm exec next start -p 3030`처럼 실행합니다.
 
@@ -60,8 +60,7 @@ pnpm --filter @jangnal-map/web start
 | 이름 | 쓰임 | 없을 때 |
 |---|---|---|
 | `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` | 지도 표시. 빌드 때 들어가는 공개 값 | 지도 자리에 목록 안내가 나옵니다 |
-| `CATALOG_SOURCE` | 시장 데이터 출처. `json`(기본) 또는 `db`. 운영은 `db` | JSON을 읽습니다 |
-| `DATABASE_URL` | PostgreSQL 접속 주소 | DB 모드와 장 정보 제보가 꺼집니다 |
+| `DATABASE_URL` | PostgreSQL 접속 주소. 시장 데이터를 여기서 읽습니다 | 시장 데이터를 못 읽어 페이지가 500, `/api/health`가 503입니다 |
 | `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID` | 장 정보 제보 승인 요청을 슬랙으로 보냅니다 | 장 정보 제보 버튼이 숨습니다 |
 | `SLACK_SIGNING_SECRET`, `SLACK_APPROVER_IDS` | 슬랙 승인·반려·삭제 버튼 서명 검증과 승인자 목록 | 승인 처리를 할 수 없습니다 |
 | `SMTP_USER`, `SMTP_PASS` | `/report` 메일 전송 (Gmail 앱 비밀번호) | `/report` 제출이 꺼집니다 |
@@ -73,7 +72,7 @@ pnpm --filter @jangnal-map/web start
 
 ## 시장 데이터
 
-시장 데이터는 공공 원본 CSV에서 만든 `apps/web/public/data/markets.json`과 편집 정보 `market-editorial.json`에서 시작합니다. 운영에서는 이 JSON을 PostgreSQL에 시드한 뒤 DB를 읽습니다. 화면은 `loadCatalog()`(`apps/web/src/lib/catalog/`)로 스냅샷을 읽고, 스냅샷은 프로세스 메모리에 1시간 둡니다.
+시장 데이터는 PostgreSQL에서만 읽습니다. 공공 원본 CSV에서 만든 `apps/web/data/markets.json`과 편집 정보 `market-editorial.json`은 빈 DB에 처음 넣는 시드와 테스트 데이터로만 쓰고, 사이트에서 공개하지 않습니다. 화면은 `loadCatalog()`(`apps/web/src/lib/catalog/`)로 스냅샷을 읽고, 스냅샷은 프로세스 메모리에 1시간 둡니다.
 
 원본 CSV에서 JSON을 다시 만들 때는 다음 명령을 씁니다. `--encoding`은 원본에 맞춰 `utf8` 또는 `euc-kr`로 지정합니다. 좌표가 없는 시장은 목록과 상세에만 나오고 지도에는 표시되지 않으며, 일정은 `daily`, `digit-pair`, `unknown`으로 나뉩니다.
 
@@ -81,10 +80,10 @@ pnpm --filter @jangnal-map/web start
 pnpm --filter jangnal-market-data-audit generate -- \
   --input data/raw/markets.csv \
   --encoding euc-kr \
-  --output ../../apps/web/public/data/markets.json
+  --output ../../apps/web/data/markets.json
 ```
 
-로컬에서 DB 모드를 쓰려면 PostgreSQL 16을 띄우고 `apps/web`에서 실행합니다.
+로컬에서도 PostgreSQL 16을 띄우고 `apps/web`에서 실행합니다.
 
 ```bash
 export DATABASE_URL=postgres://<user>:<password>@localhost:5432/<db>
@@ -92,7 +91,7 @@ pnpm db:migrate   # 마이그레이션 적용
 pnpm db:seed      # 빈 DB에 JSON 시드
 pnpm db:verify    # 행 수와 스키마 규칙 확인
 pnpm db:parity    # DB 스냅샷이 JSON 스냅샷과 같은지 확인
-CATALOG_SOURCE=db pnpm dev
+pnpm dev
 ```
 
 스키마는 `src/db/schema.ts`, 코드값과 화면 이름은 `src/db/codes.ts`에 있습니다. 스키마를 바꾸면 `pnpm db:generate`로 마이그레이션을 만들고 새 테이블·컬럼의 comment를 SQL에 함께 넣습니다. 운영 DB 마이그레이션은 GitOps의 PreSync Job이 배포 때 실행합니다.

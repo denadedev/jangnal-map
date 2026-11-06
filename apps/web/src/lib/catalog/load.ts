@@ -1,15 +1,10 @@
 import { createCatalog, type Catalog, type CatalogSnapshot } from "./catalog";
-import { loadJsonSnapshot } from "./json-source";
 
 // 레플리카가 1개라 프로세스 메모리 캐시로 충분하다. 데이터를 고친 뒤에는 /api/revalidate로 바로 다시 읽는다.
 const TTL_MS = 60 * 60 * 1000;
 
-export type CatalogSource = "json" | "db";
-
-export const catalogSource = (): CatalogSource => (process.env.CATALOG_SOURCE === "db" ? "db" : "json");
-
+// 시장 데이터는 DB에서만 읽는다. data/*.json은 빈 DB 시드와 테스트에만 쓴다.
 async function readSnapshot(): Promise<CatalogSnapshot> {
-  if (catalogSource() === "json") return loadJsonSnapshot();
   const [{ sharedDb }, { readDbSnapshot }] = await Promise.all([import("../../db/client"), import("../../db/snapshot")]);
   return readDbSnapshot(sharedDb());
 }

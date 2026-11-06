@@ -1,4 +1,4 @@
-import { catalogSource, loadCatalog } from "../../../lib/catalog/load";
+import { loadCatalog } from "../../../lib/catalog/load";
 
 export const dynamic = "force-dynamic";
 
@@ -6,9 +6,9 @@ export const dynamic = "force-dynamic";
 export async function GET(): Promise<Response> {
   try {
     const { markets } = await loadCatalog();
-    return Response.json({ status: "ok", source: catalogSource(), markets: markets.length }, { headers: { "Cache-Control": "no-store" } });
+    return Response.json({ status: "ok", markets: markets.length }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Health check failed", error);
-    return Response.json({ status: "unavailable", source: catalogSource() }, { status: 503, headers: { "Cache-Control": "no-store" } });
+    return Response.json({ status: "unavailable" }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
 }

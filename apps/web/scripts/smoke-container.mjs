@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 
 // Run only against the local test container with synthetic runtime SMTP values.
 const base = process.argv[2] || "http://127.0.0.1:3100";
-const expectedSource = process.argv[3] || "json";
 const expectedEmail = "runtime-smoke@example.invalid";
 async function get(path, status = 200) {
   const response = await fetch(new URL(path, base), { signal: AbortSignal.timeout(15000) });
@@ -27,7 +26,7 @@ await get("/onnuri");
 await get("/robots.txt");
 await get("/manifest.webmanifest");
 const health = JSON.parse(await get("/api/health"));
-assert.equal(health.source, expectedSource, "/api/health must report the configured catalog source");
+assert.equal(health.status, "ok", "/api/health must read the catalog");
 const marketsResponse = await fetch(new URL("/api/markets", base), { signal: AbortSignal.timeout(15000) });
 assert.equal(marketsResponse.status, 200, "/api/markets");
 assert.match(marketsResponse.headers.get("cache-control") ?? "", /s-maxage=3600/);
@@ -53,4 +52,4 @@ const accepted = await fetch(new URL("/api/report", base), {
   signal: AbortSignal.timeout(15000),
 });
 assert.equal(accepted.status, 200, "configured external Origin must pass behind port mapping");
-console.log(`PASS (${expectedSource}): runtime email, pages, market detail, metadata, market API, health, assets, 404 and API origin rejection`);
+console.log(`PASS: runtime email, pages, market detail, metadata, market API, health, assets, 404 and API origin rejection`);

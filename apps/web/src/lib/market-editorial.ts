@@ -1,4 +1,4 @@
-import editorialData from "../../public/data/market-editorial.json";
+import editorialData from "../../data/market-editorial.json";
 
 import type { PublicMarket } from "./market";
 

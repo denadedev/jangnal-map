@@ -179,6 +179,49 @@ export function MarketMap({ locale = "ko", overlay, fitMarkets, markets, storyMa
     setShowSearchRestore(false);
   };
 
+  /** 지도에 현재 위치 점을 찍고, 목록이 거리순으로 정렬되게 부모에 알린다. */
+  const showCurrentLocation = (currentLocation: Coordinates): NaverLatLng | null => {
+    if (!mapRef.current || !window.naver?.maps) return null;
+    const naver = window.naver;
+    const position = new naver.maps.LatLng(currentLocation.latitude, currentLocation.longitude);
+    locationMarkerRef.current?.setMap(null);
+    locationMarkerRef.current = new naver.maps.Marker({
+      map: mapRef.current,
+      position,
+      title: ui.currentLocation,
+      zIndex: 30,
+      icon: {
+        content: `<span class="current-location-marker" aria-label="${escapeHtml(ui.currentLocation)}"><i></i></span>`,
+        anchor: new naver.maps.Point(12, 12),
+      },
+    });
+    onLocationChange(currentLocation);
+    return position;
+  };
+
+  // 이미 위치 권한을 준 사람은 버튼을 누르지 않아도 목록을 가까운 순으로 보여 준다.
+  // 권한을 아직 묻지 않은 사람에게는 팝업을 띄우지 않고, 지도 화면도 옮기지 않는다.
+  useEffect(() => {
+    if (status !== "ready") return;
+    if (!navigator.geolocation || !navigator.permissions?.query) return;
+    let cancelled = false;
+    navigator.permissions.query({ name: "geolocation" })
+      .then((permission) => {
+        if (cancelled || permission.state !== "granted") return;
+        navigator.geolocation.getCurrentPosition(
+          ({ coords }) => {
+            if (!cancelled) showCurrentLocation({ latitude: coords.latitude, longitude: coords.longitude });
+          },
+          () => undefined,
+          { enableHighAccuracy: false, timeout: 10_000, maximumAge: 300_000 },
+        );
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [status]);
+
   const moveToCurrentLocation = () => {
     if (status !== "ready" || !mapRef.current || !window.naver?.maps) return;
     if (cameraSnapshotRef.current) cameraSnapshotRef.current.shouldRestore = false;
@@ -192,23 +235,9 @@ export function MarketMap({ locale = "ko", overlay, fitMarkets, markets, storyMa
     setLocationMessage(ui.locating);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        if (!mapRef.current || !window.naver?.maps) return;
-        const currentLocation = { latitude: coords.latitude, longitude: coords.longitude };
-        const naver = window.naver;
-        const position = new naver.maps.LatLng(currentLocation.latitude, currentLocation.longitude);
-        locationMarkerRef.current?.setMap(null);
-        locationMarkerRef.current = new naver.maps.Marker({
-          map: mapRef.current,
-          position,
-          title: ui.currentLocation,
-          zIndex: 30,
-          icon: {
-            content: `<span class="current-location-marker" aria-label="${escapeHtml(ui.currentLocation)}"><i></i></span>`,
-            anchor: new naver.maps.Point(12, 12),
-          },
-        });
-        mapRef.current.morph(position, 14);
-        onLocationChange(currentLocation);
+        const position = showCurrentLocation({ latitude: coords.latitude, longitude: coords.longitude });
+        if (!position) return;
+        mapRef.current!.morph(position, 14);
         setLocationStatus("success");
         setLocationMessage(ui.located);
       },

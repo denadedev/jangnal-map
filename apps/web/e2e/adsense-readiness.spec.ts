@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("jumps from the home shortcut to visit guides after market loading", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".market-list a").first()).toBeVisible();
-  await page.getByRole("link", { name: "시장별 방문 정보", exact: true }).click();
+  await page.getByRole("link", { name: "다녀오기 전 읽을거리", exact: true }).click();
   await expect(page.getByRole("heading", { name: "시장별 방문 정보" })).toBeInViewport();
 });
 

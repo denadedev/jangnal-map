@@ -300,10 +300,11 @@ export function MenuSubmissionFlow({ markets, today, currentLocation, source = "
 
 function MarketPicker({ markets, todayMarkets, suggestedLabel = "오늘 열린 장", onPick, onClose }: { markets: PublicMarket[]; todayMarkets: PublicMarket[]; suggestedLabel?: string; onPick: (market: PublicMarket) => void; onClose: () => void }) {
   const [query, setQuery] = useState("");
-  const searchRef = useRef<HTMLInputElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const titleId = useId();
   const searchId = useId();
-  useEffect(() => { searchRef.current?.focus(); }, []);
+  // 검색창에 바로 포커스를 주면 휴대폰 키보드가 올라와 목록을 가린다. 제목에 포커스를 두고 검색은 누를 때 연다.
+  useEffect(() => { titleRef.current?.focus(); }, []);
 
   // 검색어가 없으면 오늘 열린 장만, 있으면 전국 시장에서 찾되 오늘 열린 장을 먼저 둔다.
   const keyword = query.trim();
@@ -317,13 +318,13 @@ function MarketPicker({ markets, todayMarkets, suggestedLabel = "오늘 열린 �
     <SheetOverlay labelledBy={titleId} onClose={onClose} className={styles.pickerSheet}>
       <div className={styles.sheetHead}>
         <div>
-          <h2 id={titleId}>어느 장이었나요?</h2>
+          <h2 ref={titleRef} id={titleId} tabIndex={-1}>어느 장이었나요?</h2>
           <span className={styles.market}>{todayMarkets.length > 0 ? `${suggestedLabel} ${todayMarkets.length}곳 · 다른 장은 검색해 주세요` : "시장 이름이나 지역으로 찾아 주세요"}</span>
         </div>
         <button type="button" className={styles.iconButton} aria-label="닫기" onClick={onClose}><Icon name="close" /></button>
       </div>
       <label className={styles.visuallyHidden} htmlFor={searchId}>시장명 또는 지역 검색</label>
-      <input ref={searchRef} id={searchId} className={`${styles.input} ${styles.pickerSearch}`} type="search" placeholder="시장명 또는 지역 검색" value={query} onChange={(event) => setQuery(event.target.value)} />
+      <input id={searchId} className={`${styles.input} ${styles.pickerSearch}`} type="search" placeholder="시장명 또는 지역 검색" value={query} onChange={(event) => setQuery(event.target.value)} />
       {matches.length === 0 ? (keyword ? <p className={styles.pickerEmpty}>찾는 시장이 없어요.</p> : null) : (
         <ul className={styles.pickerList}>
           {matches.slice(0, PICKER_LIMIT).map((market) => {

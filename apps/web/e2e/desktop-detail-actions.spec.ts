@@ -22,7 +22,7 @@ test("keeps mobile detail actions inside the desktop column", async ({ page }) =
   await page.locator(".mobile-market-results .market-list-item").first().click();
 
   const detail = page.locator(".mobile-market-sheet.is-detail");
-  const directions = detail.getByRole("button", { name: "길찾기 선택" });
+  const directions = detail.getByRole("button", { name: "길찾기", exact: true });
   const share = detail.getByRole("button", { name: "공유하기" });
   await expect(directions).toBeVisible();
   await expect(share).toBeVisible();

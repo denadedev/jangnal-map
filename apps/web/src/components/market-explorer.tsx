@@ -608,7 +608,7 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
             const heading = document.getElementById("reviewed-market-guides-heading");
             heading?.scrollIntoView({ block: "start" });
             heading?.focus({ preventScroll: true });
-          }}>시장별 방문 정보</a> : null}
+          }}>다녀오기 전 읽을거리</a> : null}
           <noscript><p>{locale === "en" ? "Enable JavaScript to use the map and date filters. Market guides remain available through the links below." : "지도와 날짜 검색은 자바스크립트가 필요합니다. 아래 시장별 방문 안내는 바로 읽을 수 있습니다."}</p></noscript>
         </div>
         {submissionsEnabled && locale === "ko" && dateReady && !isPending && !isError ? (
@@ -626,7 +626,8 @@ function MarketExplorerContent({ locale = "ko", today: providedToday, mapClientI
         <section className="mobile-market-results" aria-label={locale === "en" ? "Market results" : "시장 결과"} data-map-status={mapStatus}>
           {!isPending && !isError && dateReady ? <div className="mobile-results-heading">
             <h2>{locale === "en" ? `${filteredMarkets.length} markets for these dates` : `조건에 맞는 시장 ${filteredMarkets.length}곳`}</h2>
-            <span>{query ? locale === "en" ? `Search: “${query}”` : `“${query}” 검색` : locale === "en" ? `${displayedMarkets.length} results` : `시장 ${displayedMarkets.length}곳`}</span>
+            {/* 검색어가 없으면 제목과 같은 숫자라 다시 적지 않는다. */}
+            {query ? <span>{locale === "en" ? `Search: “${query}”` : `“${query}” 검색`}</span> : null}
           </div> : null}
           {marketListContent}
           {reviewedGuides.length > 0 ? <ReviewedMarketGuides guides={reviewedGuides} /> : null}

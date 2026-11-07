@@ -480,6 +480,16 @@ a { color: inherit; text-decoration: none; }
 .detail-pattern .jn { color: var(--accent); font-size: 56px; }
 .detail-pattern span { display: grid; gap: 2px; font-size: 18px; font-weight: 600; line-height: 1.4; }
 .detail-pattern small { color: var(--muted); font-size: 15px; font-weight: 400; }
+/* 모바일 상세: 장날 규칙과 다음 장날을 한 카드로 (2026-11-07 Open Design 시안 "시장 상세 첫 화면 정리") */
+.detail-day-card { display: flex; align-items: center; gap: 16px; margin-top: 20px; border-radius: var(--r-m); padding: 16px 20px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.detail-day-card > .jn { flex: none; color: var(--accent); font-size: 44px; line-height: 1; }
+.detail-day-card > div { min-width: 0; }
+.detail-day-rule { display: block; font-size: 15px; font-weight: 500; line-height: 22px; }
+.detail-day-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 4px 0 0; }
+.detail-day-line > span:first-child { color: var(--muted); font-size: 13px; }
+.detail-day-line strong { font-size: 18px; font-weight: 800; line-height: 26px; white-space: nowrap; }
+.detail-day-badge { display: inline-flex; align-items: center; height: 24px; border-radius: 6px; padding: 0 8px; box-shadow: inset 0 0 0 1.5px var(--accent); color: var(--accent); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.detail-day-badge.is-today { background: var(--accent); color: var(--surface); }
 .next-date-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 24px 0 0; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); padding: 17px 0; }
 .next-date-card p { margin: 0 0 5px; color: var(--muted); font-size: 15px; font-weight: 700; }
 .next-date-card strong { display: block; font-size: 20px; letter-spacing: -0.01em; }

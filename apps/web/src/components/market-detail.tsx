@@ -54,6 +54,7 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
   const address = market.roadAddress ?? market.lotAddress ?? ui.addressMissing;
   const marketTypeLabel = formatMarketType(market.marketType, locale);
   const hasCoordinates = market.latitude !== null && market.longitude !== null;
+  const compactSchedule = mobile && locale === "ko";
   const timingTitle = market.schedule.kind === "digit-pair" ? ui.nextMarketDay : ui.scheduleLabel;
   const timingText = market.schedule.kind === "daily"
     ? ui.dailySchedule
@@ -87,29 +88,46 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
         <span lang={market.roadAddress || market.lotAddress ? "ko" : undefined}>{address}</span>
       </header>
 
-      {market.schedule.kind === "digit-pair" ? (
-        <div className="detail-pattern">
+      {compactSchedule && market.schedule.kind === "digit-pair" ? (
+        // 모바일 한국어 상세: 장날 규칙·다음 장날을 한 카드로 줄여, 아래 "알려 주기" 칩이 첫 화면에 들어오게 한다.
+        <section className="detail-day-card" aria-labelledby="next-market-date">
           <b className="jn" aria-hidden="true">{formatPatternDigits(market)}</b>
-          <span>
-            <small>{locale === "en" ? "Market-day rule" : "장날 규칙"}</small>
-            {locale === "en"
-              ? `Dates ending in ${market.schedule.days[0]} and ${market.schedule.days[1]}`
-              : `날짜 끝자리가 ${market.schedule.days[0]}, ${market.schedule.days[1]}인 날`}
-          </span>
-        </div>
-      ) : null}
+          <div>
+            <span className="detail-day-rule">날짜 끝자리가 {market.schedule.days[0]}, {market.schedule.days[1]}인 날</span>
+            <p className="detail-day-line">
+              <span id="next-market-date">다음 장날</span>
+              <strong>{nextDate ? new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" }).format(nextDate).replace(/[()]/g, "") : ui.scheduleUnconfirmed}</strong>
+              {dday === null ? null : <span className={dday === 0 ? "detail-day-badge is-today" : "detail-day-badge"}>{dday === 0 ? "오늘" : `D-${dday}`}</span>}
+            </p>
+          </div>
+        </section>
+      ) : (
+        <>
+        {market.schedule.kind === "digit-pair" ? (
+          <div className="detail-pattern">
+            <b className="jn" aria-hidden="true">{formatPatternDigits(market)}</b>
+            <span>
+              <small>{locale === "en" ? "Market-day rule" : "장날 규칙"}</small>
+              {locale === "en"
+                ? `Dates ending in ${market.schedule.days[0]} and ${market.schedule.days[1]}`
+                : `날짜 끝자리가 ${market.schedule.days[0]}, ${market.schedule.days[1]}인 날`}
+            </span>
+          </div>
+        ) : null}
 
-      <section className="next-date-card" aria-labelledby="next-market-date">
-        <div>
-          <p id="next-market-date">{market.schedule.kind === "digit-pair" ? locale === "en" ? "Next market day from today" : "오늘 기준 다음 장날" : timingTitle}</p>
-          <strong>{mobile && locale === "ko" && nextDate && market.schedule.kind === "digit-pair"
-            ? new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "short" }).format(nextDate)
-            : timingText}</strong>
-        </div>
-        {mobile && market.schedule.kind === "digit-pair" ? <span className="mobile-timing-pattern">{formatSchedulePattern(market, locale)}</span> : timingBadge ? <span className="dday">{timingBadge}</span> : null}
-      </section>
-      {market.schedule.kind === "daily" ? <p className="next-date-reference">{locale === "en" ? "Public data lists a daily schedule. Check individual stall opening days and regular market closures before visiting." : "공공데이터에 등록된 상설 일정입니다. 점포별 영업일과 정기휴무는 방문 전 확인하세요."}</p> : null}
-      {market.schedule.kind === "digit-pair" ? <p className="next-date-reference">{locale === "en" ? `From today (${formatKoreanDate(today, locale)}).` : `오늘 ${formatKoreanDate(today)} 기준이에요.`}</p> : null}
+        <section className="next-date-card" aria-labelledby="next-market-date">
+          <div>
+            <p id="next-market-date">{market.schedule.kind === "digit-pair" ? locale === "en" ? "Next market day from today" : "오늘 기준 다음 장날" : timingTitle}</p>
+            <strong>{mobile && locale === "ko" && nextDate && market.schedule.kind === "digit-pair"
+              ? new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "short" }).format(nextDate)
+              : timingText}</strong>
+          </div>
+          {mobile && market.schedule.kind === "digit-pair" ? <span className="mobile-timing-pattern">{formatSchedulePattern(market, locale)}</span> : timingBadge ? <span className="dday">{timingBadge}</span> : null}
+        </section>
+        {market.schedule.kind === "daily" ? <p className="next-date-reference">{locale === "en" ? "Public data lists a daily schedule. Check individual stall opening days and regular market closures before visiting." : "공공데이터에 등록된 상설 일정입니다. 점포별 영업일과 정기휴무는 방문 전 확인하세요."}</p> : null}
+        {market.schedule.kind === "digit-pair" ? <p className="next-date-reference">{locale === "en" ? `From today (${formatKoreanDate(today, locale)}).` : `오늘 ${formatKoreanDate(today)} 기준이에요.`}</p> : null}
+        </>
+      )}
 
       {locale === "ko" ? (
         <div className="detail-section">
@@ -163,7 +181,7 @@ export function MarketDetail({ locale = "ko", mobile = false, market, detailPath
           {!hasCoordinates ? <div><dt>{ui.map}</dt><dd>{ui.locationMissing}</dd></div> : null}
         </dl>
         <div className={`detail-actions ${hasCoordinates ? "" : "share-only"}`.trim()}>
-          {hasCoordinates ? <MarketDirectionsMenu market={market} locale={locale} className="primary-button" mobilePrimary={mobile} label={mobile ? locale === "en" ? "Choose directions" : "길찾기 선택" : undefined} /> : null}
+          {hasCoordinates ? <MarketDirectionsMenu market={market} locale={locale} className="primary-button" mobilePrimary={mobile} label={mobile ? locale === "en" ? "Choose directions" : "길찾기" : undefined} /> : null}
           {!mobile || !hasCoordinates ? <MarketShareButton locale={locale} market={market} sharePath={sharePath} today={today} className="market-action-secondary" /> : null}
         </div>
         {mobile && hasCoordinates ? <div className="mobile-share-action"><MarketShareButton locale={locale} market={market} sharePath={sharePath} today={today} className="market-action-secondary" /></div> : null}

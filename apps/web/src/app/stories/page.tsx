@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { preload } from "react-dom";
 
 import { formatPatternDigits } from "../../components/jangnal-number";
 import { MapLinkButton } from "../../components/map-link-button";
@@ -28,6 +29,10 @@ const STORY_LIMIT = 50;
 export default async function StoriesPage() {
   const now = new Date();
   const catalog = await loadCatalog();
+  const submissionsEnabled = highlightSubmissionsEnabled();
+  // 이 탭의 주 버튼(들려주기)이 누르면 전국 목록을 쓴다. 화면을 여는 동안 미리 받아 둔다.
+  // 클라이언트의 fetch("/api/markets")와 같은 모드여야 미리 받은 응답을 재사용한다.
+  if (submissionsEnabled) preload("/api/markets", { as: "fetch", crossOrigin: "anonymous" });
   const stories = catalog.recentHighlights().flatMap((highlight) => {
     const market = catalog.findMarketById(highlight.marketId);
     return market ? [{ highlight, market }] : [];
@@ -38,7 +43,7 @@ export default async function StoriesPage() {
       <main className={styles.main}>
         <h1 className="tab-page-title">장 이야기</h1>
         <p className="tab-page-desc">다녀온 분들이 들려준 장 이야기예요</p>
-        {highlightSubmissionsEnabled() ? (
+        {submissionsEnabled ? (
           <div className={styles.cta}><StoryPickerButton className={styles.primary} source="stories_tab" /></div>
         ) : null}
         {stories.length === 0 ? <p className={styles.empty}>아직 들려준 이야기가 없어요.</p> : (

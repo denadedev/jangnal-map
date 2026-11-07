@@ -79,6 +79,20 @@ describe("MarketDetail", () => {
     expect(screen.queryByRole("button", { name: /방문 날짜/ })).not.toBeInTheDocument();
   });
 
+  it("folds the market-day rule and next date into one compact card on Korean mobile", () => {
+    const { rerender } = render(<MarketDetail mobile market={marketFixture} today={new Date(2026, 9, 3)} onClose={vi.fn()} />);
+
+    const card = screen.getByRole("region", { name: "다음 장날" });
+    expect(card).toHaveTextContent("날짜 끝자리가 5, 0인 날");
+    expect(card).toHaveTextContent("10월 5일 월");
+    expect(within(card).getByText("D-2")).toBeInTheDocument();
+    expect(screen.queryByText("장날 규칙")).not.toBeInTheDocument();
+    expect(screen.queryByText(/기준이에요/)).not.toBeInTheDocument();
+
+    rerender(<MarketDetail mobile market={marketFixture} today={new Date(2026, 9, 5)} onClose={vi.fn()} />);
+    expect(within(screen.getByRole("region", { name: "다음 장날" })).getByText("오늘")).toHaveClass("is-today");
+  });
+
   it("uses English date labels and market-day status in the English calendar", () => {
     render(<MarketDetail locale="en" market={marketFixture} today={new Date(2026, 9, 3)} onClose={vi.fn()} />);
 

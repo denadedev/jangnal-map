@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { MobileTabBar } from "./mobile-tab-bar";
+import { MobileTabBar, resetCurrentFlyerKey } from "./mobile-tab-bar";
 
 const serveFlyers = (key: string | null) => vi.stubGlobal("fetch", vi.fn(async () => Response.json({ key })));
 
@@ -10,6 +10,7 @@ describe("MobileTabBar", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     window.localStorage.clear();
+    resetCurrentFlyerKey();
   });
 
   it("marks the current tab and counts tab taps", async () => {
@@ -36,6 +37,8 @@ describe("MobileTabBar", () => {
     render(<MobileTabBar active="week" />);
     await waitFor(() => expect(window.localStorage.getItem("jangnal:seen-flyers")).toBe("a,b"));
     expect(screen.queryByText("새 전단")).not.toBeInTheDocument();
+    // 탭을 옮겨도 같은 화면 세션에서는 다시 묻지 않는다.
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 
   it("shows no dot when every current flyer was seen", async () => {

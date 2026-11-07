@@ -154,4 +154,82 @@ describe("MarketMap current location", () => {
 
     expect(onLocationError).toHaveBeenCalledWith(expect.stringContaining("위치 권한"), true);
   });
+  it("sorts by distance on load when location permission was already granted, without moving the map", async () => {
+    const morph = vi.fn();
+    class FakeMap {
+      morph = morph;
+      getZoom = () => 7;
+      getBounds = () => ({
+        getNE: () => ({ lat: () => 38, lng: () => 130 }),
+        getSW: () => ({ lat: () => 33, lng: () => 124 }),
+      });
+    }
+    class FakeLatLng {}
+    class FakeMarker { setMap = vi.fn(); }
+    class FakePoint {}
+    window.naver = {
+      maps: {
+        Map: FakeMap,
+        LatLng: FakeLatLng,
+        Marker: FakeMarker,
+        Point: FakePoint,
+        Event: { addListener: () => ({}), removeListener: () => undefined },
+      },
+    } as unknown as NaverMapsNamespace;
+    const getCurrentPosition = vi.fn((success: PositionCallback) => success({
+      coords: { latitude: 35.1, longitude: 129.0 },
+    } as GeolocationPosition));
+    vi.stubGlobal("navigator", {
+      geolocation: { getCurrentPosition },
+      permissions: { query: vi.fn(async () => ({ state: "granted" })) },
+    });
+    const onLocationChange = vi.fn();
+
+    render(<MarketMap
+      markets={[]}
+      referenceDate={new Date(2026, 8, 7)}
+      selectedId={null}
+      clientId="test-client-id"
+      onSelect={() => undefined}
+      onLocationChange={onLocationChange}
+    />);
+
+    await waitFor(() => expect(onLocationChange).toHaveBeenCalledWith({ latitude: 35.1, longitude: 129.0 }));
+    expect(morph).not.toHaveBeenCalled();
+  });
+
+  it("does not ask for location on load when permission was not granted yet", async () => {
+    class FakeMap {
+      getZoom = () => 7;
+      getBounds = () => ({
+        getNE: () => ({ lat: () => 38, lng: () => 130 }),
+        getSW: () => ({ lat: () => 33, lng: () => 124 }),
+      });
+    }
+    window.naver = {
+      maps: {
+        Map: FakeMap,
+        LatLng: class {},
+        Marker: class { setMap = vi.fn(); },
+        Point: class {},
+        Event: { addListener: () => ({}), removeListener: () => undefined },
+      },
+    } as unknown as NaverMapsNamespace;
+    const getCurrentPosition = vi.fn();
+    const query = vi.fn(async () => ({ state: "prompt" }));
+    vi.stubGlobal("navigator", { geolocation: { getCurrentPosition }, permissions: { query } });
+
+    render(<MarketMap
+      markets={[]}
+      referenceDate={new Date(2026, 8, 7)}
+      selectedId={null}
+      clientId="test-client-id"
+      onSelect={() => undefined}
+      onLocationChange={() => undefined}
+    />);
+
+    await waitFor(() => expect(query).toHaveBeenCalled());
+    await Promise.resolve();
+    expect(getCurrentPosition).not.toHaveBeenCalled();
+  });
 });

@@ -11,6 +11,7 @@ export interface NaverMapInstance {
   autoResize: () => void;
   morph: (position: NaverLatLng, zoom: number) => void;
   fitBounds: (bounds: { south: number; west: number; north: number; east: number }, margin?: { top: number; right: number; bottom: number; left: number }) => void;
+  panToBounds: (bounds: { south: number; west: number; north: number; east: number }, transitionOptions?: { duration?: number; easing?: string }, margin?: { top: number; right: number; bottom: number; left: number }) => void;
   panTo: (position: NaverLatLng) => void;
   panBy: (offset: NaverPoint) => void;
   setOptions: (options: { draggable?: boolean; padding?: { top: number; right: number; bottom: number; left: number } }) => void;

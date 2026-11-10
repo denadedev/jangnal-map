@@ -33,7 +33,7 @@ describe("buildMapItems", () => {
     ], 7, bounds);
 
     expect(items).toEqual([
-      expect.objectContaining({ kind: "cluster", count: 3 }),
+      expect.objectContaining({ kind: "cluster", count: 3, bounds: { north: 37.2, south: 37, east: 127.2, west: 127 } }),
     ]);
   });
 

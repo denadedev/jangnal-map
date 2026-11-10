@@ -286,10 +286,10 @@ export function MarketMap({ locale = "ko", overlay, fitMarkets, markets, storyMa
           const listener = naver.maps.Event.addListener(marker, "click", () => {
             if (cameraSnapshotRef.current) cameraSnapshotRef.current.shouldRestore = false;
             // panTo 애니메이션 중에 setZoom을 부르면 이동 전 중심 기준으로 확대돼 엉뚱한 곳이 잡힌다.
-            // 묶음에 든 시장들이 모두 보이도록 한 번에 맞춘다.
+            // 묶음에 든 시장들이 모두 보이도록 한 번의 카메라 이동으로 맞춘다.
             const { bounds } = item;
             if (bounds.south === bounds.north && bounds.west === bounds.east) map.morph(new naver.maps.LatLng(bounds.south, bounds.west), 12);
-            else map.fitBounds(bounds, { top: 60, right: 40, bottom: 60, left: 40 });
+            else map.panToBounds(bounds, {}, { top: 60, right: 40, bottom: 60, left: 40 });
           });
           return { marker, listener };
         }

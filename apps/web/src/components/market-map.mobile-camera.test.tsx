@@ -59,7 +59,7 @@ function installFakeNaverMap({ zoom = 12, projection = "available" }: { zoom?: n
   class FakeMap {
     constructor() { mapInstance = this; }
     morph = vi.fn();
-    fitBounds = vi.fn();
+    panToBounds = vi.fn();
     panTo = vi.fn((position: FakeLatLng) => {
       panTo(position);
       center = { latitude: position.lat(), longitude: position.lng() };
@@ -253,8 +253,9 @@ describe("MarketMap mobile camera behavior", () => {
     await waitFor(() => expect(fake.markerOptions.some((marker) => marker.title.includes("이 지역 시장 2곳"))).toBe(true));
     fake.clickMarkerContaining("이 지역 시장 2곳");
 
-    expect(fake.map.fitBounds).toHaveBeenCalledWith(
+    expect(fake.map.panToBounds).toHaveBeenCalledWith(
       { north: 37.6, south: 37.5, east: 127.1, west: 127 },
+      expect.any(Object),
       expect.any(Object),
     );
     expect(fake.panTo).not.toHaveBeenCalled();

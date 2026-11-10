@@ -9,7 +9,7 @@ export interface CoordinateBounds {
 
 export type MapItem =
   | { kind: "market"; market: LocatedMarket }
-  | { kind: "cluster"; id: string; latitude: number; longitude: number; count: number };
+  | { kind: "cluster"; id: string; latitude: number; longitude: number; count: number; bounds: CoordinateBounds };
 
 export type LocatedMarket = PublicMarket & { latitude: number; longitude: number };
 
@@ -50,6 +50,9 @@ export function buildMapItems(
     if (group.length === 1 && onlyMarket) return { kind: "market" as const, market: onlyMarket };
     const latitude = group.reduce((sum, market) => sum + market.latitude, 0) / group.length;
     const longitude = group.reduce((sum, market) => sum + market.longitude, 0) / group.length;
-    return { kind: "cluster" as const, id: `cluster-${zoom}-${key}`, latitude, longitude, count: group.length };
+    const latitudes = group.map((market) => market.latitude);
+    const longitudes = group.map((market) => market.longitude);
+    const bounds = { north: Math.max(...latitudes), south: Math.min(...latitudes), east: Math.max(...longitudes), west: Math.min(...longitudes) };
+    return { kind: "cluster" as const, id: `cluster-${zoom}-${key}`, latitude, longitude, count: group.length, bounds };
   });
 }

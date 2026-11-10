@@ -59,6 +59,7 @@ function installFakeNaverMap({ zoom = 12, projection = "available" }: { zoom?: n
   class FakeMap {
     constructor() { mapInstance = this; }
     morph = vi.fn();
+    fitBounds = vi.fn();
     panTo = vi.fn((position: FakeLatLng) => {
       panTo(position);
       center = { latitude: position.lat(), longitude: position.lng() };
@@ -245,15 +246,19 @@ describe("MarketMap mobile camera behavior", () => {
     await waitFor(() => expect(fake.markerOptions.some((marker) => marker.icon.content.includes("zoom 시장"))).toBe(true));
   });
 
-  it("zooms and recenters a tapped cluster", async () => {
+  it("fits the map to the markets inside a tapped cluster in one camera move", async () => {
     const fake = installFakeNaverMap({ zoom: 7 });
     renderMap({ markets: [market("cluster-a", 37.5, 127), market("cluster-b", 37.6, 127.1)] });
 
     await waitFor(() => expect(fake.markerOptions.some((marker) => marker.title.includes("이 지역 시장 2곳"))).toBe(true));
     fake.clickMarkerContaining("이 지역 시장 2곳");
 
-    expect(fake.panTo).toHaveBeenCalledTimes(1);
-    expect(fake.setZoom).toHaveBeenCalledWith(9);
+    expect(fake.map.fitBounds).toHaveBeenCalledWith(
+      { north: 37.6, south: 37.5, east: 127.1, west: 127 },
+      expect.any(Object),
+    );
+    expect(fake.panTo).not.toHaveBeenCalled();
+    expect(fake.setZoom).not.toHaveBeenCalled();
   });
 
   it("puts a speech bubble before the name of markets with visitor stories", async () => {

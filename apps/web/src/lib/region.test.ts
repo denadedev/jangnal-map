@@ -24,7 +24,7 @@ describe("region lookup", () => {
   });
 
   it("maps the 전북특별차치도 typo to jeonbuk", () => {
-    const market = periodicMarkets.find((item) => (item.roadAddress ?? item.lotAddress ?? "").startsWith("전북특별차치도"))!;
+    const market = { ...periodicMarkets[0], roadAddress: "전북특별차치도 남원시 용성로 1", lotAddress: null };
     expect(getMarketRegion(market)?.slug).toBe("jeonbuk");
   });
 

@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { createCatalog } from "../../../lib/catalog/catalog";
 import { loadJsonSnapshot } from "../../../lib/catalog/json-source";
+import { getMarketDisplayName } from "../../../lib/market-display-name";
 import { createMarketSlug, SITE_URL } from "../../../lib/market-seo";
 import MarketPage, { generateMetadata } from "./page";
 
@@ -63,7 +64,7 @@ describe("market detail route", () => {
 
     const { container } = render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
 
-    expect(screen.getByRole("heading", { name: new RegExp(`${market.name} 장날 날짜`) })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: new RegExp(`${getMarketDisplayName(market)} 장날 날짜`) })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "장날 날짜" })).toBeInTheDocument();
     expect(screen.getByText(/장날은 매월|매일 운영|운영 일정은 확인이 필요/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "전국 장날 지도에서 보기" })).toBeInTheDocument();
@@ -138,5 +139,16 @@ describe("market detail route", () => {
       ["경기 장날", `${SITE_URL}/jangnal/gyeonggi`],
       ["용인중앙시장", undefined],
     ]);
+  });
+
+  it("shows the searched name in the heading and keeps the official name for display-name markets", async () => {
+    const market = reviewedMarkets.find((item) => item.name === "정이있는구포시장")!;
+
+    const { container } = render(await MarketPage({ params: Promise.resolve({ slug: createMarketSlug(market) }) }));
+    const place = JSON.parse(container.querySelector('script[type="application/ld+json"]')!.textContent!);
+
+    expect(screen.getByRole("heading", { level: 1, name: "구포시장 장날 날짜" })).toBeInTheDocument();
+    expect(screen.getByText("정식 명칭 정이있는구포시장")).toBeInTheDocument();
+    expect(place).toMatchObject({ name: "구포시장", alternateName: "정이있는구포시장" });
   });
 });

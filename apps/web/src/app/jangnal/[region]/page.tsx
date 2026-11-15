@@ -8,6 +8,7 @@ import { MapLinkButton } from "../../../components/map-link-button";
 import type { Catalog } from "../../../lib/catalog/catalog";
 import { loadCatalog } from "../../../lib/catalog/load";
 import { DAY_PATTERNS, formatPatternLabel, groupByDistrict } from "../../../lib/jangnal-landing";
+import { getMarketDisplayName } from "../../../lib/market-display-name";
 import { getMarketPagePath, SITE_URL } from "../../../lib/market-seo";
 import { findRegionBySlug, type Region } from "../../../lib/region";
 import { OG_IMAGE } from "../../../lib/site-config";
@@ -60,7 +61,7 @@ export default async function RegionPage({ params }: RegionPageProps) {
     itemListElement: markets.map((market, index) => ({
       "@type": "ListItem",
       position: index + 1,
-      name: market.name,
+      name: getMarketDisplayName(market),
       ...(linkById.get(market.id)!.reviewed ? { url: `${SITE_URL}${getMarketPagePath(market)}` } : {}),
     })),
   };

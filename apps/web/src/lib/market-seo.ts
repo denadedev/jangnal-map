@@ -1,4 +1,5 @@
 import type { PublicMarket } from "./market";
+import { getMarketDisplayName } from "./market-display-name";
 import type { MarketHighlight } from "./market-highlight";
 import { formatScheduleDates, formatSchedulePattern } from "./market-view";
 import { SITE_URL } from "./site-config";
@@ -21,12 +22,12 @@ export function createBreadcrumbJsonLd(items: [name: string, path?: string][]) {
 
 export function createMarketScheduleAnswer(market: PublicMarket): string {
   if (market.schedule.kind === "digit-pair") {
-    return `${market.name} 장날은 매월 ${formatScheduleDates(market)}입니다.`;
+    return `${getMarketDisplayName(market)} 장날은 매월 ${formatScheduleDates(market)}입니다.`;
   }
   if (market.schedule.kind === "daily") {
-    return `${market.name}은 상설시장입니다. 점포별 영업일과 정기휴무는 방문 전 확인하세요.`;
+    return `${getMarketDisplayName(market)}은 상설시장입니다. 점포별 영업일과 정기휴무는 방문 전 확인하세요.`;
   }
-  return `${market.name}의 운영 일정은 확인이 필요합니다.`;
+  return `${getMarketDisplayName(market)}의 운영 일정은 확인이 필요합니다.`;
 }
 
 const getRegion = (market: PublicMarket): string => {
@@ -44,6 +45,7 @@ export function createMarketSeoText(market: PublicMarket, highlights: MarketHigh
   const region = getRegion(market);
   const locationPrefix = region ? `${region} ` : "";
   const picks = createVisitorPicks(highlights);
+  const name = getMarketDisplayName(market);
 
   if (market.onnuri && market.schedule.kind !== "unknown") {
     const total = market.onnuri.totalCount.toLocaleString("ko-KR");
@@ -54,31 +56,31 @@ export function createMarketSeoText(market: PublicMarket, highlights: MarketHigh
       : "매일 운영";
     return {
       title: market.schedule.kind === "digit-pair"
-        ? `${market.name} 장날 날짜 (${schedule}) | 오늘 장날`
-        : `${market.name} 영업일 · 상설시장 | 오늘 장날`,
+        ? `${name} 장날 날짜 (${schedule}) | 오늘 장날`
+        : `${name} 영업일 · 상설시장 | 오늘 장날`,
       description: market.schedule.kind === "digit-pair"
-        ? `${locationPrefix}${market.name} 장날은 매월 ${formatScheduleDates(market)}입니다.${picks} 온누리상품권 가맹점 ${total}곳, 디지털 ${digital}곳·지류 ${paper}곳, 주소와 주차 정보를 확인하세요.`
-        : `${locationPrefix}${market.name}은 상설시장입니다.${picks} 점포별 영업일과 휴무를 확인하세요. 온누리상품권 가맹점 ${total}곳, 디지털 ${digital}곳·지류 ${paper}곳, 주소와 주차 정보를 제공합니다.`,
+        ? `${locationPrefix}${name} 장날은 매월 ${formatScheduleDates(market)}입니다.${picks} 온누리상품권 가맹점 ${total}곳, 디지털 ${digital}곳·지류 ${paper}곳, 주소와 주차 정보를 확인하세요.`
+        : `${locationPrefix}${name}은 상설시장입니다.${picks} 점포별 영업일과 휴무를 확인하세요. 온누리상품권 가맹점 ${total}곳, 디지털 ${digital}곳·지류 ${paper}곳, 주소와 주차 정보를 제공합니다.`,
     };
   }
 
   if (market.schedule.kind === "digit-pair") {
     const schedule = formatSchedulePattern(market);
     return {
-      title: `${market.name} 장날 날짜 (${schedule}) | 오늘 장날`,
-      description: `${locationPrefix}${market.name} 장날은 매월 ${formatScheduleDates(market)}입니다.${picks} 주소와 전화, 주차 정보를 확인하고 전국 장날 지도에서 위치를 찾아보세요.`,
+      title: `${name} 장날 날짜 (${schedule}) | 오늘 장날`,
+      description: `${locationPrefix}${name} 장날은 매월 ${formatScheduleDates(market)}입니다.${picks} 주소와 전화, 주차 정보를 확인하고 전국 장날 지도에서 위치를 찾아보세요.`,
     };
   }
 
   if (market.schedule.kind === "daily") {
     return {
-      title: `${market.name} 영업일 · 상설시장 | 오늘 장날`,
-      description: `${locationPrefix}${market.name}은 상설시장입니다.${picks} 점포별 영업일과 휴무, 주소와 전화, 주차 정보를 확인하고 전국 장날 지도에서 위치를 찾아보세요.`,
+      title: `${name} 영업일 · 상설시장 | 오늘 장날`,
+      description: `${locationPrefix}${name}은 상설시장입니다.${picks} 점포별 영업일과 휴무, 주소와 전화, 주차 정보를 확인하고 전국 장날 지도에서 위치를 찾아보세요.`,
     };
   }
 
   return {
-    title: `${market.name} 전통시장 정보 | 오늘 장날`,
-    description: `${locationPrefix}${market.name}의 주소와 방문 정보를 확인해 보세요.${picks} 운영 일정은 확인이 필요합니다.`,
+    title: `${name} 전통시장 정보 | 오늘 장날`,
+    description: `${locationPrefix}${name}의 주소와 방문 정보를 확인해 보세요.${picks} 운영 일정은 확인이 필요합니다.`,
   };
 }

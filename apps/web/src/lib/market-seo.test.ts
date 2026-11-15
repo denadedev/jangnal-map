@@ -105,3 +105,17 @@ describe("market SEO copy", () => {
     expect(isMarketIndexable(closed)).toBe(false);
   });
 });
+
+describe("market display name", () => {
+  it("검색하는 이름이 공식명과 다른 시장은 제목과 장날 안내에 통칭을 쓴다", () => {
+    const gupo: PublicMarket = { ...periodicMarket, id: "market-2279d714eda1634a", name: "정이있는구포시장", schedule: { kind: "digit-pair", days: [3, 8] } };
+
+    expect(createMarketSeoText(gupo).title).toBe("구포시장 장날 날짜 (3·8일장) | 오늘 장날");
+    expect(createMarketScheduleAnswer(gupo)).toMatch(/^구포시장 장날은 매월/);
+    expect(createMarketSlug(gupo)).toMatch(/^정이있는구포시장-/);
+  });
+
+  it("목록에 없는 시장은 공식명을 그대로 쓴다", () => {
+    expect(createMarketSeoText(periodicMarket).title).toBe("용인 중앙시장 장날 날짜 (5·10일장) | 오늘 장날");
+  });
+});

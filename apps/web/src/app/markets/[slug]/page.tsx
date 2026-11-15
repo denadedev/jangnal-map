@@ -19,6 +19,7 @@ import {
   getMarketPagePath,
   SITE_URL,
 } from "../../../lib/market-seo";
+import { getMarketDisplayName } from "../../../lib/market-display-name";
 import { formatSchedulePattern } from "../../../lib/market-view";
 import { getMarketDistrict, getMarketRegion } from "../../../lib/region";
 import styles from "./page.module.css";
@@ -71,11 +72,12 @@ export default async function MarketPage({ params }: MarketPageProps) {
   const address = market.roadAddress ?? market.lotAddress ?? "주소 정보 없음";
   const mapHref = `/?when=all&market=${encodeURIComponent(market.id)}`;
   const hasCoordinates = market.latitude !== null && market.longitude !== null;
+  const displayName = getMarketDisplayName(market);
   const pageTitle = market.schedule.kind === "digit-pair"
-    ? `${market.name} 장날 날짜`
+    ? `${displayName} 장날 날짜`
     : market.schedule.kind === "daily"
-      ? `${market.name} 영업일`
-      : `${market.name} 전통시장 정보`;
+      ? `${displayName} 영업일`
+      : `${displayName} 전통시장 정보`;
   const relatedMarkets = catalog.findRelatedMarkets(market);
   const highlights = catalog.findMarketHighlights(market.id);
   const submissionsEnabled = highlightSubmissionsEnabled();
@@ -85,7 +87,8 @@ export default async function MarketPage({ params }: MarketPageProps) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Place",
-    name: market.name,
+    name: displayName,
+    ...(displayName !== market.name ? { alternateName: market.name } : {}),
     url: `${SITE_URL}${getMarketPagePath(market)}`,
     ...(market.roadAddress ?? market.lotAddress
       ? {
@@ -112,7 +115,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
   const breadcrumbJsonLd = createBreadcrumbJsonLd([
     ["오늘 장날", "/"],
     ...(regionLanding ? [["장날", "/jangnal"], [`${regionLanding.shortName} 장날`, `/jangnal/${regionLanding.slug}`]] as [string, string][] : []),
-    [market.name],
+    [displayName],
   ]);
 
   return (
@@ -139,6 +142,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
           <section className={styles.hero}>
             <p className={styles.eyebrow}>{market.marketType}</p>
             <h1>{pageTitle}</h1>
+            {displayName !== market.name ? <p className={styles.officialName}>정식 명칭 {market.name}</p> : null}
             <span className={styles.schedule}>{formatSchedulePattern(market)}</span>
           </section>
           <section className={styles.section} aria-labelledby="schedule-answer-heading">
@@ -189,7 +193,7 @@ export default async function MarketPage({ params }: MarketPageProps) {
                 {relatedMarkets.map((relatedMarket) => (
                   <li key={relatedMarket.id}>
                     <a href={getMarketPagePath(relatedMarket)}>
-                      {relatedMarket.name} 장날 {formatSchedulePattern(relatedMarket)}
+                      {getMarketDisplayName(relatedMarket)} 장날 {formatSchedulePattern(relatedMarket)}
                     </a>
                   </li>
                 ))}

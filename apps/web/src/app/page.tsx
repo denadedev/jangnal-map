@@ -5,6 +5,7 @@ import { preloadMapResources } from "../lib/map-preload";
 import { loadCatalog } from "../lib/catalog/load";
 import { formatSchedulePattern, getTodayMarkets } from "../lib/market-view";
 import { getMarketPagePath } from "../lib/market-path";
+import { getMarketDisplayName } from "../lib/market-display-name";
 import { SITE_URL } from "../lib/market-seo";
 import { highlightSubmissionsEnabled } from "../lib/highlight-submission-handler";
 import { SITE_OPEN_GRAPH } from "../lib/site-config";
@@ -52,7 +53,7 @@ export default async function HomePage() {
         reviewedMarketIds={indexableReviewedMarkets.map((market) => market.id)}
         reviewedGuides={indexableReviewedMarkets.map((market) => ({
           id: market.id,
-          name: market.name,
+          name: getMarketDisplayName(market),
           schedule: formatSchedulePattern(market),
           href: getMarketPagePath(market),
           summary: featuredMarketIds.has(market.id) ? findMarketEditorial(market.id)?.summary : undefined,

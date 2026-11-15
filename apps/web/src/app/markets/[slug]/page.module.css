@@ -9,6 +9,7 @@
 .hero { border-bottom: 1px solid var(--soft-line); }
 .eyebrow { margin: 0 0 8px; color: var(--persimmon-dark); font-size: 15px; font-weight: 700; }
 .hero h1 { margin: 0; font-size: clamp(28px, 5vw, 42px); letter-spacing: -0.01em; }
+.officialName { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
 .schedule { display: inline-flex; margin-top: 16px; border-radius: var(--r-pill); padding: 7px 11px; background: var(--persimmon-soft); color: var(--persimmon-dark); font-size: 15px; font-weight: 700; }
 .section { border-bottom: 1px solid var(--soft-line); }
 .section h2 { margin: 0 0 18px; font-size: 18px; }

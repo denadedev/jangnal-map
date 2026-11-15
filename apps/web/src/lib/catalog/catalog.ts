@@ -2,6 +2,7 @@ import type { PublicMarket } from "../market";
 import type { MarketEditorialContent } from "../market-editorial";
 import type { MarketHighlight } from "../market-highlight";
 import { getMarketBrowsePath, createMarketSlug } from "../market-path";
+import { getMarketDisplayName } from "../market-display-name";
 import { getMarketDistrict, getMarketRegion, REGIONS, type Region, type RegionSlug } from "../region";
 import { buildRegionGuide } from "../region-guide";
 import { getPatternOf, type DayPattern, type MarketLink } from "../jangnal-dates";
@@ -91,7 +92,7 @@ export function createCatalog({ markets, editorial, highlights }: CatalogSnapsho
       const reviewed = reviewedMarketIds.has(market.id);
       return {
         id: market.id,
-        name: market.name,
+        name: getMarketDisplayName(market),
         district: getMarketDistrict(market),
         marketType: market.marketType,
         schedule: market.schedule,

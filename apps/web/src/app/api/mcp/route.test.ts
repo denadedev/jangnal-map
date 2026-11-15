@@ -37,7 +37,7 @@ describe("POST /api/mcp", () => {
 
   it("lists the two read-only tools", async () => {
     const { result } = await rpc("tools/list");
-    expect(result.tools.map((tool: { name: string }) => tool.name)).toEqual(["find_markets", "get_market"]);
+    expect(result.tools.map((tool: { name: string }) => tool.name)).toEqual(["search_markets", "find_markets", "get_market"]);
     expect(result.tools.every((tool: { annotations: { readOnlyHint: boolean } }) => tool.annotations.readOnlyHint)).toBe(true);
   });
 
@@ -73,6 +73,24 @@ describe("POST /api/mcp", () => {
     expect(data.nextMarketDates.length).toBeGreaterThan(0);
     expect(data.nextMarketDates.every((date: string) => /[50]$/.test(date))).toBe(true);
     expect(data.visitorStories).toEqual([{ category: "먹거리", name: "백암순대", description: "국밥이 맛있어요" }]);
+  });
+
+  it("finds a market by the name people say even when it is not open today", async () => {
+    const { data } = await callTool("search_markets", { query: "광천장" });
+    expect(data.markets.map((market: { name: string }) => market.name)).toEqual(expect.arrayContaining(["광천전통시장"]));
+    for (const market of data.markets) expect(market.nextMarketDate).toMatch(/[49]$/);
+  });
+
+  it("finds a market by its common name", async () => {
+    const { data } = await callTool("search_markets", { query: "구포시장" });
+    expect(data.markets[0].name).toBe("구포시장");
+    expect(data.markets[0].schedule).toContain("3일");
+  });
+
+  it("lists a whole province for a province name", async () => {
+    const { data } = await callTool("search_markets", { query: "제주", limit: 50 });
+    expect(data.markets.length).toBeGreaterThan(3);
+    expect(data.markets.every((market: { region: string }) => market.region === "제주")).toBe(true);
   });
 
   it("reports an unknown market id as a tool error", async () => {
